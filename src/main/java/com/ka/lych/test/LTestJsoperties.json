@@ -1,0 +1,25 @@
+{
+	"testString" : "Hallo Parser",	
+	"intArray" : [5,4,3,2,1],
+	"specialGroup" : 
+	    {
+			"koha" : "PR",
+			"ldap" : "Praktikant"
+		},
+	"obsIntArray" : [10, 9, 8],
+        "obsBooleanArray" : [ true, false, true ],
+	"stringArray" : ["hallo", "Du"],
+        "obsDoubleArray" : [3.1562],
+	"testObservable" : "Hallo, String Observable",
+	"obsStringArray" : ["hey", "observable", "string"],	
+	"userGroups" : [
+		{
+			"koha" : "ST",
+			"ldap" : "Schueler"
+		},	
+		{
+			"koha" : "TE",
+			"ldap" : "Lehrer"
+		}
+	]
+}
