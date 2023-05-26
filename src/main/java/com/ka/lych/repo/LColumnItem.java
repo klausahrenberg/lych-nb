@@ -31,7 +31,7 @@ public class LColumnItem {
         return linkColumns != null ? linkColumns[0] : null;
     }
 
-    public boolean isGeneratedValue() {
+    public boolean isGeneratedValue() {        
         return field.isGenerated();
     }
 
@@ -62,6 +62,10 @@ public class LColumnItem {
     
     public boolean isLinked() {
         return (linkColumns != null);
+    }
+    
+    public boolean isIndex() {
+        return field.isIndex();
     }
 
     public LReflections.LField[] getLinkColumns() {

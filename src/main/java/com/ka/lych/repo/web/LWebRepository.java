@@ -60,11 +60,6 @@ public class LWebRepository implements
     }
 
     @Override
-    public LDataServiceState getState() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
-    @Override
     public LFuture<LObservable<LDataServiceState>, LDataException> setConnected(boolean connected) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }

@@ -59,13 +59,13 @@ public class LSqlRepository implements
     private LString password;
     @Xml
     @Json
-    private LBoolean readOnly;
+    private LBoolean readOnly = new LBoolean(true);
 
     private final LoSqlDatabaseType DEFAULT_DATABASE_TYPE = LoSqlDatabaseType.DERBY_EMBEDDED;
     protected final static String KEYWORD_SQL_QUOTATIONMARK = "'";
     protected final static String KEYWORD_COL_COUNT = "numberof";
     protected final static String KEYWORD_SQL_WILDCARD = "%";
-    protected LObservable<LDataServiceState> state;
+    protected LObservable<LDataServiceState> state = new LObservable<>(LDataServiceState.NOT_AVAILABLE);    
     private final LMap<Class, LList<LColumnItem>> columnsUnlinked = new LMap<>();
     private final LMap<LField, LMap<String, ? extends Record>> linkedMaps = new LMap<>();
     private static LEventHandler<LErrorEvent> onError;
@@ -264,6 +264,15 @@ public class LSqlRepository implements
 
     public LSqlRepository(Object owner) {
         this.owner = owner;
+        state.addListener(change -> {
+            if (available()) {
+                try {
+                    this.checkTables();
+                } catch (Exception lde) {
+                    LLog.error(this, "Can't check database tables.", lde, true);
+                }
+            }
+        });
     }
 
     public <T extends LEvent> void addEventHandler(String eventPropertyName, ILHandler<? super T> eventHandler) {
@@ -351,8 +360,8 @@ public class LSqlRepository implements
             LLog.debug(this, "Connect to: " + url);
             con = DriverManager.getConnection(url, props);
             queryStatement = con.createStatement();
-            if (getState() == LDataServiceState.REQUESTING) {
-                setState(LDataServiceState.AVAILABLE);
+            if (state().get() == LDataServiceState.REQUESTING) {
+                state.set(LDataServiceState.AVAILABLE);
             } else {
                 setConnected(false);
             }
@@ -364,8 +373,8 @@ public class LSqlRepository implements
                 }
             }
             con = null;
-            if (getState() == LDataServiceState.REQUESTING) {
-                setState(LDataServiceState.NOT_AVAILABLE);
+            if (state().get() == LDataServiceState.REQUESTING) {
+                state.set(LDataServiceState.NOT_AVAILABLE);
                 notifyOnError(e);
             }
             throw new LDataException(this, e.getMessage(), e);
@@ -374,38 +383,10 @@ public class LSqlRepository implements
     }
 
     @Override
-    public LObservable<LDataServiceState> state() {
-        if (state == null) {
-            state = new LObservable<>(LDataServiceState.NOT_AVAILABLE);
-            state.addListener(change -> {
-                if (change.getNewValue() == LDataServiceState.AVAILABLE) {
-                    try {
-                        this.checkTables();
-                    } catch (Exception lde) {
-                        LLog.error(this, "Can't check database tables.", lde, true);
-                    }
-                }
-            });
-        }
-        return state;
-    }
+    public LObservable<LDataServiceState> state() { return state; }
 
     @Override
-    public LDataServiceState getState() {
-        return (state != null ? state.get() : LDataServiceState.NOT_AVAILABLE);
-    }
-
-    protected void setState(LDataServiceState state) {
-        state().set(state);
-    }
-
-    @Override
-    public LBoolean readOnly() {
-        if (readOnly == null) {
-            readOnly = new LBoolean(true);
-        }
-        return readOnly;
-    }
+    public LBoolean readOnly() { return readOnly; }
 
     private boolean isReadyForConnect() {
         switch (getDatabaseType()) {
@@ -459,9 +440,9 @@ public class LSqlRepository implements
     public LFuture<LObservable<LDataServiceState>, LDataException> setConnected(boolean connected) {
         if (connected) {
             //Verbindungsaufbau
-            if (getState() == LDataServiceState.NOT_AVAILABLE) {
+            if (state().get() == LDataServiceState.NOT_AVAILABLE) {
                 if (isReadyForConnect()) {
-                    setState(LDataServiceState.REQUESTING);
+                    state.set(LDataServiceState.REQUESTING);
                     return LFuture.execute(task -> connect());
                 } else {
                     return LFuture.error(new LDataException(this, "Can't connect because of missing or incomplete connection details"));
@@ -488,7 +469,7 @@ public class LSqlRepository implements
             }
             queryStatement = null;
             con = null;
-            setState(LDataServiceState.NOT_AVAILABLE);
+            state.set(LDataServiceState.NOT_AVAILABLE);
         }
         return LFuture.value(state());
     }
@@ -505,7 +486,7 @@ public class LSqlRepository implements
 
     protected boolean existsColumn(String tableName, String columnName) {
         boolean result = false;
-        if (getState() == LDataServiceState.AVAILABLE) {
+        if (available()) {
             try {
                 LSqlResultSet rs = this.executeQuery("select count(" + columnName + ") from " + tableName);
                 rs.close();
@@ -614,7 +595,7 @@ public class LSqlRepository implements
 
     @Override
     public void createTable(Class<? extends Record> dataClass) throws LDataException {
-        if ((!isReadOnly()) && (getState() == LDataServiceState.AVAILABLE)) {
+        if ((!isReadOnly()) && (available())) {
             var columnItems = getColumnsWithoutLinks(dataClass);
             StringBuilder sql = new StringBuilder();
             String tableName = getTableName(dataClass);
@@ -723,7 +704,7 @@ public class LSqlRepository implements
 
     @Override
     public void removeTable(Class dataClass) throws LDataException {
-        if (getState() == LDataServiceState.AVAILABLE) {
+        if (available()) {
             String sql = "drop table " + this.getTableName(dataClass, null);
             executeUpdate(sql);
         }
@@ -731,7 +712,7 @@ public class LSqlRepository implements
 
     @Override
     public void addColumn(Class dataClass, LField column) throws LDataException {
-        if (getState() == LDataServiceState.AVAILABLE) {
+        if (available()) {
             throw new UnsupportedOperationException("Not supported yet.");
             /*String sql = "alter table " + table.getTableName() + " ";
              sql += " add column " + column.getName() + " " + this.getSQLType(column, column.isLinkedColumn());
@@ -742,7 +723,7 @@ public class LSqlRepository implements
 
     @Override
     public void removeColumn(Class dataClass, LField column) throws LDataException {
-        if (getState() == LDataServiceState.AVAILABLE) {
+        if (available()) {
             throw new UnsupportedOperationException("Not supported yet.");
             /*String sql = "alter table " + table.getTableName() + " ";
              sql += " drop column " + column.getName();
@@ -798,7 +779,7 @@ public class LSqlRepository implements
             var fields = LRecord.getFields(rcd.getClass());
             LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(rcd);
             if (primaryKeyComplete != LKeyCompleteness.KEY_NOT_COMPLETE) {
-                if (getState() == LDataServiceState.AVAILABLE) {
+                if (available()) {
                     try {
                         var columnItems = getColumnsWithoutLinks(rcd.getClass());
                         String sqlFilter = null;
@@ -879,7 +860,7 @@ public class LSqlRepository implements
                         throw lde;
                     }
                 } else {
-                    throw new LDataException(this, "Service is not available. Wrong service state: " + getState());
+                    throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
                 }
             } else {
                 throw new LDataException(this, "Key of record is not complete: " + primaryKeyComplete + " / record: " + rcd);
@@ -891,7 +872,7 @@ public class LSqlRepository implements
     public void persistValue(Record rcd, LObservable obs) throws LDataException {
         var fields = LRecord.getFields(rcd.getClass());
         LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(rcd);
-        if ((getState() == LDataServiceState.AVAILABLE) && (primaryKeyComplete != LKeyCompleteness.KEY_NOT_COMPLETE)) {
+        if ((available()) && (primaryKeyComplete != LKeyCompleteness.KEY_NOT_COMPLETE)) {
             try {
                 var columns = getColumnsWithoutLinks(rcd.getClass());
                 var fieldName = LRecord.getFieldName(rcd, obs);
@@ -1078,7 +1059,7 @@ public class LSqlRepository implements
     public <T extends Record> LFuture<T, LDataException> remove(T rcd, Optional<? extends Record> parent) {
         return LFuture.<T, LDataException>execute(task -> {
             LList<LSqlRelationsItem> relations = null;
-            if (getState() == LDataServiceState.AVAILABLE) {
+            if (available()) {
                 var columnItems = getColumnsWithoutLinks(rcd.getClass());
                 startTransaction();
                 //TreeDatas     
@@ -1097,7 +1078,7 @@ public class LSqlRepository implements
                 }
                 commitTransaction();
             } else {
-                throw new LDataException(this, "Service is not available. Wrong service state: " + getState());
+                throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
             }
             return rcd;
         });
@@ -1105,11 +1086,11 @@ public class LSqlRepository implements
 
     @Override
     public void removeRelation(Record data, Record parent) throws LDataException {
-        if (getState() == LDataServiceState.AVAILABLE) {
+        if (available()) {
             var columnItems = getColumnsWithoutLinks(data.getClass());
             executeUpdate(getRelationDeleteStatement(getTableName(parent.getClass(), data.getClass()), getColumnsWithoutLinks(parent.getClass()), columnItems, parent, data));
         } else {
-            throw new LDataException(this, "Service is not available. Wrong service state: " + getState());
+            throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
         }
     }
 
@@ -1482,7 +1463,7 @@ public class LSqlRepository implements
         return result;
     }*/
     public Record fetchRecord(Class<? extends Record> rcdClass, LMap<String, Object> keyMap) throws LDataException, LParseException {
-        if (getState() == LDataServiceState.AVAILABLE) {
+        if (available()) {
             var columns = getColumnsWithoutLinks(rcdClass);
             Record rcd = null;
             //Create filter from keyMap
@@ -1513,7 +1494,7 @@ public class LSqlRepository implements
             }
             return rcd;
         } else {
-            throw new LDataException(this, "Service is not available. Wrong service state: " + getState());
+            throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
         }
     }
 
@@ -1552,7 +1533,7 @@ public class LSqlRepository implements
         Objects.requireNonNull(parent, "Parent can't be null - use Optional.empty()");
         Objects.requireNonNull(query, "Query can't be null - use Optional.empty()");
         return LFuture.<LList<T>, LDataException>execute(task -> {
-            if (getState() == LDataServiceState.AVAILABLE) {
+            if (available()) {
                 var result = new LList<T>();
                 StringBuilder sql = new StringBuilder();
                 if ((query.isPresent()) && (query.get().customSQL().isPresent())) {
@@ -1593,7 +1574,7 @@ public class LSqlRepository implements
                 }
                 return result;
             } else {
-                throw new LDataException(this, "Service is not available. Wrong service state: " + getState());
+                throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
             }
         });
     }

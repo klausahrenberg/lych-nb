@@ -290,11 +290,6 @@ public class LXmlRepository implements
     }
 
     @Override
-    public LDataServiceState getState() {
-        return LDataServiceState.AVAILABLE;
-    }
-
-    @Override
     public LBoolean readOnly() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }

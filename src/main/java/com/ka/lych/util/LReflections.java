@@ -31,6 +31,7 @@ import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Xml;
 import com.ka.lych.annotation.Ignore;
 import com.ka.lych.annotation.Generated;
+import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Late;
 import com.ka.lych.xml.LXmlUtils;
@@ -611,12 +612,14 @@ public abstract class LReflections {
         protected LRequiredClass requiredClass;
         private Boolean _id;
         private Boolean _late;
+        private Boolean _index;
         //protected Class requiredClass;
 
         public LField(Field field) {
             _field = field;
             _id = null;
             _late = null;
+            _index = null;
         }
 
         public Object get(Object instance) throws IllegalAccessException {
@@ -654,6 +657,13 @@ public abstract class LReflections {
                 _late = LReflections.existsAnnotation(_field, Late.class);
             }
             return _late;
+        }
+        
+        public boolean isIndex() {
+            if (_index == null) {
+                _index = LReflections.existsAnnotation(_field, Index.class);
+            }
+            return _index;
         }
 
         public boolean isGenerated() {

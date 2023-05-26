@@ -74,14 +74,16 @@ public interface ILRepository {
     public default void checkTables() throws LDataException {
         if (!isReadOnly()) {
             for (LDataShemeDefinition sd : DATA_SHEME) {
-                String tableName = getTableName(sd.parentClass, sd.childClass);
-                if (!existsTable(tableName)) {
-                    if (sd.childClass == null) {
-                        LLog.debug(this, "Create table '%s'...", tableName);
-                        createTable(sd.parentClass);
-                    } else {
-                        LLog.debug(this, "Create relation '%s'...", tableName);
-                        createRelation(sd.parentClass, sd.childClass);
+                if (sd.repository() == this) {
+                    String tableName = getTableName(sd.parentClass, sd.childClass);
+                    if (!existsTable(tableName)) {
+                        if (sd.childClass == null) {
+                            LLog.debug(this, "Create table '%s'...", tableName);
+                            createTable(sd.parentClass);
+                        } else {
+                            LLog.debug(this, "Create relation '%s'...", tableName);
+                            createRelation(sd.parentClass, sd.childClass);
+                        }
                     }
                 }
             }
@@ -101,9 +103,7 @@ public interface ILRepository {
         throw new LDataException(this, "Can't find tableName for class '" + parentClass.getName() + "'" + (childClass != null ? "(" + childClass.getName() + "'" : ""));
     }
 
-    public LObservable<LDataServiceState> state();
-
-    public LDataServiceState getState();
+    public LObservable<LDataServiceState> state();    
 
     public LBoolean readOnly();
 
@@ -111,12 +111,12 @@ public interface ILRepository {
         return (readOnly().isAbsent() || (readOnly().get() == Boolean.TRUE));
     }
 
-    public default boolean isAvailable() {
-        return (getState() == LDataServiceState.AVAILABLE);
+    public default boolean available() {
+        return ((state().isPresent()) && (state().get() == LDataServiceState.AVAILABLE));
     }
 
     public default void ifAvailable(Consumer<ILRepository> action) {
-        if (isAvailable()) {
+        if (available()) {
             action.accept(this);
         }
     }
@@ -150,7 +150,7 @@ public interface ILRepository {
     public void addColumn(Class dataClass, LField column) throws LDataException;
 
     public void removeColumn(Class dataClass, LField column) throws LDataException;
-    
+
     public default <R extends Record> LFuture<R, LDataException> persist(R rcd) {
         return persist(rcd, Optional.empty());
     }
