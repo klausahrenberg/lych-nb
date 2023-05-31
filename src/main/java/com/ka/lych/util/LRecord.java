@@ -75,20 +75,13 @@ public abstract class LRecord {
     }
 
     public static LObservable observable(Record record, LField field) {
-        if (field != null) {
-            try {
-                return (LObservable) field.get(record);
-            } catch (SecurityException | IllegalArgumentException | IllegalAccessException ex) {
-                throw new IllegalStateException(ex.getMessage(), ex);
-            }
-        }
-        return null;
+        return LReflections.observable(record, field);
     }
 
     public static String getFieldName(Record record, LObservable observable) {
         LFields fields = getFields(record.getClass());
         LField f = fields.get(observable, record);
-        return (f != null ? f.getName() : null);
+        return (f != null ? f.name() : null);
     }
 
     public static LField getField(Class<Record> recordClass, String fieldName) {
@@ -128,28 +121,28 @@ public abstract class LRecord {
         boolean shouldParsed = (value instanceof String);
         if ((value != null) && (value instanceof LObservable)) {
             result = (LObservable) value;
-        } else if (LText.class.isAssignableFrom(field.getType())) {
+        } else if (LText.class.isAssignableFrom(field.type())) {
             result = new LText((String) value);
-        } else if (LString.class.isAssignableFrom(field.getType())) {
+        } else if (LString.class.isAssignableFrom(field.type())) {
             result = new LString((String) value);
-        } else if (LDouble.class.isAssignableFrom(field.getType())) {
+        } else if (LDouble.class.isAssignableFrom(field.type())) {
             result = (shouldParsed ? LDouble.of((String) value) : new LDouble((Double) value));
-        } else if (LInteger.class.isAssignableFrom(field.getType())) {
+        } else if (LInteger.class.isAssignableFrom(field.type())) {
             result = (shouldParsed ? LInteger.of((String) value) : new LInteger((Integer) value));
-        } else if (LBoolean.class.isAssignableFrom(field.getType())) {
+        } else if (LBoolean.class.isAssignableFrom(field.type())) {
             result = (shouldParsed ? LBoolean.of((String) value) : new LBoolean((Boolean) value));
-        } else if (LDate.class.isAssignableFrom(field.getType())) {
+        } else if (LDate.class.isAssignableFrom(field.type())) {
             result = (shouldParsed ? LDate.of((String) value) : new LDate((LocalDate) value));
-        } else if (LDatetime.class.isAssignableFrom(field.getType())) {
+        } else if (LDatetime.class.isAssignableFrom(field.type())) {
             result = (shouldParsed ? LDatetime.of((String) value) : new LDatetime((LocalDateTime) value));
-        } else if (LObservable.class.isAssignableFrom(field.getType())) {
-            if ((value != null) && (Map.class.isAssignableFrom(field.requiredClass.requiredClass()))) {
+        } else if (LObservable.class.isAssignableFrom(field.type())) {
+            if ((value != null) && (Map.class.isAssignableFrom(field._requiredClass.requiredClass()))) {
                 if (!(value instanceof LMap)) {
-                    if ((field.requiredClass.parameterClasses().isEmpty()) || (field.requiredClass.parameterClasses().get().size() < 2)) {
+                    if ((field._requiredClass.parameterClasses().isEmpty()) || (field._requiredClass.parameterClasses().get().size() < 2)) {
                         throw new LParseException(LRecord.class, "Map needs 2 class parameters. List is empty or less than 2");
                     }
                     var valueMap = new LMap<String, Object>();
-                    var itemClass = field.requiredClass.parameterClasses().get().get(1);
+                    var itemClass = field._requiredClass.parameterClasses().get().get(1);
                     if (Map.class.isAssignableFrom(value.getClass())) {
                         var it = ((Map<String, Object>) value).entrySet().iterator();
                         while (it.hasNext()) {
@@ -189,7 +182,7 @@ public abstract class LRecord {
         var fields = getFields(recordClass);
         try {
             for (var field : fields) {
-                map.put(field.getName(), toObservable(field, null));
+                map.put(field.name(), toObservable(field, null));
             }
         } catch (LParseException lpe) {
             throw new IllegalStateException();

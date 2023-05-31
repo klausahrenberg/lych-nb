@@ -35,6 +35,7 @@ import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Late;
 import com.ka.lych.xml.LXmlUtils;
+import java.lang.reflect.Modifier;
 import java.util.AbstractList;
 
 /**
@@ -42,10 +43,42 @@ import java.util.AbstractList;
  * @author klausahrenberg
  */
 public abstract class LReflections {
+    
+    public static boolean isRecord(Class clazz) {
+        return Record.class.isAssignableFrom(clazz);
+    }
+    
+    public static boolean isObservable(Class clazz) {
+        return LObservable.class.isAssignableFrom(clazz);
+    }
+    
+    public static LObservable observable(Object o, LField field) {
+        LObservable result = null;
+        if (field != null) {
+            try {                
+                result = (LObservable) field.get(o);                
+            } catch (SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+                throw new IllegalStateException(ex.getMessage(), ex);
+            }
+            if (result == null) {
+                //Property could be null because it's not instanciated in the constructor.
+                //In this cas try to get the property with the method "observable<propertyName>()"
+                //which should instanciate the property                
+                String methodName = field.name();
+                try {
+                    LMethod m = LReflections.getMethod(o, methodName);
+                    result = (LObservable) m.invoke(o);
+                } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException nsme) {
+                    throw new IllegalStateException("Can't call method '" + methodName + "()' for object: " + o, nsme);
+                }
+            }
+        }
+        return result;
+    }
 
     @SuppressWarnings("unchecked")
     public static <T> void update(T toUpdate, Map<String, Object> values) throws LParseException {
-        var isRecord = (toUpdate instanceof Record);
+        var isRecord = isRecord(toUpdate.getClass());
         var fields = LReflections.getFieldsOfInstance(toUpdate, null, Json.class);
         for (Map.Entry<java.lang.String, java.lang.Object> mi : values.entrySet()) {
             var field = getField(mi.getKey(), fields);
@@ -54,17 +87,21 @@ public abstract class LReflections {
                     if (field.isObservable()) {
                         var obs = (LObservable) field.get(toUpdate);
                         if (obs != null) {
-                            obs.set(mi.getValue());
+                            if (LReflections.isObservable(mi.getValue().getClass())) {
+                                obs.set(((LObservable) mi.getValue()).get());
+                            } else {
+                                obs.set(mi.getValue());
+                            }    
                         } else if (!isRecord) {
                             field.set(toUpdate, LRecord.toObservable(field, mi.getValue()));
                         } else {
-                            throw new LParseException(LReflections.class, "Can't set field '" + field.getName() + "', because class is a record. Inside of records, only observables can be updated.");
+                            throw new LParseException(LReflections.class, "Can't set field '" + field.name() + "', because class is a record. Inside of records, only observables can be updated.");
                         }
                     } else if (!isRecord) {
                         field.set(toUpdate, mi.getValue());
 
                     } else {
-                        throw new LParseException(LReflections.class, "Can't set field '" + field.getName() + "', because class is a record. Inside of records, only observables can be updated.");
+                        throw new LParseException(LReflections.class, "Can't set field '" + field.name() + "', because class is a record. Inside of records, only observables can be updated.");
                     }
                 } catch (IllegalAccessException iae) {
                     throw new LParseException(LReflections.class, iae.getMessage(), iae);
@@ -83,6 +120,9 @@ public abstract class LReflections {
         
         boolean isOptional = (Optional.class.isAssignableFrom(requClass.requiredClass()));
         Class classToBeInstanciated = (!isOptional ? requClass.requiredClass() : (((requClass.parameterClasses().isPresent()) && (!requClass.parameterClasses().get().isEmpty())) ? (requClass.parameterClasses().get().get(0)) : null)); 
+        if ((!isRecord(classToBeInstanciated)) && (classToBeInstanciated.isMemberClass()) && (!Modifier.isStatic(classToBeInstanciated.getModifiers()))) {
+            throw new LParseException(LReflections.class, "Can't instanciate non-static inner classes. Please make following inner class static: " + classToBeInstanciated.getName());
+        } 
         if ((isOptional) && (classToBeInstanciated == null)) {
             if ((values == null) || (values.isEmpty())) {
                 return null;
@@ -99,17 +139,17 @@ public abstract class LReflections {
         var fields = LReflections.getFields(classToBeInstanciated, null, Json.class);
         var mf = new StringBuilder();
         for (LField field : fields) {
-            var v = values.get(field.getName());
+            var v = values.get(field.name());
             if ((v == null) && (!acceptIncompleteId) && (field.isId()) && (!field.isLate())) {
                 mf.append(mf.length() > 0 ? ", " : "");
-                mf.append(field.getName());
+                mf.append(field.name());
             }
             if (field.isObservable()) {
-                values.put(field.getName(), LRecord.toObservable(field, v));
+                values.put(field.name(), LRecord.toObservable(field, v));
             } else if ((field.isOptional()) && (v == null)) {
-                values.put(field.getName(), Optional.empty());
+                values.put(field.name(), Optional.empty());
             } else if (v != null) {
-                var reqClass = (field.isOptional() ? field.getRequiredClass().parameterClasses().get().get(0) : field.getType());
+                var reqClass = (field.isOptional() ? field.requiredClass().parameterClasses().get().get(0) : field.type());
                 var shouldParsed = ((v instanceof String) && (!String.class.isAssignableFrom(reqClass)));                
                 if (shouldParsed) {     
                     if (!LString.equalsIgnoreCase((String) v, ILConstants.NULL)) {
@@ -124,14 +164,14 @@ public abstract class LReflections {
                             ((ILParseable) t).parse((String) v);
                             v = t;
                         } else {    
-                            throw new LParseException(LRecord.class, "Can not parse value for field '" + field.getName() + "'. Unknown field class: " + reqClass.getName());
+                            throw new LParseException(LRecord.class, "Can not parse value for field '" + field.name() + "'. Unknown field class: " + reqClass.getName());
                         }
                     } else {
                         v = null;
                     }
-                    values.put(field.getName(), (field.isOptional() ? (v != null ? Optional.of(v) : Optional.empty()) : v));
+                    values.put(field.name(), (field.isOptional() ? (v != null ? Optional.of(v) : Optional.empty()) : v));
                 } else {   
-                    values.put(field.getName(), v);
+                    values.put(field.name(), v);
                 }    
             }                        
         }
@@ -288,21 +328,21 @@ public abstract class LReflections {
         Optional<LList<Class>> paramClasses = Optional.empty();
         if (field != null) {
             requiredClass = null;
-            if (LString.class.isAssignableFrom(field.getType())) {
+            if (LString.class.isAssignableFrom(field.type())) {
                 requiredClass = String.class;
-            } else if (LBoolean.class.isAssignableFrom(field.getType())) {
+            } else if (LBoolean.class.isAssignableFrom(field.type())) {
                 requiredClass = Boolean.class;
-            } else if (LInteger.class.isAssignableFrom(field.getType())) {
+            } else if (LInteger.class.isAssignableFrom(field.type())) {
                 requiredClass = Integer.class;
-            } else if (LDouble.class.isAssignableFrom(field.getType())) {
+            } else if (LDouble.class.isAssignableFrom(field.type())) {
                 requiredClass = Double.class;
-            } else if (LPixel.class.isAssignableFrom(field.getType())) {
+            } else if (LPixel.class.isAssignableFrom(field.type())) {
                 requiredClass = String.class;
-            } else if (LDate.class.isAssignableFrom(field.getType())) {
+            } else if (LDate.class.isAssignableFrom(field.type())) {
                 requiredClass = LocalDate.class;
-            } else if (LDatetime.class.isAssignableFrom(field.getType())) {
+            } else if (LDatetime.class.isAssignableFrom(field.type())) {
                 requiredClass = LocalDateTime.class;
-            } else if (com.ka.lych.observable.LObservableBounds.class.isAssignableFrom(field.getType())) {
+            } else if (com.ka.lych.observable.LObservableBounds.class.isAssignableFrom(field.type())) {
                 requiredClass = ILBounds.class;
             } else if (field._field.getGenericType() instanceof ParameterizedType) {
                 if (field.isObservable()) {
@@ -324,7 +364,7 @@ public abstract class LReflections {
                         } else if (pti.getActualTypeArguments()[0] instanceof Class) {
                             requiredClass = (Class) (pti.getActualTypeArguments()[0]);
                         } else if (pti.getActualTypeArguments()[0] instanceof TypeVariable) {
-                            throw new LParseException(LReflections.class, "Required class not found. Field has no class as type argument, just type variable: " + pti.getActualTypeArguments()[0] + "; Field: " + field.getName() + ": " + field);
+                            throw new LParseException(LReflections.class, "Required class not found. Field has no class as type argument, just type variable: " + pti.getActualTypeArguments()[0] + "; Field: " + field.name() + ": " + field);
                         }
                     } else {
                         throw new LParseException(LReflections.class, "Required class not found. Field has no type arguments: " + field);
@@ -345,10 +385,10 @@ public abstract class LReflections {
                     paramClasses = (!ca.isEmpty() ? Optional.of(ca) : Optional.empty());
                 }
             } else if (!field.isObservable()) {
-                requiredClass = field.getType();
+                requiredClass = field.type();
             }
             if (requiredClass == null) {
-                throw new LParseException(LReflections.class, "Can't get required class from field '" + field.getName() + "': " + field);
+                throw new LParseException(LReflections.class, "Can't get required class from field '" + field.name() + "': " + field);
             }
         }
         return new LRequiredClass(requiredClass, paramClasses);
@@ -395,10 +435,10 @@ public abstract class LReflections {
                                     tempFields.add(lf);
                                 }
                                 try {
-                                    lf.requiredClass = getRequiredClassFromField(lf);
+                                    lf._requiredClass = getRequiredClassFromField(lf);
                                 } catch (Exception ex) {
                                     //ex.printStackTrace();
-                                    lf.requiredClass = null;
+                                    lf._requiredClass = null;
                                     //LLog.error(LReflections.class, "Can't get requiredClass for observable " + lf.getName(), ex);                                    
                                 }
                             }
@@ -474,12 +514,12 @@ public abstract class LReflections {
 
         public LField get(String fieldName) {
             for (int i = 0; i < keyFields.length; i++) {
-                if (keyFields[i]._field.getName().equals(fieldName)) {
+                if (keyFields[i].name().equals(fieldName)) {
                     return keyFields[i];
                 }
             }
             for (int i = 0; i < fields.length; i++) {
-                if (fields[i]._field.getName().equals(fieldName)) {
+                if (fields[i].name().equals(fieldName)) {
                     return fields[i];
                 }
             }
@@ -608,15 +648,16 @@ public abstract class LReflections {
 
     public static class LField {
 
-        private final Field _field;
-        protected LRequiredClass requiredClass;
-        private Boolean _id;
-        private Boolean _late;
-        private Boolean _index;
-        //protected Class requiredClass;
+        final Field _field;
+        LRequiredClass _requiredClass;
+        Boolean _id;
+        Boolean _late;
+        Boolean _index;
+        String _name;
 
         public LField(Field field) {
             _field = field;
+            _name = field.getName().startsWith(ILConstants.UNDL) ? field.getName().substring(1) : field.getName();
             _id = null;
             _late = null;
             _index = null;
@@ -632,17 +673,17 @@ public abstract class LReflections {
             _field.set(instance, value);
         }
 
-        public Class<?> getType() {
+        public Class<?> type() {
             _field.setAccessible(true);
             return _field.getType();
         }
 
-        public String getName() {
-            return _field.getName();
+        public String name() {
+            return _name;
         }
 
-        public LRequiredClass getRequiredClass() {
-            return requiredClass;
+        public LRequiredClass requiredClass() {
+            return _requiredClass;
         }
 
         public boolean isId() {
@@ -671,15 +712,15 @@ public abstract class LReflections {
         }
 
         public boolean isLinked() {
-            return Record.class.isAssignableFrom(requiredClass.requiredClass());
+            return Record.class.isAssignableFrom(_requiredClass.requiredClass());
         }
 
         public boolean isMap() {
-            return Map.class.isAssignableFrom(requiredClass.requiredClass());
+            return Map.class.isAssignableFrom(_requiredClass.requiredClass());
         }
 
         public boolean isObservable() {
-            return LObservable.class.isAssignableFrom(_field.getType());
+            return LReflections.isObservable(_field.getType());
         }
         
         public boolean isOptional() {
@@ -688,7 +729,7 @@ public abstract class LReflections {
 
         @Override
         public String toString() {
-            return "LField{" + "field=" + _field + ", requiredClass=" + requiredClass + '}';
+            return "LField{" + "field=" + _field + ", requiredClass=" + _requiredClass + '}';
         }
 
     }

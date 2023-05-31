@@ -3,12 +3,9 @@ package com.ka.lych.observable;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
-import com.ka.lych.list.LYoso;
 import com.ka.lych.util.ILConstants;
-import com.ka.lych.util.LLog;
 import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LReflections;
-import java.util.IllegalFormatException;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -255,7 +252,7 @@ public class LString extends LObservable<String>
             return format(format, key -> {
                 var field = (fields != null ? fields.get(key) : null);
                 if (field != null) {
-                    LObservable observable = (field != null && field.isObservable() ? LYoso.observable(o, field) : null);
+                    LObservable observable = (field != null && field.isObservable() ? LReflections.observable(o, field) : null);
                     Object value = null;
                     try {
                         value = (observable != null ? observable.toLocalizedString() : field.get(o));

@@ -1,7 +1,6 @@
 package com.ka.lych.util;
 
 import com.ka.lych.annotation.Json;
-import com.ka.lych.list.LYoso;
 import com.ka.lych.util.LReflections.LFields;
 import java.io.IOException;
 import java.util.List;
@@ -27,14 +26,14 @@ public class LCsv {
     }
     
     protected static void printHeader(StringBuilder sb, LFields fields) {        
-        sb.append(fields.stream().map(f -> csvString(f.getName())).collect(Collectors.joining(", ")));
+        sb.append(fields.stream().map(f -> csvString(f.name())).collect(Collectors.joining(", ")));
         //sb.append(LString.<LField>concatWithSpacer(f -> csvString(f.getName()), COMMA, "", fields.toArray()));
         sb.append("\n");     
         
     }
     
     protected static void printRecord(StringBuilder sb, LFields fields, Record rcd) {
-        sb.append(fields.stream().map(f -> csvString(LYoso.observable(rcd, f).toParseableString())).collect(Collectors.joining(", ")));
+        sb.append(fields.stream().map(f -> csvString(LReflections.observable(rcd, f).toParseableString())).collect(Collectors.joining(", ")));
         sb.append("\n");     
     }
     

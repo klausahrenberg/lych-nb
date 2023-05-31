@@ -184,7 +184,7 @@ public interface ILRepository {
     public default LList<LColumnItem> getColumnsWithoutLinks(Class dataClass) {
         LList<LColumnItem> result = this.columnsUnlinked().get(dataClass);
         if (result == null) {
-            result = new LYosos<>();
+            result = LList.empty();
             getColumnsWithoutLinks(result, LRecord.example(dataClass), false, "", false, null);
             this.columnsUnlinked().put(dataClass, result);
         }
@@ -203,7 +203,7 @@ public interface ILRepository {
                     int maxLength = LReflections.getAnnotationIntValue(field, 256, Id.class, Index.class, Json.class, Lazy.class);
                     boolean lateLoader = LReflections.existsAnnotation(field, Lazy.class);
                     result.add(new LColumnItem(field, c,
-                            prefix + field.getName(),
+                            prefix + field.name(),
                             ((parentIsPrimaryKey) || (LString.isEmpty(prefix) && field.isId())),
                             maxLength, lateLoader, linkColumn));
                 } else {
@@ -215,9 +215,9 @@ public interface ILRepository {
                     }
                     newLinkColumn[newLinkColumn.length - 1] = field;
                     getColumnsWithoutLinks(result,
-                            LRecord.example(field.getRequiredClass().requiredClass()),
+                            LRecord.example(field.requiredClass().requiredClass()),
                             true,
-                            prefix + field.getName() + "_",
+                            prefix + field.name() + "_",
                             ((parentIsPrimaryKey) || (LString.isEmpty(prefix) && field.isId())),
                             newLinkColumn);
                 }

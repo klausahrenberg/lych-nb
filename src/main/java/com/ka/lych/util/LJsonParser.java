@@ -635,7 +635,7 @@ public class LJsonParser<T> {
         } else if (stack.peek().type() == LType.OBJECT) {
             var fields = LReflections.getFields(stack.peek().requiredClass.requiredClass(), null, Json.class);
             var field = fields.get(this.currentKey);
-            requiredClass = field.getRequiredClass();
+            requiredClass = field.requiredClass();
         } else {
             throw new LParseException(this, "Illegal state at start of object");
         }
@@ -664,7 +664,7 @@ public class LJsonParser<T> {
                 if (field == null) {
                     throw new LParseException(this, "Can't get field for key'" + this.currentKey +"' " + stack.peek().requiredClass().requiredClass() + " / " + this.resultClass);
                 }
-                requiredClass = field.getRequiredClass();
+                requiredClass = field.requiredClass();
             }
         } else {
             throw new LParseException(this, "Illegal state at start of object");

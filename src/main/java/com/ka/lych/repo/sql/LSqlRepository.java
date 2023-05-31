@@ -481,7 +481,7 @@ public class LSqlRepository implements
 
     @Override
     public boolean existsColumn(String tableName, LField column) {
-        return existsColumn(tableName, column.getName());
+        return existsColumn(tableName, column.name());
     }
 
     protected boolean existsColumn(String tableName, String columnName) {
@@ -553,7 +553,7 @@ public class LSqlRepository implements
     }
 
     protected String getSQLType(LColumnItem dbItem, boolean referenceLink) {
-        Class fldc = dbItem.getField().getType();
+        Class fldc = dbItem.getField().type();
         if (LText.class.isAssignableFrom(fldc)) {
             return dtTEXT[getDatabaseTypeAsInteger()];
         } else if (LString.class.isAssignableFrom(fldc)) {
@@ -570,7 +570,7 @@ public class LSqlRepository implements
             return dtDATETIME[getDatabaseTypeAsInteger()];
         } else if (LObservable.class.isAssignableFrom(fldc)) {
             //Object property, get the required class from parameter
-            Class requiredClass = dbItem.getField().getRequiredClass().requiredClass();
+            Class requiredClass = dbItem.getField().requiredClass().requiredClass();
             if (requiredClass != null) {
                 if (requiredClass.isEnum()) {
                     return dtVARCHAR[getDatabaseTypeAsInteger()] + "(32)";
@@ -583,13 +583,13 @@ public class LSqlRepository implements
                 } else if (requiredClass == LMap.class) {
                     return dtVARCHAR[getDatabaseTypeAsInteger()] + "(" + dbItem.getMaxLength() + ")";
                 } else {
-                    throw new IllegalArgumentException("No supported sql type for column '" + dbItem.getField().getName() + "'. Unknown field class: " + requiredClass);
+                    throw new IllegalArgumentException("No supported sql type for column '" + dbItem.getField().name() + "'. Unknown field class: " + requiredClass);
                 }
             } else {
-                throw new IllegalArgumentException("No supported sql type for column '" + dbItem.getField().getName() + "'. Unknown field class: " + requiredClass);
+                throw new IllegalArgumentException("No supported sql type for column '" + dbItem.getField().name() + "'. Unknown field class: " + requiredClass);
             }
         } else {
-            throw new IllegalArgumentException("No supported sql type for column '" + dbItem.getField().getName() + "'. Unknown field class: " + fldc);
+            throw new IllegalArgumentException("No supported sql type for column '" + dbItem.getField().name() + "'. Unknown field class: " + fldc);
         }
     }
 
@@ -616,7 +616,7 @@ public class LSqlRepository implements
             //foreign keys
             fields.forEach(linkColumn -> {
                 if ((linkColumn.isLinked()) && ((linkColumn.isId()) || (LReflections.existsAnnotation(linkColumn, Json.class, Id.class)))) {
-                    Class linkedDatas = linkColumn.getRequiredClass().requiredClass();
+                    Class linkedDatas = linkColumn.requiredClass().requiredClass();
                     String linkedDatasName = linkedDatas.getSimpleName();
                     var fks1 = LString.concatWithCommaIf(ci -> (ci.getLinkColumn() == linkColumn),
                             ci -> ci.getDataFieldName(),
@@ -647,7 +647,7 @@ public class LSqlRepository implements
                     /*if (column.isUniqueIndexColumn()) {
                         sql = "create unique index uidx_" + datas.getTableNameShort() + "_" + column.getName() + " on " + datas.getTableName() + "(" + datas.getTableNameShort() + "_" + column.getName() + ")";
                     } else {*/
-                    String sqls = "create index idx" + ILConstants.UNDL + column.getName() + " on " + tableName + "(" + column.getName() + ")";
+                    String sqls = "create index idx" +ILConstants.UNDL + tableName.toLowerCase() + ILConstants.UNDL + column.name() + " on " + tableName + "(" + column.name() + ")";
                     //}
                     executeUpdate(sqls);
                 }
@@ -740,7 +740,7 @@ public class LSqlRepository implements
             //LYoso linkData = (LYoso) data.observable(columnItem.getLinkColumns()[0]).get();
             if (linkData == null) {
                 if (columnItem.getLinkColumns()[0].isId()) {
-                    throw new IllegalStateException("No linked data defined for column '" + columnItem.getField().getName() + "' for data " + data);
+                    throw new IllegalStateException("No linked data defined for column '" + columnItem.getField().name() + "' for data " + data);
                 } else {
                     return null;
                 }
@@ -750,7 +750,7 @@ public class LSqlRepository implements
                 linkData = (Record) LRecord.observable(linkData, columnItem.getLinkColumns()[i]).get();
                 //linkData = (LYoso) linkData.observable(columnItem.getLinkColumns()[i]).get();
                 if (linkData == null) {
-                    throw new IllegalStateException("No linked data defined for column '" + columnItem.getField().getName() + "' for data " + data);
+                    throw new IllegalStateException("No linked data defined for column '" + columnItem.getField().name() + "' for data " + data);
                 }
                 i++;
             }
@@ -876,7 +876,7 @@ public class LSqlRepository implements
             try {
                 var columns = getColumnsWithoutLinks(rcd.getClass());
                 var fieldName = LRecord.getFieldName(rcd, obs);
-                var column = columns.getIf(c -> c.getField().getName() == fieldName);
+                var column = columns.getIf(c -> c.getField().name() == fieldName);
                 String sqlFilter = null;
                 String dbTableName = getTableName(rcd.getClass());
                 boolean exists = ((primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE)) && (this.existsData(getTableName(rcd.getClass()), (sqlFilter = buildSqlFilter(rcd, columns, ""))));
@@ -1211,7 +1211,7 @@ public class LSqlRepository implements
             @SuppressWarnings("unchecked")
             LFields linkedColumns = LRecord.getFields(linkedClass);
             for (int i = 0; i < linkedColumns.sizeKey(); i++) {
-                buildSqlComparison(linkedClass, subs, prefix + column.getField().getName() + ILConstants.UNDL, opString, column, LRecord.observable(linkedData, linkedColumns.get(i)));
+                buildSqlComparison(linkedClass, subs, prefix + column.getField().name() + ILConstants.UNDL, opString, column, LRecord.observable(linkedData, linkedColumns.get(i)));
             }
         } else {
             try {
@@ -1401,7 +1401,7 @@ public class LSqlRepository implements
                     columnItemsWithoutLinks.forEachIf(c -> c.getLinkColumn() == column.getField(), c -> {
                         Object d = null;
                         try {
-                            d = sqlResultSet.getObject(c.getDataFieldName(), c.getField().getRequiredClass());
+                            d = sqlResultSet.getObject(c.getDataFieldName(), c.getField().requiredClass());
                         } catch (SQLException sqle) {
                             LLog.error(this, sqle.getMessage());
                         }
@@ -1414,23 +1414,23 @@ public class LSqlRepository implements
                         //get linked data from other sources
                         var linkedMap = this.getLinkedMap(column.getField());
                         if (linkedMap != null) {
-                            linkedData = linkedMap.get(LRecords.keyOf(column.getField().getRequiredClass().requiredClass(), primaryKeyObjects.toArray()));
+                            linkedData = linkedMap.get(LRecords.keyOf(column.getField().requiredClass().requiredClass(), primaryKeyObjects.toArray()));
                             //linkedData = LRecords.get(field.getRequiredClass().requiredClass(), linkedMap, primaryKeyObjects.toArray());
                         }
                         if (linkedData == null) {
-                            map.put(column.getField().getName(), fillDatas(column.getField().getRequiredClass().requiredClass(), sqlResultSet,
-                                    getColumnsWithoutLinks(column.getField().getRequiredClass().requiredClass()),
-                                    prefix + column.getField().getName() + ILConstants.UNDL, true));
+                            map.put(column.getField().name(), fillDatas(column.getField().requiredClass().requiredClass(), sqlResultSet,
+                                    getColumnsWithoutLinks(column.getField().requiredClass().requiredClass()),
+                                    prefix + column.getField().name() + ILConstants.UNDL, true));
                         } else {
-                            map.put(column.getField().getName(), linkedData);
+                            map.put(column.getField().name(), linkedData);
                         }
                     } else {
                         throw new LDataException(this, "Linked primary key is incomplete, but not null");
                     }
                 } else {
-                    var val = sqlResultSet.getObject(prefix + column.getField().getName(), column.getField().getRequiredClass());
+                    var val = sqlResultSet.getObject(prefix + column.getField().name(), column.getField().requiredClass());
                     if (val != null) {
-                        map.put(column.getField().getName(), val);
+                        map.put(column.getField().name(), val);
                     }
                 }
             }
@@ -1503,14 +1503,14 @@ public class LSqlRepository implements
         StringBuilder sql = new StringBuilder("select ");
         var columns = getColumnsWithoutLinks(rcd.getClass());
         var fieldName = LRecord.getFieldName(rcd, observable);
-        var column = columns.getIf(c -> c.getField().getName() == fieldName);
+        var column = columns.getIf(c -> c.getField().name() == fieldName);
         sql.append(column.getDataFieldName());
         sql.append(" from ").append(getTableName(rcd.getClass()));
         sql.append(" where ").append(buildSqlFilter(rcd, columns, ""));
         try {
             LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
             if (sqlResultSet.next()) {
-                Object d = sqlResultSet.getObject(column.getDataFieldName(), LRecord.getFields(rcd.getClass()).get(fieldName).getRequiredClass());
+                Object d = sqlResultSet.getObject(column.getDataFieldName(), LRecord.getFields(rcd.getClass()).get(fieldName).requiredClass());
                 //dirty fix for LocalDate                    
                 if ((observable instanceof LDate) && (d != null)) {
                     if (d instanceof LocalDateTime) {

@@ -248,8 +248,8 @@ public class LKeyYosos<T extends LYoso> extends LYosos<T> {
                 if (key instanceof LObservable) {
                     LObservable obs = (LObservable) key;
                     if (obs.get() != null) {
-                        if (!fields.get(i).getRequiredClass().requiredClass().isAssignableFrom(obs.get().getClass())) {
-                            throw new IllegalArgumentException("Observable object '" + obs.get() + "' has not the right parameter class '" + obs.get().getClass().getName() + "' is not the right type for key. Required class type: '" + fields.get(i).getRequiredClass().requiredClass().getName() + "'");
+                        if (!fields.get(i).requiredClass().requiredClass().isAssignableFrom(obs.get().getClass())) {
+                            throw new IllegalArgumentException("Observable object '" + obs.get() + "' has not the right parameter class '" + obs.get().getClass().getName() + "' is not the right type for key. Required class type: '" + fields.get(i).requiredClass().requiredClass().getName() + "'");
                         }
                         if (obs.get() instanceof LYoso) {
                             String yosoKey = createKey((LYoso) obs.get());
@@ -261,8 +261,8 @@ public class LKeyYosos<T extends LYoso> extends LYosos<T> {
                         keyStrings[i] = ILConstants.NULL_VALUE;
                     }
                 } else if (key != null) {
-                    if (!fields.get(i).getRequiredClass().requiredClass().isAssignableFrom(key.getClass())) {
-                        throw new IllegalArgumentException("Key object '" + key + "' has not the right parameter class '" + key.getClass().getName() + "' is not the right type for key. Required class type: '" + fields.get(i).getRequiredClass().requiredClass().getName() + "'");
+                    if (!fields.get(i).requiredClass().requiredClass().isAssignableFrom(key.getClass())) {
+                        throw new IllegalArgumentException("Key object '" + key + "' has not the right parameter class '" + key.getClass().getName() + "' is not the right type for key. Required class type: '" + fields.get(i).requiredClass().requiredClass().getName() + "'");
                     }
                     if (key instanceof String) {
                         keyStrings[i] = (String) key;

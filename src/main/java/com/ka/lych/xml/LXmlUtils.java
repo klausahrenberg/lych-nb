@@ -483,7 +483,7 @@ public class LXmlUtils {
 
     @SuppressWarnings("unchecked")
     public static void setFieldValue(Object o, String fieldName, LField field, LRequiredClass requiredClass, Object value) throws LParseException {
-        if (!isObservableField(field.getType())) {
+        if (!isObservableField(field.type())) {
             try {
                 field.set(o, value);
             } catch (IllegalAccessException iae) {
@@ -1056,7 +1056,7 @@ public class LXmlUtils {
         if (fields != null) {
             for (int i = 0; i < fields.size(); i++) {
                 var fld = fields.get(i);
-                result += fld.getName() + "=";
+                result += fld.name() + "=";
                 try {
                     Object fldObject = fld.get(object);
                     if (fldObject == null) {

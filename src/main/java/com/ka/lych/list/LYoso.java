@@ -102,40 +102,16 @@ public abstract class LYoso
     }
 
     public LObservable observable(LField field) {
-        return observable(this, field);
+        return LReflections.observable(this, field);
     }
     
     public static boolean isYoso(Object yoso) {
         return ((yoso == null) || (yoso instanceof LYoso));
     }
-    
-    public static LObservable observable(Object o, LField field) {
-        LObservable result = null;
-        if (field != null) {
-            try {                
-                result = (LObservable) field.get(o);                
-            } catch (SecurityException | IllegalArgumentException | IllegalAccessException ex) {
-                throw new IllegalStateException(ex.getMessage(), ex);
-            }
-            if (result == null) {
-                //Property could be null because it's not instanciated in the constructor.
-                //In this cas try to get the property with the method "observable<propertyName>()"
-                //which should instanciate the property                
-                String methodName = field.getName();
-                try {
-                    LMethod m = LReflections.getMethod(o, methodName);
-                    result = (LObservable) m.invoke(o);
-                } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException nsme) {
-                    throw new IllegalStateException("Can't call method '" + methodName + "()' for object: " + o, nsme);
-                }
-            }
-        }
-        return result;
-    }
 
     public String getFieldName(LObservable observable) {
         LField f = fields.get(observable, this);
-        return (f != null ? f.getName() : null);
+        return (f != null ? f.name() : null);
     }
 
     @Override

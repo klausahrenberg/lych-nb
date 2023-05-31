@@ -1,7 +1,6 @@
 package com.ka.lych.util;
 
 import com.ka.lych.list.LList;
-import com.ka.lych.list.LYoso;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LDouble;
 import com.ka.lych.observable.LInteger;
@@ -371,9 +370,9 @@ public class LJson {
         while (it_fields.hasNext()) {
             var field = it_fields.next();
             if (LReflections.existsAnnotation(field, Lazy.class)) {
-                json.propertyString(field.getName(), "tbi / link to lazy value");
+                json.propertyString(field.name(), "tbi / link to lazy value");
             } else if ((!onlyId) || (field.isId())) {
-                LObservable observable = (field.isObservable() ? LYoso.observable(o, field) : null);
+                LObservable observable = (field.isObservable() ? LReflections.observable(o, field) : null);
                 Object value = null;
                 try {
                     value = (observable != null ? observable.get() : field.get(o));
@@ -382,29 +381,29 @@ public class LJson {
                 }
                 value = ((value instanceof Optional) ? (((Optional) value).isEmpty() ? null : ((Optional) value).get()) : value);
                 if (value == null) {
-                    json.propertyNull(field.getName());
+                    json.propertyNull(field.name());
                 } else if (String.class.isAssignableFrom(value.getClass())) {
-                    json.propertyString(field.getName(), (String) value);
+                    json.propertyString(field.name(), (String) value);
                 } else if (Integer.class.isAssignableFrom(value.getClass())) {
-                    json.propertyInteger(field.getName(), (Integer) value);
+                    json.propertyInteger(field.name(), (Integer) value);
                 } else if (Double.class.isAssignableFrom(value.getClass())) {
-                    json.propertyDouble(field.getName(), (Double) value);
+                    json.propertyDouble(field.name(), (Double) value);
                 } else if (Boolean.class.isAssignableFrom(value.getClass())) {
-                    json.propertyBoolean(field.getName(), (Boolean) value);
+                    json.propertyBoolean(field.name(), (Boolean) value);
                 } else if (Path.class.isAssignableFrom(value.getClass())) {
-                    json.propertyString(field.getName(), ((Path) value).toAbsolutePath().toString());
+                    json.propertyString(field.name(), ((Path) value).toAbsolutePath().toString());
                 } else if (LocalDate.class.isAssignableFrom(value.getClass())) {
-                    json.propertyString(field.getName(), LJson.dateString((LocalDate) value));
+                    json.propertyString(field.name(), LJson.dateString((LocalDate) value));
                 } else if (LocalDateTime.class.isAssignableFrom(value.getClass())) {
-                    json.propertyString(field.getName(), LJson.datetimeString((LocalDateTime) value));
+                    json.propertyString(field.name(), LJson.datetimeString((LocalDateTime) value));
                 } else if (value.getClass().isEnum()) {
-                    json.propertyString(field.getName(), value.toString().toUpperCase());//.toLowerCase());
+                    json.propertyString(field.name(), value.toString().toUpperCase());//.toLowerCase());
                 } else if (Collection.class.isAssignableFrom(value.getClass())) {
-                    json.propertyArray(field.getName(), (Collection) value);
+                    json.propertyArray(field.name(), (Collection) value);
                 } else if (Map.class.isAssignableFrom(value.getClass())) {
-                    json.propertyMap(field.getName(), (Map) value);
+                    json.propertyMap(field.name(), (Map) value);
                 } else {
-                    json.propertyObject(field.getName(), value);
+                    json.propertyObject(field.name(), value);
                 }
             }
         }
@@ -479,7 +478,7 @@ public class LJson {
         var it_fields = fields.iterator();
         while (it_fields.hasNext()) {
             var field = it_fields.next();
-            LObservable observable = (field.isObservable() ? LYoso.observable(o, field) : null);
+            LObservable observable = (field.isObservable() ? LReflections.observable(o, field) : null);
             Object value = null;
             try {
                 value = (observable != null ? observable.get() : field.get(o));

@@ -97,7 +97,7 @@ public class LXmlRepository implements
                                 var f = fields.get(i);                                
                                 LObservable dt = (LObservable) f.get(datas);
                                 if (dt != null) {
-                                    NodeList hiList = xmlHeader.getElementsByTagName(f.getName());
+                                    NodeList hiList = xmlHeader.getElementsByTagName(f.name());
                                     if ((hiList != null) && (hiList.getLength() > 0)) {
                                         dt.parse(hiList.item(0).getTextContent());
                                     }
@@ -115,7 +115,7 @@ public class LXmlRepository implements
                         for (int i = 0; i < fields.size(); i++) {
                             LField c = fields.get(i);
                             if (!c.isLinked()) {
-                                NodeList nlc = ai.getElementsByTagName(c.getName());
+                                NodeList nlc = ai.getElementsByTagName(c.name());
                                 Element elc = (nlc.getLength() > 0 ? (Element) nlc.item(0) : null);
                                 if (elc != null) {
                                     dbti.observable(c).parse(elc.getTextContent());
@@ -163,7 +163,7 @@ public class LXmlRepository implements
                             var f = fields.get(i);                          
                             LObservable dt = (LObservable) f.get(datas);
                             if ((dt != null) && (dt.get() != null)) {
-                                Element headerItem = (Element) xmlHeader.appendChild(xmlFile.createElement(f.getName()));
+                                Element headerItem = (Element) xmlHeader.appendChild(xmlFile.createElement(f.name()));
                                 headerItem.setTextContent(dt.toParseableString());                            
                             }
                         }
@@ -187,7 +187,7 @@ public class LXmlRepository implements
                                 LObservable dt = dbti.observable(c);                                
                                 //LObservable dt = dbti.getSubItem(c);
                                 if ((dt != null) && (dt.get() != null)) {
-                                    Element dtItem = (Element) mapItem.appendChild(xmlFile.createElement(c.getName()));
+                                    Element dtItem = (Element) mapItem.appendChild(xmlFile.createElement(c.name()));
                                     //dtItem.setAttribute("isNull", (dt.isNull() ? "true" : "false"));     
                                     dtItem.setTextContent(dt.toParseableString());
                                 }
