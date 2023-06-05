@@ -188,7 +188,7 @@ public abstract class LFuture<R, T extends Throwable>
             
         };
         task.future = future;
-        runningTasks.add(task);
+        runningTasks.add(task);        
         task.start();
         return future;
     }    
