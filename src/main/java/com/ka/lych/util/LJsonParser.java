@@ -485,7 +485,7 @@ public class LJsonParser<T> {
                 //Update existing class
                 LReflections.update(this.result, popped.map());
             } else {
-                Object o = LReflections.of(popped.requiredClass(), popped.map(), false);
+                Object o = ((popped.requiredClass().requiredClass() != Object.class) ? LReflections.of(popped.requiredClass(), popped.map(), false) : popped.map());
                 if (stack.isEmpty()) {
                     this.result = (T) o;
                 } else if (stack.peek().map() != null) {

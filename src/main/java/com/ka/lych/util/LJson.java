@@ -306,7 +306,7 @@ public class LJson {
             } else if (Boolean.class.isAssignableFrom(ci.getClass())) {
                 writeBoolean((Boolean) ci);
             } else {
-                writeObject(ci, false);
+                writeObject(ci, (tabLevel != 0));
             }
         }
         stream.append(BEND);
@@ -340,15 +340,15 @@ public class LJson {
     }
 
     public static LJson of(Object o) {
-        return of(o, false, 0);
+        return _of(o, false, 0);
     }
     
     public static LJson of(Object o, boolean onlyId) {
-        return of(o, onlyId, 0);
+        return _of(o, onlyId, 0);
     }
 
     @SuppressWarnings("unchecked")
-    protected static LJson of(Object o, boolean onlyId, int tabLevel) {
+    protected static LJson _of(Object o, boolean onlyId, int tabLevel) {
         var json = new LJson();
         if (o instanceof Collection) {
             json.propertyArray(null, (Collection) o);
@@ -371,7 +371,8 @@ public class LJson {
             var field = it_fields.next();
             if (LReflections.existsAnnotation(field, Lazy.class)) {
                 json.propertyString(field.name(), "tbi / link to lazy value");
-            } else if ((!onlyId) || (field.isId())) {
+            } else if (((!onlyId) && (tabLevel < 1)) || (field.isId())) {
+                //2023-06-15 (tabLevel < 1) added
                 LObservable observable = (field.isObservable() ? LReflections.observable(o, field) : null);
                 Object value = null;
                 try {
@@ -409,37 +410,7 @@ public class LJson {
         }
         json.endObject();
     }
-
-    /*    var fields = LReflections.getFields(toUpdate, Object.class, Json.class);        
-        while (!parser.isClosed()) {
-            var jsonToken = parser.nextToken();
-            if (JsonToken.FIELD_NAME.equals(jsonToken)) {
-                var fieldName = parser.getCurrentName();
-                jsonToken = parser.nextToken();
-                var field = fields.get(fieldName);
-                if (field != null) {
-                    try {
-                        setObject(toUpdate, parser, jsonToken, field);
-                    } catch (Exception iae) {
-                        throw new IOException(iae.getMessage(), iae);
-                    }
-                }
-            }
-        }
-        //check empty fields
-        var it_fields = fields.iterator();
-        while (it_fields.hasNext()) {
-            var field = it_fields.next();
-            try {
-                var value = (field.isObservable() ? LYoso.observable(toUpdate, field).get() : field.get(toUpdate));
-                if (value == null) {
-                    LLog.error(this, "No value for field '" + field.getName() + "' specified. Please add default value in json file.");
-                }
-            } catch (IllegalAccessException iae) {
-                throw new IOException(iae.getMessage(), iae);
-            }
-        }
-    }*/
+    
     public static String string(String text) {
         //orginalRecord.replaceAll("[\\\\p{Cntrl}^\\r\\n\\t]+", "")
         //return QUOTE + text.replace("\"", "\\\"") + QUOTE;

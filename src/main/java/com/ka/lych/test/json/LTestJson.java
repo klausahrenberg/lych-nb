@@ -1,5 +1,6 @@
 package com.ka.lych.test.json;
 
+import com.ka.lych.annotation.Generated;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
 import com.ka.lych.list.LList;
@@ -10,6 +11,8 @@ import com.ka.lych.util.LJsonParser;
 import com.ka.lych.util.LLog;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Id;
+import com.ka.lych.observable.LDate;
+import com.ka.lych.observable.LInteger;
 
 /**
  *
@@ -24,18 +27,18 @@ public class LTestJson {
             LLog.debug(this, "Template of json settings doesn't exists.");
         } else {
             try {
-                var map = LJsonParser.parseMap(TProperty.class, resStream);                
+                var map = LJsonParser.parseMap(TProperty.class, resStream);
                 LLog.test(this, "loaded: %s", LArrays.toString(map.values().toArray()));
                 LLog.test(this, "back to json: \n %s", LJson.of(map).toString());
             } catch (Exception ex) {
-                ex.printStackTrace();              
+                ex.printStackTrace();
             }
-        }        
+        }
     }
 
     public static record TDevice(
             @Json
-            @Id(256) LString href,           
+            @Id(256) LString href,
             @Json(128) LString id,
             @Json(256) LString title,
             @Json LObservable<LList<String>> attype,

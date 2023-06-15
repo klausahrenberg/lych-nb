@@ -549,7 +549,7 @@ public class LSqlRepository implements
     }
 
     public String toSql(LObservable value) {
-        return (value.isPresent() ? (String) LSqlConverter.toSqlValue(value, con) : "NULL");
+        return (((value != null) && (value.isPresent())) ? (String) LSqlConverter.toSqlValue(value, con) : "NULL");
     }
 
     protected String getSQLType(LColumnItem dbItem, boolean referenceLink) {
@@ -736,8 +736,8 @@ public class LSqlRepository implements
         if (columnItem.getLinkColumns() == null) {
             return LRecord.observable(data, columnItem.getField());
         } else {
-            Record linkData = (Record) LRecord.observable(data, columnItem.getLinkColumns()[0]).get();
-            //LYoso linkData = (LYoso) data.observable(columnItem.getLinkColumns()[0]).get();
+            var t = LRecord.observable(data, columnItem.getLinkColumns()[0]).get();
+            Record linkData = (Record) t;
             if (linkData == null) {
                 if (columnItem.getLinkColumns()[0].isId()) {
                     throw new IllegalStateException("No linked data defined for column '" + columnItem.getField().name() + "' for data " + data);
@@ -776,96 +776,107 @@ public class LSqlRepository implements
             return LFuture.value(null);
         }
         return LFuture.<R, LDataException>execute(task -> {
-            var fields = LRecord.getFields(rcd.getClass());
-            LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(rcd);
-            if (primaryKeyComplete != LKeyCompleteness.KEY_NOT_COMPLETE) {
-                if (available()) {
-                    try {
-                        var columnItems = getColumnsWithoutLinks(rcd.getClass());
-                        String sqlFilter = null;
-                        boolean exists = ((primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE)) && (this.existsData(getTableName(rcd.getClass()), (sqlFilter = buildSqlFilter(rcd, columnItems, ""))));
-                        startTransaction();
-                        String sql;
-                        String dbTableName = getTableName(rcd.getClass());
-                        LList<LSqlRelationsItem> relations = null;
-                        if (exists) {
-                            //TreeDatas  
-                            if ((parent.isPresent()) && hasPrimaryKeyChanged(rcd, columnItems)) {
-                                //if ((datas != null) && (datas.getParent() != null) && hasPrimaryKeyChanged(data, columnItems)) {                        
-                                relations = relationsDelete(parent.get(), rcd, columnItems);
-                            }
-                            //Update
-                            sql = "update " + dbTableName + " set ";
-                            for (LColumnItem columnItem : columnItems) {
-                                if ((!columnItem.isGeneratedValue()) && (!columnItem.isLateLoader())) {
-                                    //if ((columnItem.getLinkColumns() != null) || (!columnItem.isGeneratedValue())) {
-                                    sql = sql + columnItem.getDataFieldName() + "=";
-                                    sql = sql + toSql(getSubItem(columnItem, rcd));
-                                    sql = sql + ", ";
+            try {
+                var fields = LRecord.getFields(rcd.getClass());
+                LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(rcd);
+                if (primaryKeyComplete != LKeyCompleteness.KEY_NOT_COMPLETE) {
+                    if (available()) {
+                        try {
+                            var columnItems = getColumnsWithoutLinks(rcd.getClass());
+                            String sqlFilter = null;
+                            boolean exists = ((primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE)) && (this.existsData(getTableName(rcd.getClass()), (sqlFilter = buildSqlFilter(rcd, columnItems, ""))));
+                            startTransaction();
+                            String sql;
+                            String dbTableName = getTableName(rcd.getClass());
+                            LList<LSqlRelationsItem> relations = null;
+                            if (exists) {
+                                //TreeDatas  
+                                if ((parent.isPresent()) && hasPrimaryKeyChanged(rcd, columnItems)) {
+                                    //if ((datas != null) && (datas.getParent() != null) && hasPrimaryKeyChanged(data, columnItems)) {                        
+                                    relations = relationsDelete(parent.get(), rcd, columnItems);
                                 }
-                            }
-                            sql = sql.substring(0, sql.length() - 2) + " where " + sqlFilter;
-                            executeUpdate(sql);
-                        } else {
-                            //Insert          
-                            LField generatedColumn = null;
-                            sql = "insert into " + dbTableName + "(";
-                            for (LColumnItem columnItem : columnItems) {
-                                if (columnItem.isGeneratedValue()) {
-                                    if (generatedColumn == null) {
-                                        generatedColumn = columnItem.getField();
-                                    } else {
-                                        throw new UnsupportedOperationException("More than 1 generatedColumn is not supported. 1. generated: " + generatedColumn + " 2. generated: " + columnItem.getField());
+                                //Update
+                                sql = "update " + dbTableName + " set ";
+                                for (LColumnItem columnItem : columnItems) {
+                                    if ((!columnItem.isGeneratedValue()) && (!columnItem.isLateLoader())) {
+                                        //if ((columnItem.getLinkColumns() != null) || (!columnItem.isGeneratedValue())) {
+                                        sql = sql + columnItem.getDataFieldName() + "=";
+                                        sql = sql + toSql(getSubItem(columnItem, rcd));
+                                        sql = sql + ", ";
                                     }
-                                } else if (!columnItem.isLateLoader()) {
-                                    sql = sql + columnItem.getDataFieldName() + ", ";
                                 }
-
-                                /*if ((columnItem.getLinkColumns() != null) || (!columnItem.isGeneratedValue())) {
-                                sql = sql + columnItem.getDataFieldName() + ", ";
-                            } else if (generatedColumn == null) {
-                                generatedColumn = columnItem.getField();
+                                sql = sql.substring(0, sql.length() - 2) + " where " + sqlFilter;
+                                executeUpdate(sql);
                             } else {
-                                throw new UnsupportedOperationException("More than 1 generatedColumn is not supported. 1. generated: " + generatedColumn + " 2. generated: " + columnItem.getField());
-                            }*/
-                            }
-                            sql = sql.substring(0, sql.length() - 2) + ") values (";
-                            for (LColumnItem columnItem : columnItems) {
-                                if ((!columnItem.isGeneratedValue()) && (!columnItem.isLateLoader())) {
-                                    //this crashes and burns
+                                //Insert          
+                                LField generatedColumn = null;
+                                sql = "insert into " + dbTableName + "(";
+                                for (LColumnItem columnItem : columnItems) {
+                                    if (columnItem.isGeneratedValue()) {
+                                        if (generatedColumn == null) {
+                                            generatedColumn = columnItem.getField();
+                                        } else {
+                                            throw new UnsupportedOperationException("More than 1 generatedColumn is not supported. 1. generated: " + generatedColumn + " 2. generated: " + columnItem.getField());
+                                        }
+                                    } else if (!columnItem.isLateLoader()) {
+                                        sql = sql + columnItem.getDataFieldName() + ", ";
+                                    }   
+                                    
+                                    /*if ((columnItem.getLinkColumns() != null) || (!columnItem.isGeneratedValue())) {
+                                    sql = sql + columnItem.getDataFieldName() + ", ";
+                                } else if (generatedColumn == null) {
+                                    generatedColumn = columnItem.getField();
+                                } else {
+                                    throw new UnsupportedOperationException("More than 1 generatedColumn is not supported. 1. generated: " + generatedColumn + " 2. generated: " + columnItem.getField());
+                                }*/
+                                }
+                                sql = sql.substring(0, sql.length() - 2) + ") values (";
+                                for (LColumnItem columnItem : columnItems) {
+                                    if ((!columnItem.isGeneratedValue()) && (!columnItem.isLateLoader())) {
+                                        //this crashes and burns
+                                        var obs = getSubItem(columnItem, rcd);
+                                        
+                                        //LObjects.requireNonNull(obs, "Illegal state: Observable for field '" + columnItem.getField().name() + "' is null. Record: " + rcd);
+                                        sql = sql + toSql(obs);
+                                        sql = sql + ", ";
+                                    }
+                                    
+                                    /*if ((columnItem.getLinkColumns() != null) || (!columnItem.isGeneratedValue())) {
                                     sql = sql + toSql(getSubItem(columnItem, rcd));
                                     sql = sql + ", ";
+                                }*/
                                 }
-
-                                /*if ((columnItem.getLinkColumns() != null) || (!columnItem.isGeneratedValue())) {
-                                sql = sql + toSql(getSubItem(columnItem, rcd));
-                                sql = sql + ", ";
-                            }*/
+                                sql = sql.substring(0, sql.length() - 2) + ")";
+                                int genValue = executeInsert(sql, (generatedColumn != null));
+                                if (generatedColumn != null) {
+                                    LObservable generatedCol = LRecord.observable(rcd, generatedColumn);
+                                    generatedCol.set(genValue);
+                                }
                             }
-                            sql = sql.substring(0, sql.length() - 2) + ")";
-                            int genValue = executeInsert(sql, (generatedColumn != null));
-                            if (generatedColumn != null) {
-                                LObservable generatedCol = LRecord.observable(rcd, generatedColumn);
-                                generatedCol.set(genValue);
+                            //Update relations
+                            if (parent.isPresent()) {
+                                relationsInsert(parent.get(), rcd, columnItems, relations);
                             }
+                            commitTransaction();
+                            LRecord.removeOldIdObjects(rcd);
+                        } catch (LDataException lde) {
+                            rollbackTransaction();
+                            throw lde;
                         }
-                        //Update relations
-                        if (parent.isPresent()) {
-                            relationsInsert(parent.get(), rcd, columnItems, relations);
-                        }
-                        commitTransaction();
-                        LRecord.removeOldIdObjects(rcd);
-                    } catch (LDataException lde) {
-                        rollbackTransaction();
-                        throw lde;
+                    } else {
+                        throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
                     }
                 } else {
-                    throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
+                    throw new LDataException(this, "Key of record is not complete: " + primaryKeyComplete + " / record: " + rcd);
                 }
-            } else {
-                throw new LDataException(this, "Key of record is not complete: " + primaryKeyComplete + " / record: " + rcd);
+            } catch (Exception ex) {
+                if (ex instanceof LDataException) {
+                    throw ex;
+                } else {
+                    throw new LDataException(this, "Exception during persisting: " + ex.getMessage(), ex);
+                }
             }
-            return rcd;
+            return rcd;            
         });
     }
 
@@ -1389,50 +1400,29 @@ public class LSqlRepository implements
         return sql.toString();
     }
 
-    @SuppressWarnings("unchecked")
-    private <T extends Record> T fillDatas(Class<T> rcdClass, LSqlResultSet sqlResultSet, LList<LColumnItem> columnItemsWithoutLinks, String prefix, boolean onlyKey) throws LDataException, SQLException {
+    private <T extends Record> T _createRecord(Class<T> rcdClass, LSqlResultSet resultSet, LList<LColumnItem> columns, String prefix, boolean onlyKey) throws LDataException, SQLException {
         var map = new LMap<String, Object>();
-        var columns = this.getColumnsWithoutLinks(rcdClass);
-        for (int i = 0; i < columns.size(); i++) {
-            var column = columns.get(i);
+        LField lastLinkedColumn = null;
+        for (var column : columns) {
             if (((!onlyKey) || (column.isFieldPrimaryKey())) && (!column.isLateLoader())) {
+                Object value = null;
                 if (column.isLinked()) {
-                    var primaryKeyObjects = LList.empty();
-                    columnItemsWithoutLinks.forEachIf(c -> c.getLinkColumn() == column.getField(), c -> {
-                        Object d = null;
-                        try {
-                            d = sqlResultSet.getObject(c.getDataFieldName(), c.getField().requiredClass());
-                        } catch (SQLException sqle) {
-                            LLog.error(this, sqle.getMessage());
-                        }
-                        primaryKeyObjects.add(d);
-                    });
-                    if (primaryKeyObjects.stream().allMatch(e -> e == null)) {
-                        //do nothing                        
-                    } else if (primaryKeyObjects.stream().noneMatch(e -> e == null)) {
-                        Record linkedData = null;
-                        //get linked data from other sources
-                        var linkedMap = this.getLinkedMap(column.getField());
-                        if (linkedMap != null) {
-                            linkedData = linkedMap.get(LRecords.keyOf(column.getField().requiredClass().requiredClass(), primaryKeyObjects.toArray()));
-                            //linkedData = LRecords.get(field.getRequiredClass().requiredClass(), linkedMap, primaryKeyObjects.toArray());
-                        }
-                        if (linkedData == null) {
-                            map.put(column.getField().name(), fillDatas(column.getField().requiredClass().requiredClass(), sqlResultSet,
-                                    getColumnsWithoutLinks(column.getField().requiredClass().requiredClass()),
-                                    prefix + column.getField().name() + ILConstants.UNDL, true));
-                        } else {
-                            map.put(column.getField().name(), linkedData);
-                        }
-                    } else {
-                        throw new LDataException(this, "Linked primary key is incomplete, but not null");
+                    if (column.getLinkColumn() != lastLinkedColumn) {                        
+                        value  = _createRecord(column.getLinkColumn().requiredClass().requiredClass(), resultSet, 
+                                              getColumnsWithoutLinks(column.getLinkColumn().requiredClass().requiredClass()), 
+                                              prefix + column.getLinkColumn().name() + ILConstants.UNDL, true);
                     }
+                    if (value != null) {
+                        map.put(column.getLinkColumn().name(), value);
+                    }
+                    lastLinkedColumn = column.getLinkColumn();
                 } else {
-                    var val = sqlResultSet.getObject(prefix + column.getField().name(), column.getField().requiredClass());
-                    if (val != null) {
-                        map.put(column.getField().name(), val);
+                    //not linked column
+                    value = resultSet.getObject(prefix + column.getField().name(), column.getField().requiredClass());       
+                    if (value != null) {
+                        map.put(column.getField().name(), value);
                     }
-                }
+                }                
             }
         }
         try {
@@ -1451,17 +1441,6 @@ public class LSqlRepository implements
         dbTableNames.put(dataClass, dbTableName);
     }
 
-    /*private LYoso getFromDataPool(LKeyYosos notThisDatas, Class dataClass, Object[] keyObjects) {
-        LYoso result = null;
-        LYososIterator<LKeyYosos> it_datas = new LYososIterator<>(LKeyYosos.DATA_POOL);
-        while ((result == null) && (it_datas.hasNext())) {
-            LKeyYosos datas = it_datas.next();
-            if ((datas != null) && (datas != notThisDatas) && (datas.getDataClass() == dataClass)) {
-                result = datas.get(keyObjects);
-            }
-        }
-        return result;
-    }*/
     public Record fetchRecord(Class<? extends Record> rcdClass, LMap<String, Object> keyMap) throws LDataException, LParseException {
         if (available()) {
             var columns = getColumnsWithoutLinks(rcdClass);
@@ -1483,7 +1462,7 @@ public class LSqlRepository implements
             try {
                 LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
                 if (sqlResultSet.next()) {
-                    rcd = this.fillDatas(rcdClass, sqlResultSet, columns, "", false);
+                    rcd = _createRecord(rcdClass, sqlResultSet, columns, "", false);
                 } else {
                     rcd = null;
                 }
@@ -1559,13 +1538,16 @@ public class LSqlRepository implements
                     }
                 }
                 try {
-                    var columnItems = getColumnsWithoutLinks(rcdClass);
+                    var columns = getColumnsWithoutLinks(rcdClass);
                     LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
                     while ((!task.isCancelled()) && (sqlResultSet.next())) {
-                        T rcd = this.fillDatas(rcdClass, sqlResultSet, columnItems, "", false);
+                        LLog.test(this, "fetch...");
+                        T rcd = _createRecord(rcdClass, sqlResultSet, columns, "", false);
+                        LLog.test(this, "fetchedRecord: %s", rcd);
                         if ((parent.isPresent()) && (rcd instanceof ILHasParent)) {
                             ((ILHasParent) rcd).setParent(parent.get());
                         }
+                        
                         result.add(rcd);
                     }
                     sqlResultSet.close();

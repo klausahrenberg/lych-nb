@@ -19,7 +19,8 @@ import com.ka.lych.repo.web.LWebRepository.LOdwRequest;
  */
 public class LJsonKMeasureTest {
 
-    public LJsonKMeasureTest() {
+    public LJsonKMeasureTest() {                
+                
 
         var km = "{\n"
                 + "        \"data\" : \"KPart\",\n"

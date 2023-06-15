@@ -16,6 +16,7 @@ import com.ka.lych.util.LReflections.LFields;
 import com.ka.lych.util.LReflections.LRequiredClass;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -136,8 +137,9 @@ public abstract class LRecord {
         } else if (LDatetime.class.isAssignableFrom(field.type())) {
             result = (shouldParsed ? LDatetime.of((String) value) : new LDatetime((LocalDateTime) value));
         } else if (LObservable.class.isAssignableFrom(field.type())) {
-            if ((value != null) && (Map.class.isAssignableFrom(field._requiredClass.requiredClass()))) {
-                if (!(value instanceof LMap)) {
+            if (value != null) {
+                if ((Map.class.isAssignableFrom(field._requiredClass.requiredClass())) && (!(value instanceof LMap))) {
+                //if (!(value instanceof LMap)) {
                     if ((field._requiredClass.parameterClasses().isEmpty()) || (field._requiredClass.parameterClasses().get().size() < 2)) {
                         throw new LParseException(LRecord.class, "Map needs 2 class parameters. List is empty or less than 2");
                     }
@@ -155,7 +157,9 @@ public abstract class LRecord {
                         }
                     }
                     value = valueMap;
-                }
+                } else if (Map.class.isAssignableFrom(value.getClass())) {
+                    value = LRecord.of(field._requiredClass.requiredClass(), (Map) value, false);
+                }    
             }
             result = new LObservable(value);
         }
