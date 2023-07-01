@@ -179,8 +179,9 @@ public abstract class LSqlConverter {
                     if ((requiredClass.parameterClasses().isEmpty()) || (requiredClass.parameterClasses().get().size() < 2)) {
                         throw new IllegalStateException("Map needs 2 class parameters. List is empty or less than 2");
                     }
-                    try {                        
-                        var toUpdate = LJsonParser.parseMap(requiredClass.parameterClasses().get().get(1), (String) source);
+                    try {              
+                        var toUpdate = LJsonParser.of(requiredClass.parameterClasses().get().get(1)).payload((String) source).parseMap();
+                        //var toUpdate = LJsonParser.parseMap(requiredClass.parameterClasses().get().get(1), (String) source);
                         //throw new UnsupportedOperationException("tbi");                        
                         //LJsonParser.parse(toUpdate, requiredClass.parameterClasses().get().get(1), (String) source);                                                                        
                         //result = toUpdate;                        

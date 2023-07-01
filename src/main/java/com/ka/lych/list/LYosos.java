@@ -1,7 +1,6 @@
 package com.ka.lych.list;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.EmptyStackException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -10,7 +9,6 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import com.ka.lych.util.ILCloneable;
-import com.ka.lych.util.LArrays;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.util.LReflections.LMethod;

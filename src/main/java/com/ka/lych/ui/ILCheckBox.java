@@ -8,7 +8,7 @@ import com.ka.lych.observable.LBoolean;
  */
 public interface ILCheckBox extends ILToggleButton<Boolean> {
     
-    public LBoolean observableIndeterminate();
+    public LBoolean indeterminate();
     
     //public boolean isIndeterminate();
     

@@ -23,6 +23,8 @@ import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LString;
 import com.ka.lych.repo.LColumnItem;
 import com.ka.lych.util.LReflections.LField;
+import java.net.URI;
+import java.nio.file.Path;
 
 /**
  *
@@ -90,7 +92,9 @@ public class LWebRepository implements
             try {
                 var request = LJson.of(new LOdwRequest("com.ka.iot.odw.KContact", null)).toString();
                 LLog.test(this, "request %s", request);
-                var map = LJsonParser.parse(LMap.class, new URL(url + "/count"), request);
+                var map = LJsonParser.of(LMap.class).url(new URL(url + "/count"), request).parse();
+                //var map = LJsonParser.parse(LMap.class, new URL(url + "/count"), request);
+                
                 LLog.test(this, "count %s", LArrays.toString(map.values()));
                 return (int) map.get("count");
             } catch (Exception ex) {
@@ -146,7 +150,8 @@ public class LWebRepository implements
         try {
             var request = LJson.of(new LOdwRequestRecord("com.ka.iot.odw.KContact", rcd)).toString();
             LLog.test(this, "request %s", request);
-            var map = LJsonParser.parse(LMap.class, new URL(url + "/persist"), request);
+            var map = LJsonParser.of(LMap.class).url(new URL(url + "/persist"), request).parse();
+            //var map = LJsonParser.parse(LMap.class, new URL(url + "/persist"), request);
             LLog.test(this, "persist %s", LArrays.toString(map.values()));
             return LFuture.value(rcd);
         } catch (Exception ex) {

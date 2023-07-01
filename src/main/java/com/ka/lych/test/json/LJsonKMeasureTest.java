@@ -48,18 +48,18 @@ public class LJsonKMeasureTest {
         //var cItem = new LJsonParser.LCollectionItem(LRecords.empty(), new LRequiredClass(LRecords.class, Optional.of(LList.of(TDevice.class))));
         //LOdwRequest r = LRecord.example(LOdwRequest.class);
         try {
-            var o = LJsonParser.parse(LOdwRequest.class, km);
+            var o = LJsonParser.of(LOdwRequest.class).payload(km).parse();
             LLog.test(this, "loaded: %s", o);
             LLog.test(this, "query is: %s", (LQuery) o.query().get());
             LLog.test(this, "back to json: \n %s", LJson.of(o).toString());
             LLog.test(this, "-------------------------------------------");
-            var o2 = LJsonParser.parse(LQuery.class, km3);
+            var o2 = LJsonParser.of(LQuery.class).payload(km3).parse();
             LLog.test(this, "loaded: %s", o2);
             LLog.test(this, "query is: %s", o2);
             LLog.test(this, "back to json: \n %s", LJson.of(o2).toString());
             LLog.test(this, "-------------------------------------------");
             
-            var jTest = LJsonParser.parse(KJsonTest.class, km4);
+            var jTest = LJsonParser.of(KJsonTest.class).payload(km4).parse();
             LLog.test(this, "loaded: %s", jTest);
             LLog.test(this, "back to json: \n %s", LJson.of(jTest).toString());
         } catch (Exception ex) {

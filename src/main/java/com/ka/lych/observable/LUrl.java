@@ -46,8 +46,7 @@ public class LUrl extends LString {
 
     public URL getURL() {
         if ((url == null) && (!LString.isEmpty(get()))) {
-            try {
-                
+            try {                
                 url = new URL(get());
             } catch (MalformedURLException mfue) {
                 //maybe a resource

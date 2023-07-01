@@ -1400,6 +1400,7 @@ public class LSqlRepository implements
         return sql.toString();
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Record> T _createRecord(Class<T> rcdClass, LSqlResultSet resultSet, LList<LColumnItem> columns, String prefix, boolean onlyKey) throws LDataException, SQLException {
         var map = new LMap<String, Object>();
         LField lastLinkedColumn = null;

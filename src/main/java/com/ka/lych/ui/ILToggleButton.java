@@ -9,6 +9,6 @@ import com.ka.lych.observable.LBoolean;
  */
 public interface ILToggleButton<T> extends ILButton<T> {
 
-    public LBoolean observableSelected();
+    public LBoolean selected();
     
 }

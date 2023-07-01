@@ -156,6 +156,10 @@ public class LInteger extends LObservable<Integer> {
         return (value != null ? Integer.toString(value) : null);
     }
     
+    public static LInteger of(Integer value) {
+        return new LInteger(value);
+    }
+    
     public static LInteger of(String value) throws LParseException {
         var result = new LInteger();
         result.parse(value);

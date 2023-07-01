@@ -252,7 +252,7 @@ public abstract class LCanvasRenderer<C, D>
         if ((getCanvas() != null) && (getCanvas().getState() == LCanvasState.NOT_PARSED)) {            
             if (!(getCanvas() instanceof ILLoadable)) {
                 throw new IllegalStateException("Canvas is not parseable (ILParseable not implemented) and state is 'not parsed'");
-            }            
+            }                        
             loadingService.addLoadable((ILLoadable) getCanvas(), renderPriority);
         }
         if ((needsNewRendering) && (getPaintBounds().getWidth() > 0) && (getPaintBounds().getHeight() > 0)) {            
@@ -261,7 +261,7 @@ public abstract class LCanvasRenderer<C, D>
             if (runInThread) {
                 if (isHandlingAnimations()) {
                     var canvasAnim = getCanvas().checkAnimations();
-                    //LFuture.execute(this, canvasAnim.duration(), canvasAnim.infinite());
+                    LFuture.execute(this, 0, canvasAnim.duration(), canvasAnim.infinite());
                 } else {
                     LFuture.execute(this);
                 }

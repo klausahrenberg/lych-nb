@@ -72,7 +72,8 @@ public class LJsoperties {
                     }                                        
                 }
             } else {
-                LJsonParser.update(o, jsonFile);
+                LJsonParser.update(o).file(jsonFile).parse();
+                //LJsonParser.update(o, jsonFile);
                 
                 LLog.debug(this, "Settings with new loading from file: '%s'.", jsonFile.getAbsolutePath());
             }

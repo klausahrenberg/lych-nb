@@ -27,7 +27,7 @@ public class LTestJson {
             LLog.debug(this, "Template of json settings doesn't exists.");
         } else {
             try {
-                var map = LJsonParser.parseMap(TProperty.class, resStream);
+                var map = LJsonParser.of(TProperty.class).inputStream(resStream).parseMap();
                 LLog.test(this, "loaded: %s", LArrays.toString(map.values().toArray()));
                 LLog.test(this, "back to json: \n %s", LJson.of(map).toString());
             } catch (Exception ex) {

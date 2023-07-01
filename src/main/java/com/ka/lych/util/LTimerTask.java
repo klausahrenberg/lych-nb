@@ -26,6 +26,7 @@ public class LTimerTask<R, T extends Throwable> extends LTask<R, T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public void run() {
         T error = null;
         R result = null;

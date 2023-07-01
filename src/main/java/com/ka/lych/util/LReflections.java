@@ -278,6 +278,7 @@ public abstract class LReflections {
         return defaultValue;
     }
     
+    @SuppressWarnings("unchecked")
     public static boolean getAnnotationBooleanValue(LField field, String valueName, boolean defaultValue, Class... annotations) {
         if ((annotations != null) && (annotations.length > 0) && (annotations[0] != null)) {
             for (Class annotation : annotations) {

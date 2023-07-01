@@ -25,14 +25,14 @@ public class LLoadingService
     }
 
     @Override
-    public Object run(LTask task) throws LException {
-        /*while ((!service.isCancelled()) && (queue != null) && (!queue.isEmpty())) {
+    public Object run(LTask task) throws Throwable {
+        while ((!task.isCancelled()) && (queue != null) && (!queue.isEmpty())) {
             //Get loadable from stack without removing
             var loadable = queue.peek();
             loadable.load();//.await().ifError(ex -> LLog.error(this, "Can't finished loading of canvas", (Throwable) ex));
             //Remove loadable from stack
             queue.pop();
-        }*/
+        }
         return null;
     }
 

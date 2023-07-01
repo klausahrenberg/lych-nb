@@ -44,7 +44,7 @@ public class LJsonKPPapTest {
         //var cItem = new LJsonParser.LCollectionItem(LRecords.empty(), new LRequiredClass(LRecords.class, Optional.of(LList.of(TDevice.class))));
         //LOdwRequest r = LRecord.example(LOdwRequest.class);
         try {
-            var o = LJsonParser.parse(KPpapPlanning.class, ppap);
+            var o = LJsonParser.of(KPpapPlanning.class).payload(ppap).parse();
             LLog.test(this, "loaded: %s", o);
             LLog.test(this, "back to json: \n %s", LJson.of(o).toString());
             LLog.test(this, "-------------------------------------------");
