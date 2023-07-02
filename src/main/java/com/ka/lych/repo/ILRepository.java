@@ -1,9 +1,7 @@
 package com.ka.lych.repo;
 
 import com.ka.lych.event.LErrorEvent;
-import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
-import com.ka.lych.list.LYosos;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.ILHandler;
@@ -20,6 +18,7 @@ import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Lazy;
+import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
 
 /**
@@ -133,7 +132,7 @@ public interface ILRepository {
 
     public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Optional<? extends Record> parent, Optional<LTerm> filter);
 
-    public <R extends Record> LFuture<LList<R>, LDataException> fetch(Class<R> dataClass, Optional<? extends Record> parent, Optional<LQuery> query);
+    public <R extends Record> LFuture<List<R>, LDataException> fetch(Class<R> dataClass, Optional<? extends Record> parent, Optional<LQuery> query);
 
     public Object fetchValue(Record record, LObservable observable) throws LDataException;
 

@@ -28,6 +28,7 @@ import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Xml;
 import com.ka.lych.list.LRecords;
+import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -1509,10 +1510,10 @@ public class LSqlRepository implements
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<LList<T>, LDataException> fetch(Class<T> rcdClass, Optional<? extends Record> parent, Optional<LQuery> query) {
+    public <T extends Record> LFuture<List<T>, LDataException> fetch(Class<T> rcdClass, Optional<? extends Record> parent, Optional<LQuery> query) {
         Objects.requireNonNull(parent, "Parent can't be null - use Optional.empty()");
         Objects.requireNonNull(query, "Query can't be null - use Optional.empty()");
-        return LFuture.<LList<T>, LDataException>execute(task -> {
+        return LFuture.<List<T>, LDataException>execute(task -> {
             if (available()) {
                 var result = new LList<T>();
                 StringBuilder sql = new StringBuilder();

@@ -15,6 +15,7 @@ import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Lazy;
 import com.ka.lych.annotation.Index;
 import com.ka.lych.util.ILLocalizable;
+import com.ka.lych.util.LArrays;
 
 /**
  *
@@ -39,7 +40,7 @@ public class LWebRepositoryTest extends LBase {
         var result = repository.countData(KContact.class, Optional.empty(), Optional.empty()).await();
         LLog.test(this, "count: %s", result.value());
         var array = repository.fetch(KContact.class, Optional.empty(), Optional.of(new LQuery(0, 100, Optional.of(LList.of(new LSortOrder("id", LSortDirection.ASCENDING))), Optional.empty(), Optional.empty()))).await().value();
-        LLog.test(this, "array %s", array.toString(true));
+        LLog.test(this, "array %s", LArrays.toString(array));
 
         if (array.size() > 0) {
             var rcd = array.get(0);

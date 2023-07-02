@@ -20,11 +20,11 @@ import java.util.Optional;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
-import com.ka.lych.observable.LString;
 import com.ka.lych.repo.LColumnItem;
 import com.ka.lych.util.LReflections.LField;
-import java.net.URI;
-import java.nio.file.Path;
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Function;
 
 /**
  *
@@ -33,10 +33,16 @@ import java.nio.file.Path;
 public class LWebRepository implements
         ILRepository {
 
-    private final String url;
+    final String _url;
+    Function<Void, Collection> _listFactory;
 
     public LWebRepository(String url) {
-        this.url = url;
+        this(url, null);
+    }
+    
+    public LWebRepository(String url, Function<Void, Collection> listFactory) {
+        _url = url;
+        _listFactory = listFactory;
     }
     
     private final LMap<Class, LList<LColumnItem>> columnsUnlinked = new LMap<>();
@@ -90,9 +96,9 @@ public class LWebRepository implements
     public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Optional<? extends Record> parent, Optional<LTerm> filter) {
         return LFuture.<Integer, LDataException>execute(task -> {
             try {
-                var request = LJson.of(new LOdwRequest("com.ka.iot.odw.KContact", null)).toString();
+                var request = LJson.of(new LOdwRequest(dataClass.getSimpleName(), null)).toString();
                 LLog.test(this, "request %s", request);
-                var map = LJsonParser.of(LMap.class).url(new URL(url + "/count"), request).parse();
+                var map = LJsonParser.of(LMap.class).listFactory(_listFactory).url(new URL(_url + "/count"), request).parseMap();
                 //var map = LJsonParser.parse(LMap.class, new URL(url + "/count"), request);
                 
                 LLog.test(this, "count %s", LArrays.toString(map.values()));
@@ -104,15 +110,13 @@ public class LWebRepository implements
     }
 
     @Override
-    public <T extends Record> LFuture<LList<T>, LDataException> fetch(Class<T> dataClass, Optional<? extends Record> parent, Optional<LQuery> query) {
-        return LFuture.<LList<T>, LDataException>execute(task -> {
+    public <T extends Record> LFuture<List<T>, LDataException> fetch(Class<T> dataClass, Optional<? extends Record> parent, Optional<LQuery> query) {
+        return LFuture.<List<T>, LDataException>execute(task -> {
             try {
-                var request = LJson.of(new LOdwRequest("com.ka.iot.odw.KContact", query)).toString();
+                var request = LJson.of(new LOdwRequest(dataClass.getSimpleName(), query)).toString();
                 LLog.test(this, "request %s", request);
-                var rcds = new LList<T>();
-                throw new UnsupportedOperationException("tbi");                        
-                //LJsonParser.parse(rcds, dataClass, new URL(url + "/fetch"), request);
-                //return rcds;
+                
+                return (LList<T>) LJsonParser.of(dataClass).listFactory(_listFactory).url(new URL(_url + "/fetch"), request).parseList();                                
             } catch (Exception ex) {
                 throw new LDataException(this, ex.getLocalizedMessage(), ex);
             }
@@ -150,7 +154,7 @@ public class LWebRepository implements
         try {
             var request = LJson.of(new LOdwRequestRecord("com.ka.iot.odw.KContact", rcd)).toString();
             LLog.test(this, "request %s", request);
-            var map = LJsonParser.of(LMap.class).url(new URL(url + "/persist"), request).parse();
+            var map = LJsonParser.of(LMap.class).url(new URL(_url + "/persist"), request).parse();
             //var map = LJsonParser.parse(LMap.class, new URL(url + "/persist"), request);
             LLog.test(this, "persist %s", LArrays.toString(map.values()));
             return LFuture.value(rcd);

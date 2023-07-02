@@ -35,9 +35,9 @@ public class LJson {
     protected boolean prettyFormatting;
 
     protected record LJsonTab(int tabLevel, boolean firstElement) {
-        
+
     }
-    
+
     public LJson() {
         this.stream = new StringBuilder();
         this.separatorAlreadyCalled = false;
@@ -205,8 +205,8 @@ public class LJson {
     public LJson propertyObject(String name, Object o) {
         return this.propertyObject(name, o, false);
     }
-        
-    public LJson propertyObject(String name, Object o, boolean onlyId) {    
+
+    public LJson propertyObject(String name, Object o, boolean onlyId) {
         ifSeparator();
         separatorAlreadyCalled = true;
         memberName(name);
@@ -214,8 +214,8 @@ public class LJson {
         separatorAlreadyCalled = false;
         return this;
     }
-        
-    public LJson writeObject(Object o, boolean onlyId) {    
+
+    public LJson writeObject(Object o, boolean onlyId) {
         if (!separatorAlreadyCalled) {
             ifSeparator();
         }
@@ -342,7 +342,7 @@ public class LJson {
     public static LJson of(Object o) {
         return _of(o, false, 0);
     }
-    
+
     public static LJson of(Object o, boolean onlyId) {
         return _of(o, onlyId, 0);
     }
@@ -363,54 +363,74 @@ public class LJson {
     @SuppressWarnings("unchecked")
     protected static void objectToJson(LJson json, Object o, boolean onlyId, int tabLevel) {
         json.tabLevel = tabLevel;
-        json.beginObject();
-        var fields = LReflections.getFieldsOfInstance(o, null, Json.class);
-        var it_fields = fields.iterator();
+        if (o instanceof ILParseable) {
+            var ps = ((ILParseable) o).toParseableString();            
+            if (ps != null) {
+                json.writeString(ps);
+            } else {
+                json.writeNull();
+            }    
+        } else {
+            json.beginObject();
+            var fields = LReflections.getFieldsOfInstance(o, null, Json.class);
+            var it_fields = fields.iterator();
+            LLog.test(LJson.class, "write object'%s' / %s", o, fields.size());
+            while (it_fields.hasNext()) {
+                var field = it_fields.next();
+                if (LReflections.existsAnnotation(field, Lazy.class)) {
+                    json.propertyString(field.name(), "tbi / link to lazy value");
+                } else if ((!onlyId)/* && (tabLevel < 1))*/ || (field.isId())) {
+                    //2023-06-15 (tabLevel < 1) added
+                    //2023-07-02 (tabLevel < 1) removed
+                    LObservable observable = (field.isObservable() ? LReflections.observable(o, field) : null);
+                    Object value = null;
+                    try {
+                        value = (observable != null ? observable.get() : field.get(o));
+                    } catch (IllegalAccessException ex) {
+                        value = null;
+                    }
+                    if ((value instanceof Optional) && ((Optional) value).isPresent()) {
+                        LLog.test(LJson.class, "optional a %s", LJson.of(((Optional) value).get()).toString());
+                        value = ((value instanceof Optional) ? (((Optional) value).isEmpty() ? null : ((Optional) value).get()) : value);
+                        LLog.test(LJson.class, "optional b %s", value);
+                    } else {
 
-        while (it_fields.hasNext()) {
-            var field = it_fields.next();
-            if (LReflections.existsAnnotation(field, Lazy.class)) {
-                json.propertyString(field.name(), "tbi / link to lazy value");
-            } else if (((!onlyId) && (tabLevel < 1)) || (field.isId())) {
-                //2023-06-15 (tabLevel < 1) added
-                LObservable observable = (field.isObservable() ? LReflections.observable(o, field) : null);
-                Object value = null;
-                try {
-                    value = (observable != null ? observable.get() : field.get(o));
-                } catch (IllegalAccessException ex) {
-                    value = null;
-                }
-                value = ((value instanceof Optional) ? (((Optional) value).isEmpty() ? null : ((Optional) value).get()) : value);
-                if (value == null) {
-                    json.propertyNull(field.name());
-                } else if (String.class.isAssignableFrom(value.getClass())) {
-                    json.propertyString(field.name(), (String) value);
-                } else if (Integer.class.isAssignableFrom(value.getClass())) {
-                    json.propertyInteger(field.name(), (Integer) value);
-                } else if (Double.class.isAssignableFrom(value.getClass())) {
-                    json.propertyDouble(field.name(), (Double) value);
-                } else if (Boolean.class.isAssignableFrom(value.getClass())) {
-                    json.propertyBoolean(field.name(), (Boolean) value);
-                } else if (Path.class.isAssignableFrom(value.getClass())) {
-                    json.propertyString(field.name(), ((Path) value).toAbsolutePath().toString());
-                } else if (LocalDate.class.isAssignableFrom(value.getClass())) {
-                    json.propertyString(field.name(), LJson.dateString((LocalDate) value));
-                } else if (LocalDateTime.class.isAssignableFrom(value.getClass())) {
-                    json.propertyString(field.name(), LJson.datetimeString((LocalDateTime) value));
-                } else if (value.getClass().isEnum()) {
-                    json.propertyString(field.name(), value.toString().toUpperCase());//.toLowerCase());
-                } else if (Collection.class.isAssignableFrom(value.getClass())) {
-                    json.propertyArray(field.name(), (Collection) value);
-                } else if (Map.class.isAssignableFrom(value.getClass())) {
-                    json.propertyMap(field.name(), (Map) value);
-                } else {
-                    json.propertyObject(field.name(), value);
+                        value = ((value instanceof Optional) ? (((Optional) value).isEmpty() ? null : ((Optional) value).get()) : value);
+                    }
+                    if (value == null) {
+                        json.propertyNull(field.name());
+                    } else if (String.class.isAssignableFrom(value.getClass())) {
+                        json.propertyString(field.name(), (String) value);
+                    } else if (Integer.class.isAssignableFrom(value.getClass())) {
+                        json.propertyInteger(field.name(), (Integer) value);
+                    } else if (Double.class.isAssignableFrom(value.getClass())) {
+                        json.propertyDouble(field.name(), (Double) value);
+                    } else if (Boolean.class.isAssignableFrom(value.getClass())) {
+                        json.propertyBoolean(field.name(), (Boolean) value);
+                    } else if (Path.class.isAssignableFrom(value.getClass())) {
+                        json.propertyString(field.name(), ((Path) value).toAbsolutePath().toString());
+                    } else if (LocalDate.class.isAssignableFrom(value.getClass())) {
+                        json.propertyString(field.name(), LJson.dateString((LocalDate) value));
+                    } else if (LocalDateTime.class.isAssignableFrom(value.getClass())) {
+                        json.propertyString(field.name(), LJson.datetimeString((LocalDateTime) value));
+                    } else if (value.getClass().isEnum()) {
+                        json.propertyString(field.name(), value.toString().toUpperCase());//.toLowerCase());
+                    } else if (Collection.class.isAssignableFrom(value.getClass())) {
+                        json.propertyArray(field.name(), (Collection) value);
+                    } else if (Map.class.isAssignableFrom(value.getClass())) {
+                        json.propertyMap(field.name(), (Map) value);
+                    } else {
+                        LLog.test(LJson.class, "optional c");
+                        json.propertyObject(field.name(), value);
+                        LLog.test(LJson.class, "optional d");
+                    }
+                    LLog.test(LJson.class, "optional e");
                 }
             }
+            json.endObject();
         }
-        json.endObject();
     }
-    
+
     public static String string(String text) {
         //orginalRecord.replaceAll("[\\\\p{Cntrl}^\\r\\n\\t]+", "")
         //return QUOTE + text.replace("\"", "\\\"") + QUOTE;

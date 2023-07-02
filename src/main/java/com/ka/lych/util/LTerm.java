@@ -14,7 +14,6 @@ import com.ka.lych.xml.LXmlUtils;
 public class LTerm
         implements ILParseable<LParseException> {
 
-    //public final static String KEYWORD_RESSOURCE = "@";
     public final static String KEYWORD_VARIABLE = "=";
     protected final static char KEYWORD_BRACKET_OPEN = '(';
     protected final static char KEYWORD_BRACKET_OPEN_ALTERNATIVE = '{';
@@ -34,15 +33,14 @@ public class LTerm
     public final static String KEYWORD_ELSE = " else ";
     public final static String KEYWORD_NULL = "null";
     public final static String KEYWORD_WILDCARD = "\\*";
-
-    protected String term;
-    protected boolean parseRecursive;
+    
+    boolean _parseRecursive;
     @Json
-    protected LOperation operation;
+    LOperation _operation;
     @Json
-    protected LList<LTerm> subs;
+    LList<LTerm> _subs;
     @Json
-    protected Object valueConstant;
+    Object _valueConstant;
 
     public static LTerm equal(Object const1, Object const2) {
         return new LTerm(LOperation.EQUAL,
@@ -91,27 +89,25 @@ public class LTerm
         this(term, true);
     }
 
-    protected LTerm(String term, boolean parseRecursive) throws LParseException {
-        this.term = term;
-        this.parseRecursive = parseRecursive;
-        this.operation = LOperation.NONE;
-        parse(this.term);
+    protected LTerm(String term, boolean parseRecursive) throws LParseException {        
+        _parseRecursive = parseRecursive;
+        _operation = LOperation.NONE;
+        parse(term);
     }
 
-    protected LTerm(LOperation operation, LTerm... subs) {
-        this.term = null;
-        this.operation = operation;
+    protected LTerm(LOperation operation, LTerm... subs) {        
+        _operation = operation;
         if ((subs != null) && (subs.length > 0)) {
-            this.subs = LList.empty();
+            _subs = LList.empty();
             for (int i = 0; i < subs.length; i++) {
-                this.subs.add(subs[i]);
+                _subs.add(subs[i]);
             }
         }
     }
 
     protected LTerm(LOperation operation, Object value) {
-        this.operation = operation;
-        this.valueConstant = value;
+        _operation = operation;
+        _valueConstant = value;
     }
 
     private boolean checkIntegry(String value) {
@@ -191,26 +187,34 @@ public class LTerm
 
     @Override
     public String toParseableString() {
-        return this.term;
+        var result = "";        
+        LList<String> psubs = LList.empty();
+        if (_subs != null) {
+            _subs.forEach(t -> psubs.add(t.toParseableString()));        
+        }
+        switch (_operation) {            
+            case OR -> result = LString.concatWithSpacer(KEYWORD_OR, "", psubs.toArray());
+            case LIKE -> result = psubs.get(0) + KEYWORD_LIKE + psubs.get(1);
+            case VALUE_CONST, VALUE_VARIABLE -> result = (_valueConstant != null ? _valueConstant.toString() : KEYWORD_NULL);
+            default -> throw new UnsupportedOperationException("Not supported operation: " + _operation);
+        }   
+        return (((_operation == LOperation.VALUE_CONST) || (_operation == LOperation.VALUE_VARIABLE)) ?
+                result :
+                String.valueOf(KEYWORD_BRACKET_OPEN) + result + String.valueOf(KEYWORD_BRACKET_CLOSE));
     }
 
     @Override
     public String toString() {
-        return this.term;
-    }
-
-    public void parse() throws LParseException {
-        this.parse(this.term);
+        return toParseableString();
     }
 
     @Override
-    public void parse(String value) throws LParseException {
-        this.term = value;
-        this.operation = LOperation.NONE;
-        valueConstant = null;
-        if (!LString.isEmpty(this.term)) {
+    public void parse(String term) throws LParseException {        
+        _operation = LOperation.NONE;
+        _valueConstant = null;
+        if (!LString.isEmpty(term)) {
             term = prepareFormulaRemoveOuterBrackets(term);
-            if (!this.term.isEmpty()) {
+            if (!term.isEmpty()) {
                 //Looking for IF_THEN_ELSE
                 int bracketLevel = 0;
                 boolean insideString = false;
@@ -223,20 +227,20 @@ public class LTerm
                         if (!insideString) {
                             bracketLevel = getBracketLevel(currentChar, bracketLevel);
                             if (bracketLevel == 0) {
-                                if (subs == null) {
-                                    subs = new LList<>();
-                                    subs.add(null);
-                                    subs.add(null);
-                                    subs.add(null);
+                                if (_subs == null) {
+                                    _subs = new LList<>();
+                                    _subs.add(null);
+                                    _subs.add(null);
+                                    _subs.add(null);
                                 }
                                 if ((thenIndex == -1) && (term.substring(i).toLowerCase().indexOf(KEYWORD_THEN) == 0)) {
                                     thenIndex = i;
-                                    subs.set(0, new LTerm(term.substring(KEYWORD_IF.length(), i)));
-                                    this.operation = LOperation.IF_THEN_ELSE;
+                                    _subs.set(0, new LTerm(term.substring(KEYWORD_IF.length(), i)));
+                                    _operation = LOperation.IF_THEN_ELSE;
                                 } else if ((thenIndex > -1) && ((i == term.length() - 1) || (term.substring(i).toLowerCase().indexOf(KEYWORD_ELSE) == 0))) {
-                                    subs.set(1, new LTerm(term.substring(thenIndex + KEYWORD_THEN.length(), i)));
+                                    _subs.set(1, new LTerm(term.substring(thenIndex + KEYWORD_THEN.length(), i)));
                                     if (i != term.length() - 1) {
-                                        subs.set(2, new LTerm(term.substring(i + KEYWORD_ELSE.length())));
+                                        _subs.set(2, new LTerm(term.substring(i + KEYWORD_ELSE.length())));
                                         break;
                                     }
                                 }
@@ -244,12 +248,12 @@ public class LTerm
                         }
                     }
                     term = term.trim();
-                    if (this.operation == LOperation.NONE) {
+                    if (_operation == LOperation.NONE) {
                         throw new IllegalStateException(KEYWORD_IF + "-statement without " + KEYWORD_THEN + "-statement.");
                     }
                 }
                 //Looking for OR operation
-                if (this.operation == LOperation.NONE) {
+                if (_operation == LOperation.NONE) {
                     term = prepareFormulaCheckAndOr(term);
                     term = prepareFormulaRemoveOuterBrackets(term);
                     bracketLevel = 0;
@@ -260,19 +264,19 @@ public class LTerm
                         if (!insideString) {
                             bracketLevel = getBracketLevel(currentChar, bracketLevel);
                             if ((bracketLevel == 0) && (term.substring(i).toLowerCase().indexOf(KEYWORD_OR) == 0)) {
-                                if (subs == null) {
-                                    subs = new LList<>();
+                                if (_subs == null) {
+                                    _subs = new LList<>();
                                 }
-                                subs.add(new LTerm(term.substring(0, i)));
-                                subs.add(new LTerm(term.substring(i + KEYWORD_OR.length())));
-                                this.operation = LOperation.OR;
+                                _subs.add(new LTerm(term.substring(0, i)));
+                                _subs.add(new LTerm(term.substring(i + KEYWORD_OR.length())));
+                                _operation = LOperation.OR;
                                 break;
                             }
                         }
                     }
                 }
                 //if no OR operation found, load for AND
-                if (this.operation == LOperation.NONE) {
+                if (_operation == LOperation.NONE) {
                     bracketLevel = 0;
                     insideString = false;
                     for (int i = 0; i < term.length(); i++) {
@@ -281,22 +285,22 @@ public class LTerm
                         if (!insideString) {
                             bracketLevel = getBracketLevel(currentChar, bracketLevel);
                             if ((bracketLevel == 0) && (term.substring(i).toLowerCase().indexOf(KEYWORD_AND) == 0)) {
-                                if (subs == null) {
-                                    subs = new LList<>();
+                                if (_subs == null) {
+                                    _subs = new LList<>();
                                 }
-                                subs.add(new LTerm(term.substring(0, i)));
-                                subs.add(new LTerm(term.substring(i + KEYWORD_AND.length())));
-                                this.operation = LOperation.AND;
+                                _subs.add(new LTerm(term.substring(0, i)));
+                                _subs.add(new LTerm(term.substring(i + KEYWORD_AND.length())));
+                                _operation = LOperation.AND;
                                 break;
                             }
                         }
                     }
                 }
                 //Test for variable valueConstant
-                if ((this.operation == LOperation.NONE)
+                if ((_operation == LOperation.NONE)
                         && (term.startsWith(KEYWORD_VARIABLE))) {
-                    valueConstant = term.substring(1);
-                    this.operation = LOperation.VALUE_VARIABLE;
+                    _valueConstant = term.substring(1);
+                    _operation = LOperation.VALUE_VARIABLE;
                     /*if (conditionListener != null) {
                     conditionListener.registerVariableValue((String) valueConstant);
                 }*/
@@ -311,44 +315,44 @@ public class LTerm
                 }
             }*/
                 //Variable - Test auf null
-                if ((this.operation == LOperation.NONE)
+                if ((_operation == LOperation.NONE)
                         && (KEYWORD_NULL.equalsIgnoreCase(term))) {
-                    valueConstant = null;
-                    this.operation = LOperation.VALUE_CONST;
+                    _valueConstant = null;
+                    _operation = LOperation.VALUE_CONST;
                 }
                 //Test for string valueConstant
-                if ((this.operation == LOperation.NONE)
+                if ((_operation == LOperation.NONE)
                         && (term.charAt(0) == KEYWORD_STRING_QUOTATIONMARK)) {
-                    valueConstant = term.substring(1, term.length() - 1);
-                    this.operation = LOperation.VALUE_CONST;
+                    _valueConstant = term.substring(1, term.length() - 1);
+                    _operation = LOperation.VALUE_CONST;
                 }
                 //Test for Boolean
-                if (this.operation == LOperation.NONE) {
+                if (_operation == LOperation.NONE) {
                     try {
-                        valueConstant = LXmlUtils.xmlStrToBoolean(term);
-                        this.operation = LOperation.VALUE_CONST;
+                        _valueConstant = LXmlUtils.xmlStrToBoolean(term);
+                        _operation = LOperation.VALUE_CONST;
                     } catch (LParseException nfe) {
                     }
                 }
                 //Test for integer
-                if (this.operation == LOperation.NONE) {
+                if (_operation == LOperation.NONE) {
                     try {
-                        valueConstant = Integer.valueOf(term);
-                        this.operation = LOperation.VALUE_CONST;
+                        _valueConstant = Integer.valueOf(term);
+                        _operation = LOperation.VALUE_CONST;
                     } catch (NumberFormatException nfe) {
                     }
                 }
                 //Test for Double
-                if (this.operation == LOperation.NONE) {
+                if (_operation == LOperation.NONE) {
                     try {
-                        valueConstant = LXmlUtils.xmlStrToDouble(term);
-                        this.operation = LOperation.VALUE_CONST;
+                        _valueConstant = LXmlUtils.xmlStrToDouble(term);
+                        _operation = LOperation.VALUE_CONST;
                     } catch (LParseException nfe) {
                     }
                 }
                 //Finally, it could only be a variable without boolean comparison, e.g. 'database.connected'. This
                 //will be transformed to 'database.connected==true' and will be parsed to subCondition1 and subCondition2 once
-                if ((this.operation == LOperation.NONE) && (parseRecursive)) {
+                if ((_operation == LOperation.NONE) && (_parseRecursive)) {
                     bracketLevel = 0;
                     insideString = false;
                     int operatorIndex = -1;
@@ -360,27 +364,27 @@ public class LTerm
                             bracketLevel = getBracketLevel(currentChar, bracketLevel);
                             if (bracketLevel == 0) {
                                 if (term.substring(i).indexOf(KEYWORD_EQUAL) == 0) {
-                                    operation = LOperation.EQUAL;
+                                    _operation = LOperation.EQUAL;
                                     operatorIndex = i;
                                     operatorLength = KEYWORD_EQUAL.length();
                                     break;
                                 } else if (term.substring(i).indexOf(KEYWORD_LIKE) == 0) {
-                                    operation = LOperation.LIKE;
+                                    _operation = LOperation.LIKE;
                                     operatorIndex = i;
                                     operatorLength = KEYWORD_LIKE.length();
                                     break;
                                 } else if (term.substring(i).indexOf(KEYWORD_NOT_EQUAL) == 0) {
-                                    operation = LOperation.NOT_EQUAL;
+                                    _operation = LOperation.NOT_EQUAL;
                                     operatorLength = KEYWORD_NOT_EQUAL.length();
                                     operatorIndex = i;
                                     break;
                                 } else if (term.substring(i).indexOf(KEYWORD_EQUAL_OR_LESS) == 0) {
-                                    operation = LOperation.EQUAL_OR_LESS;
+                                    _operation = LOperation.EQUAL_OR_LESS;
                                     operatorLength = KEYWORD_EQUAL_OR_LESS.length();
                                     operatorIndex = i;
                                     break;
                                 } else if (term.substring(i).indexOf(KEYWORD_EQUAL_OR_MORE) == 0) {
-                                    operation = LOperation.EQUAL_OR_MORE;
+                                    _operation = LOperation.EQUAL_OR_MORE;
                                     operatorLength = KEYWORD_EQUAL_OR_MORE.length();
                                     operatorIndex = i;
                                     break;
@@ -390,27 +394,27 @@ public class LTerm
                     }
                     if (operatorIndex == -1) {
                         if (term.startsWith(KEYWORD_NOT)) {
-                            operation = LOperation.EQUAL;
+                            _operation = LOperation.EQUAL;
                             operatorIndex = term.length() - 1;
                             term = term.substring(1) + KEYWORD_EQUAL + Boolean.FALSE.toString();
                         } else {
-                            operation = LOperation.EQUAL;
+                            _operation = LOperation.EQUAL;
                             operatorIndex = term.length();
                             term = term + KEYWORD_EQUAL + Boolean.TRUE.toString();
                         }
                         operatorLength = KEYWORD_EQUAL.length();
                     }
                     //create valueConstant and stop recursive parsing
-                    if (subs == null) {
-                        subs = new LList<>();
+                    if (_subs == null) {
+                        _subs = new LList<>();
                     }
-                    subs.add(new LTerm(term.substring(0, operatorIndex), false));
-                    subs.add(new LTerm(term.substring(operatorIndex + operatorLength), false));
+                    _subs.add(new LTerm(term.substring(0, operatorIndex), false));
+                    _subs.add(new LTerm(term.substring(operatorIndex + operatorLength), false));
                 }
                 //Variablenname
-                if (this.operation == LOperation.NONE) {
-                    valueConstant = term;
-                    this.operation = LOperation.VALUE_VARIABLE;
+                if (_operation == LOperation.NONE) {
+                    _valueConstant = term;
+                    _operation = LOperation.VALUE_VARIABLE;
                 }
             }
         }
@@ -419,26 +423,26 @@ public class LTerm
     @SuppressWarnings("unchecked")
     public Object getValue(Function<String, Object> conditionListener) {
         Object result = null;
-        switch (operation) {
+        switch (_operation) {
             case IF_THEN_ELSE:
-                if ((Boolean) subs.get(0).getValue(conditionListener)) {
-                    result = subs.get(1).getValue(conditionListener);
-                } else if (subs.get(2) != null) {
-                    result = subs.get(2).getValue(conditionListener);
+                if ((Boolean) _subs.get(0).getValue(conditionListener)) {
+                    result = _subs.get(1).getValue(conditionListener);
+                } else if (_subs.get(2) != null) {
+                    result = _subs.get(2).getValue(conditionListener);
                 }
                 break;
             case VALUE_CONST:
-                result = valueConstant;
+                result = _valueConstant;
                 break;
             case VALUE_VARIABLE:
                 if (conditionListener == null) {
-                    throw new IllegalStateException("Listener for variable value '" + (String) valueConstant + "' is missing");
+                    throw new IllegalStateException("Listener for variable value '" + (String) _valueConstant + "' is missing");
                 }
-                result = conditionListener.apply((String) valueConstant);
+                result = conditionListener.apply((String) _valueConstant);
                 break;
             case OR:
                 result = Boolean.FALSE;
-                Iterator<LTerm> it_con = subs.iterator();
+                Iterator<LTerm> it_con = _subs.iterator();
                 while ((it_con.hasNext()) && (result == Boolean.FALSE)) {
                     result = (Boolean) it_con.next().getValue(conditionListener);
                 }
@@ -446,38 +450,38 @@ public class LTerm
                 break;
             case AND:
                 result = Boolean.TRUE;
-                it_con = subs.iterator();
+                it_con = _subs.iterator();
                 while ((it_con.hasNext()) && (result == Boolean.TRUE)) {
                     result = (Boolean) it_con.next().getValue(conditionListener);
                 }
                 //result = ((Boolean) subCondition1.getValue()) && ((Boolean) subCondition2.getValue());
                 break;
             case EQUAL:
-                if ((subs.get(0).getValue(conditionListener) == null) && (subs.get(1).getValue(conditionListener) == null)) {
-                    throw new IllegalStateException("equal error " + term + " / Result left side: " + subs.get(0).getValue(conditionListener) + " / Result right side: " + subs.get(1).getValue(conditionListener));
+                if ((_subs.get(0).getValue(conditionListener) == null) && (_subs.get(1).getValue(conditionListener) == null)) {
+                    throw new IllegalStateException("equal error / Result left side: " + _subs.get(0).getValue(conditionListener) + " / Result right side: " + _subs.get(1).getValue(conditionListener));
                 }
-                if (subs.get(0).getValue(conditionListener) != null) {
-                    result = subs.get(0).getValue(conditionListener).equals(subs.get(1).getValue(conditionListener));
+                if (_subs.get(0).getValue(conditionListener) != null) {
+                    result = _subs.get(0).getValue(conditionListener).equals(_subs.get(1).getValue(conditionListener));
                 } else {
-                    result = (subs.get(1).getValue(conditionListener) == null);
+                    result = (_subs.get(1).getValue(conditionListener) == null);
                 }
                 break;
             case NOT_EQUAL:
-                if (subs.get(0).getValue(conditionListener) != null) {
-                    result = !subs.get(0).getValue(conditionListener).equals(subs.get(1).getValue(conditionListener));
+                if (_subs.get(0).getValue(conditionListener) != null) {
+                    result = !_subs.get(0).getValue(conditionListener).equals(_subs.get(1).getValue(conditionListener));
                 } else {
-                    result = (subs.get(1).getValue(conditionListener) != null);
+                    result = (_subs.get(1).getValue(conditionListener) != null);
                 }
                 break;
             case EQUAL_OR_LESS:
-                result = (((Comparable) subs.get(0).getValue(conditionListener)).compareTo((Comparable) subs.get(1).getValue(conditionListener)) <= 0);
+                result = (((Comparable) _subs.get(0).getValue(conditionListener)).compareTo((Comparable) _subs.get(1).getValue(conditionListener)) <= 0);
                 break;
             case EQUAL_OR_MORE:
-                result = (((Comparable) subs.get(0).getValue(conditionListener)).compareTo((Comparable) subs.get(1).getValue(conditionListener)) >= 0);
+                result = (((Comparable) _subs.get(0).getValue(conditionListener)).compareTo((Comparable) _subs.get(1).getValue(conditionListener)) >= 0);
                 break;
             case LIKE:
-                var v1 = (String) subs.get(0).getValue(conditionListener);
-                var v2 = (String) subs.get(1).getValue(conditionListener);
+                var v1 = (String) _subs.get(0).getValue(conditionListener);
+                var v2 = (String) _subs.get(1).getValue(conditionListener);
                 result = (v1 != null ? v1.matches(v2) : false);
                 break;
         }
@@ -485,15 +489,15 @@ public class LTerm
     }
 
     public LOperation getOperation() {
-        return operation;
+        return _operation;
     }
 
     public LList<LTerm> getSubs() {
-        return subs;
+        return _subs;
     }
 
     public Object getValueConstant() {
-        return valueConstant;
+        return _valueConstant;
     }
 
 }

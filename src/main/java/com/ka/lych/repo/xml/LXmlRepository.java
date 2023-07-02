@@ -28,6 +28,8 @@ import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.repo.LColumnItem;
+import java.util.Collection;
+import java.util.List;
 
 /**
  *
@@ -295,7 +297,7 @@ public class LXmlRepository implements
     }
 
     @Override
-    public <T extends Record> LFuture<LList<T>, LDataException> fetch(Class<T> dataClass, Optional<? extends Record> parent, Optional<LQuery> query) {
+    public <T extends Record> LFuture<List<T>, LDataException> fetch(Class<T> dataClass, Optional<? extends Record> parent, Optional<LQuery> query) {
         throw new UnsupportedOperationException("fetch: Not supported yet."); 
     }
 

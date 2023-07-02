@@ -16,9 +16,9 @@ public interface ILListView<T> extends ILControl {
     
     //public LObservable<LxItems<T>> observableYosos();
     
-    public ILYosos<T> getYosos();
+    public ILYosos<T> yosos();
             
-    public void setYosos(ILYosos<T> yosos);
+    public void yosos(ILYosos<T> yosos);
     
     public void addAcceptedFileExtension(String... extensions);
     
