@@ -33,7 +33,7 @@ public class LList<T> extends ArrayList<T> {
     }
 
     public T getIf(Predicate<? super T> filter) {        
-        return ILYosos.getIf(this, filter);        
+        return LList.getIf(this, filter);        
     }
 
     public void forEachIf(Predicate<? super T> filter, Consumer<? super T> action) {
@@ -51,7 +51,7 @@ public class LList<T> extends ArrayList<T> {
     }
     
     public boolean contains(Predicate<? super T> filter) {
-        return (ILYosos.getIf(this, filter) != null);
+        return (LList.getIf(this, filter) != null);
     }
     
     public boolean addUnique(T yoso) {
@@ -87,4 +87,16 @@ public class LList<T> extends ArrayList<T> {
     public static String toString(Object... entries) {
         return LArrays.toString(entries);
     }
+    
+    public static <T> T getIf(Iterable<T> items, Predicate<? super T> filter) {
+        Iterator<T> it_yosos = items.iterator();
+        while (it_yosos.hasNext()) {
+            T yoso = it_yosos.next();
+            if (filter.test(yoso)) {
+                return yoso;
+            }
+        }
+        return null;
+    }    
+    
 }

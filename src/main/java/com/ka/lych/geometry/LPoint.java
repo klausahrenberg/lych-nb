@@ -1,5 +1,6 @@
 package com.ka.lych.geometry;
 
+import com.ka.lych.annotation.Json;
 import com.ka.lych.observable.ILChangeListener;
 import com.ka.lych.observable.ILObservable;
 import com.ka.lych.util.ILCloneable;
@@ -12,7 +13,6 @@ import org.w3c.dom.Node;
 import com.ka.lych.observable.ILValidator;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
-import com.ka.lych.annotation.Xml;
 import com.ka.lych.util.ILRegistration;
 
 /**
@@ -22,9 +22,9 @@ import com.ka.lych.util.ILRegistration;
 public class LPoint
         implements ILPoint, ILCloneable, Comparable<LPoint>,ILObservable<LPoint>, ILXmlSupport {
 
-    @Xml
+    @Json
     private double x;
-    @Xml
+    @Json
     private double y;
     protected double precision;
     protected boolean notifyAllowed;

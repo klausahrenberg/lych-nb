@@ -50,11 +50,11 @@ public interface ILYosos<T> extends Iterable<T> {
     public boolean contains(T yoso);
     
     default boolean contains(Predicate<? super T> filter) {
-        return (ILYosos.getIf(this, filter) != null);
+        return (LList.getIf(this, filter) != null);
     }
     
     default T getIf(Predicate<? super T> filter) {        
-        return ILYosos.getIf(this, filter);
+        return LList.getIf(this, filter);
     }
 
     public T set(int index, T yoso);
@@ -73,17 +73,6 @@ public interface ILYosos<T> extends Iterable<T> {
             }
         }
         return result;
-    }
-    
-    public static <T> T getIf(Iterable<T> yosos, Predicate<? super T> filter) {
-        Iterator<T> it_yosos = yosos.iterator();
-        while (it_yosos.hasNext()) {
-            T yoso = it_yosos.next();
-            if (filter.test(yoso)) {
-                return yoso;
-            }
-        }
-        return null;
     }    
 
 }

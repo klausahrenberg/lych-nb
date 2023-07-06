@@ -56,7 +56,7 @@ public class LTestJsoperties {
         */
         
         var jsoperties = new LJsoperties(this.getClass().getSimpleName());       
-        LLog.test(this, "before load: %s", LXmlUtils.fieldsToString(this, Json.class));
+        LLog.test(this, "before load: %s", LXmlUtils.fieldsToString(this));
         jsoperties.load(this);        
         LLog.test(this, "after load: %s", LJson.of(this).toString());        
         //LLog.test(this, "userGroups count: %s / %s", userGroups.size(), LArrays.toString(userGroups.toArray()));
@@ -152,7 +152,7 @@ public class LTestJsoperties {
 
         @Override
         public String toString() {
-            return LXmlUtils.classToString(this, Json.class);
+            return LXmlUtils.classToString(this);
         }                
     }
     

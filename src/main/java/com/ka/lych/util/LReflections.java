@@ -28,12 +28,12 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import java.util.Objects;
 import com.ka.lych.annotation.Id;
-import com.ka.lych.annotation.Xml;
 import com.ka.lych.annotation.Ignore;
 import com.ka.lych.annotation.Generated;
 import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Late;
+import com.ka.lych.annotation.Lazy;
 import com.ka.lych.xml.LXmlUtils;
 import java.lang.reflect.Modifier;
 import java.util.AbstractList;
@@ -43,6 +43,8 @@ import java.util.AbstractList;
  * @author klausahrenberg
  */
 public abstract class LReflections {
+    
+    public static Class[] DEFAULT_ANNOTATIONS = {Json.class, Id.class, Lazy.class, Index.class};
     
     public static boolean isRecord(Class clazz) {
         return Record.class.isAssignableFrom(clazz);
@@ -79,11 +81,13 @@ public abstract class LReflections {
     @SuppressWarnings("unchecked")
     public static <T> void update(T toUpdate, Map<String, Object> values) throws LParseException {
         var isRecord = isRecord(toUpdate.getClass());
-        var fields = LReflections.getFieldsOfInstance(toUpdate, null, Json.class);
+        var fields = LReflections.getFieldsOfInstance(toUpdate, null);
+        _validateMapValues(toUpdate.getClass(), fields, values);
         for (Map.Entry<java.lang.String, java.lang.Object> mi : values.entrySet()) {
             var field = getField(mi.getKey(), fields);
             if (field != null) {
                 try {
+                    LLog.test(LReflections.class, "update field %s / %s / %s", mi.getKey(),field.isObservable(), isRecord );
                     if (field.isObservable()) {
                         var obs = (LObservable) field.get(toUpdate);
                         if (obs != null) {
@@ -98,6 +102,7 @@ public abstract class LReflections {
                             throw new LParseException(LReflections.class, "Can't set field '" + field.name() + "', because class is a record. Inside of records, only observables can be updated.");
                         }
                     } else if (!isRecord) {
+                        LLog.test(LReflections.class, "update field %s", mi.getKey());
                         field.set(toUpdate, mi.getValue());
 
                     } else {
@@ -114,43 +119,22 @@ public abstract class LReflections {
     public static <T> T of(LRequiredClass requClass, Map<String, Object> values) throws LParseException {
         return LReflections.of(requClass, values, false);
     }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T of(LRequiredClass requClass, Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {
         
-        boolean isOptional = (Optional.class.isAssignableFrom(requClass.requiredClass()));
-        Class classToBeInstanciated = (!isOptional ? requClass.requiredClass() : (((requClass.parameterClasses().isPresent()) && (!requClass.parameterClasses().get().isEmpty())) ? (requClass.parameterClasses().get().get(0)) : null)); 
-        if ((!isRecord(classToBeInstanciated)) && (classToBeInstanciated.isMemberClass()) && (!Modifier.isStatic(classToBeInstanciated.getModifiers()))) {
-            throw new LParseException(LReflections.class, "Can't instanciate non-static inner classes. Please make following inner class static: " + classToBeInstanciated.getName());
-        } 
-        if ((isOptional) && (classToBeInstanciated == null)) {
-            if ((values == null) || (values.isEmpty())) {
-                return null;
-            } else {
-                throw new LParseException(LReflections.class, "Can't find required class for Optional and map of values is not empty");
-            }
-        }
-        
-        if (Map.class.isAssignableFrom(classToBeInstanciated)) {
-            return (T) values;
-        }
-        Objects.requireNonNull(classToBeInstanciated, "Class can't be null for instanciation");
-        Objects.requireNonNull(values, "Values cant be null");
-        var fields = LReflections.getFields(classToBeInstanciated, null, Json.class);
+    static void _validateMapValues(Class classToBeInstanciated, LFields fields, Map<String, Object> values) throws LParseException {        
         var mf = new StringBuilder();
         for (LField field : fields) {
-            var v = values.get(field.name());
-            if ((v == null) && (!acceptIncompleteId) && (field.isId()) && (!field.isLate())) {
-                mf.append(mf.length() > 0 ? ", " : "");
-                mf.append(field.name());
-            }
+            var v = values.get(field.name()); 
+            LLog.test(LReflections.class, "validate field '%s' ", field.name());
             if (field.isObservable()) {
+                LLog.test(LReflections.class, "obs '%s' / '%s", field.name(), v);
                 values.put(field.name(), LRecord.toObservable(field, v));
             } else if ((field.isOptional()) && (v == null)) {
+                LLog.test(LReflections.class, "obs und v = null");
                 values.put(field.name(), Optional.empty());
             } else if (v != null) {
-                var reqClass = (field.isOptional() ? field.requiredClass().parameterClasses().get().get(0) : field.type());
+                var reqClass = (field.isOptional() ? field.requiredClass().parameterClasses().get().get(0) : field.type());                
                 var shouldParsed = ((v instanceof String) && (!String.class.isAssignableFrom(reqClass)));                
+                LLog.test(LReflections.class, "validate field '%s' / rc %s / sp %s ", field.name(), reqClass, shouldParsed);
                 if (shouldParsed) {     
                     if (!LString.equalsIgnoreCase((String) v, ILConstants.NULL)) {
                         if ((double.class.isAssignableFrom(reqClass)) || (Double.class.isAssignableFrom(reqClass))) {
@@ -177,6 +161,44 @@ public abstract class LReflections {
         }
         if (mf.length() > 0) {
             throw new LParseException(LRecord.class, "For record " + classToBeInstanciated.getName() + " id, fields are missing for instanciation: " + mf.toString());
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static <T> T of(LRequiredClass requClass, Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {
+        
+        boolean isOptional = (Optional.class.isAssignableFrom(requClass.requiredClass()));
+        Class classToBeInstanciated = (!isOptional ? requClass.requiredClass() : (((requClass.parameterClasses().isPresent()) && (!requClass.parameterClasses().get().isEmpty())) ? (requClass.parameterClasses().get().get(0)) : null)); 
+        if ((!isRecord(classToBeInstanciated)) && (classToBeInstanciated.isMemberClass()) && (!Modifier.isStatic(classToBeInstanciated.getModifiers()))) {
+            throw new LParseException(LReflections.class, "Can't instanciate non-static inner classes. Please make following inner class static: " + classToBeInstanciated.getName());
+        } 
+        if ((isOptional) && (classToBeInstanciated == null)) {
+            if ((values == null) || (values.isEmpty())) {
+                return null;
+            } else {
+                throw new LParseException(LReflections.class, "Can't find required class for Optional and map of values is not empty");
+            }
+        }
+        
+        if (Map.class.isAssignableFrom(classToBeInstanciated)) {
+            return (T) values;
+        }
+        Objects.requireNonNull(classToBeInstanciated, "Class can't be null for instanciation");
+        Objects.requireNonNull(values, "Values cant be null");
+        var fields = LReflections.getFields(classToBeInstanciated, null);        
+        var mf = new StringBuilder();
+        for (LField field : fields) {
+            var v = values.get(field.name());
+            if ((v == null) && (!acceptIncompleteId) && (field.isId()) && (!field.isLate())) {
+                mf.append(mf.length() > 0 ? ", " : "");
+                mf.append(field.name());            
+            }
+        }    
+        if (mf.length() > 0) {
+            throw new LParseException(LRecord.class, "For record " + classToBeInstanciated.getName() + " id, fields are missing for instanciation: " + mf.toString());
+        } else {
+            LLog.test(LReflections.class, "valiadate map... %s / %s", classToBeInstanciated, fields.size());
+            _validateMapValues(classToBeInstanciated, fields, values);
         }
         //To be improved: Actually, the first constructor of a class will be taken. Maybe, this fits not for all cases 
         try {
@@ -394,7 +416,17 @@ public abstract class LReflections {
         }
         return new LRequiredClass(requiredClass, paramClasses);
     }
-
+        
+    /**
+     *
+     * @param o Object or Class    
+     * @param requiredFieldClass
+     * @return
+     */
+    public static LFields getFieldsOfInstance(Object o, Class requiredFieldClass) {
+        return getFieldsOfInstance(o, requiredFieldClass, DEFAULT_ANNOTATIONS);
+    }            
+          
     /**
      *
      * @param o Object or Class
@@ -406,13 +438,17 @@ public abstract class LReflections {
      * @return
      */
     @SuppressWarnings("unchecked")
-    public static LFields getFieldsOfInstance(Object o, Class requiredFieldClass, Class... annotations) {
+    protected static LFields getFieldsOfInstance(Object o, Class requiredFieldClass, Class... annotations) {
         Objects.requireNonNull(o);
         return getFields(o.getClass(), requiredFieldClass, annotations);
     }
 
+    public static LFields getFields(Class cn, Class requiredFieldClass) {
+        return getFields(cn, requiredFieldClass, DEFAULT_ANNOTATIONS);
+    }
+    
     @SuppressWarnings("unchecked")
-    public static LFields getFields(Class cn, Class requiredFieldClass, Class... annotations) {
+    protected static LFields getFields(Class cn, Class requiredFieldClass, Class... annotations) {
         //Class<?> cn = (o instanceof Class ? (Class) o : o.getClass());
         LList<LField> tempFields = LList.empty();
         LList<LField> tempKeyFields = LList.empty();
@@ -455,11 +491,11 @@ public abstract class LReflections {
     }
 
     public static LList<LMethod> getMethods(Object o) {
-        return getMethods(o, Xml.class);
+        return getMethods(o, DEFAULT_ANNOTATIONS[0]);
     }
 
     @SuppressWarnings("unchecked")
-    public static LList<LMethod> getMethods(Object o, Class annotation) {
+    protected static LList<LMethod> getMethods(Object o, Class annotation) {
         var methods = new LList<LMethod>();
         Class<?> cn = (o instanceof Class ? (Class) o : o.getClass());
         while (cn != null) {

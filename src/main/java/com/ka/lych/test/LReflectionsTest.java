@@ -18,7 +18,7 @@ public class LReflectionsTest {
      * @param args the command line arguments
      */
     public static void main(String[] args) {        
-        LReflections.getFields(LTestObject.class, null, Json.class);
+        LReflections.getFields(LTestObject.class, null);
     }
     
     public record LTestObject(

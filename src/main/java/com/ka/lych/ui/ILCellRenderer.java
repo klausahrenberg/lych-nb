@@ -1,7 +1,6 @@
 package com.ka.lych.ui;
 
 import com.ka.lych.observable.LPixel;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -20,14 +19,12 @@ public interface ILCellRenderer<V, C, T> {
     
     public double getIconWidth();
     
-    @Xml
     public void setIconWidth(double iconWidth);
     
     public LPixel observableIconHeight();
     
     public double getIconHeight();
     
-    @Xml
     public void setIconHeight(double iconHeight);
     
 }

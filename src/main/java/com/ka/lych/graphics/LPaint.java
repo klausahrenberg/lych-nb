@@ -1,11 +1,10 @@
 package com.ka.lych.graphics;
 
+import com.ka.lych.annotation.Json;
 import java.util.EnumSet;
 import java.util.Objects;
 import com.ka.lych.observable.LObservable;
-import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.LLog;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -13,7 +12,7 @@ import com.ka.lych.annotation.Xml;
  */
 public class LPaint extends LAbstractPaint {
 
-    @Xml
+    @Json
     protected LObservable<LColor> color;
 
     public LPaint() {

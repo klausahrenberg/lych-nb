@@ -61,7 +61,7 @@ public abstract class LSqlConverter {
                 result = enumToSql(value.get());
             } else if (Path.class.isAssignableFrom(valueClass)) {
                 try {
-                    result = ((Path) value.get()).toUri().toURL().toString();
+                    result = stringtoSql(((Path) value.get()).toUri().toURL().toString());
                 } catch (MalformedURLException ex) {
                     result = null;
                 }
@@ -200,7 +200,8 @@ public abstract class LSqlConverter {
                     int blobLength = (int) ((Blob) source).length();
                     byte[] blobAsBytes = ((Blob) source).getBytes(1, blobLength);
                     ByteArrayInputStream in = new ByteArrayInputStream(blobAsBytes);
-                    //ObjectInputStream is = new ObjectInputStream(in);                                        
+                    //ObjectInputStream is = new ObjectInputStream(in);      
+                    LLog.test(LSqlConverter.class, "create blobable %s", requiredClass.requiredClass());
                     ILBlobable b = (ILBlobable) LReflections.newInstance(requiredClass.requiredClass());
                     b.read(in);
                     result = b;

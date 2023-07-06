@@ -1,6 +1,7 @@
 package com.ka.lych.graphics;
 
-import com.ka.lych.annotation.Xml;
+import com.ka.lych.annotation.Json;
+
 
 /**
  *
@@ -10,7 +11,8 @@ import com.ka.lych.annotation.Xml;
  */
 public class LFillAlpha<C, D>
         implements ILCanvasCommand<C, D> {
-
+    
+    @Json
     double alpha;
 
     public LFillAlpha(){
@@ -30,7 +32,6 @@ public class LFillAlpha<C, D>
         return alpha;
     }
 
-    @Xml
     public void setAlpha(double alpha) {
         this.alpha = alpha;
     }

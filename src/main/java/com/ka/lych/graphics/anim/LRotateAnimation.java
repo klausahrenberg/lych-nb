@@ -1,10 +1,10 @@
 package com.ka.lych.graphics.anim;
 
+import com.ka.lych.annotation.Json;
 import com.ka.lych.graphics.LCanvasRenderer;
 import com.ka.lych.graphics.LMatrix;
 import com.ka.lych.graphics.LShape;
 import com.ka.lych.observable.LDouble;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -16,10 +16,9 @@ public class LRotateAnimation extends LAnimation {
     private final Double DEFAULT_TOANGLE = 360.0;
     private final Double DEFAULT_CX = 0.0;
     private final Double DEFAULT_CY = 0.0;
-    @Xml
+    @Json
     protected LDouble fromAngle;
-
-    @Xml
+    @Json
     protected LDouble toAngle, cx, cy;
     protected LMatrix matrix;
 

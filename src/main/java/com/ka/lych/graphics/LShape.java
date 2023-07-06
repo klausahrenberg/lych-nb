@@ -1,5 +1,6 @@
 package com.ka.lych.graphics;
 
+import com.ka.lych.annotation.Json;
 import java.util.Arrays;
 import java.util.EnumSet;
 import com.ka.lych.geometry.ILBounds;
@@ -21,7 +22,6 @@ import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -46,19 +46,19 @@ public class LShape
     public static final byte SEG_CLOSE = 4;
     protected static final int EXPAND_MAX = 500;
     protected static final int INITIAL_SIZE = 12;
-    @Xml
+    @Json
     protected LString id;
-    @Xml
+    @Json
     protected LDouble x;
-    @Xml
+    @Json
     protected LDouble y, width, height;
-    @Xml
+    @Json
     protected LBoolean visible;
-    @Xml
+    @Json
     protected LObservable<EnumSet<LPaintStyle>> style;
-    @Xml
+    @Json
     protected LBoolean rotatable;
-    @Xml
+    @Json
     protected LObservable<LYosos<ILAnimation>> animations;
     protected LMap<String, Object> clientProperties;
     protected transient byte[] pointTypes;
@@ -114,7 +114,6 @@ public class LShape
         return (id != null ? id.get() : null);
     }
 
-    @Xml
     public void setId(String id) {
         id().set(id);
     }
@@ -130,7 +129,6 @@ public class LShape
         return (visible != null ? visible.get() : true);
     }
 
-    @Xml
     public void setVisible(boolean visible) {
         visible().set(visible);
     }
@@ -150,7 +148,6 @@ public class LShape
         return (style != null ? style.get() : DEFAULT_STYLE);
     }
     
-    @Xml
     public void setStyle(EnumSet<LPaintStyle> style) {
         style().set(style);
     }
@@ -781,7 +778,6 @@ public class LShape
         return (x != null ? x.get() : 0.0);
     }
 
-    @Xml
     @Override
     public final void setX(double x) {
         x().set(x);
@@ -801,7 +797,6 @@ public class LShape
         return (y != null ? y.get() : 0.0);
     }
 
-    @Xml
     @Override
     public final void setY(double y) {
         y().set(y);
@@ -821,7 +816,6 @@ public class LShape
         return (width != null ? width.get() : 0.0);
     }
 
-    @Xml
     @Override
     public final void setWidth(double width) {
         width().set(width);
@@ -841,7 +835,6 @@ public class LShape
         return (height != null ? height.get() : 0.0);
     }
 
-    @Xml
     @Override
     public final void setHeight(double height) {
         height().set(height);
@@ -1152,7 +1145,7 @@ public class LShape
 
     @Override
     public String toString() {
-        return LXmlUtils.classToString(this, Xml.class);
+        return LXmlUtils.classToString(this);
     }
 
     @Override

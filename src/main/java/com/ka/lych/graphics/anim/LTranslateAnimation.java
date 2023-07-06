@@ -1,10 +1,10 @@
 package com.ka.lych.graphics.anim;
 
+import com.ka.lych.annotation.Json;
 import com.ka.lych.graphics.LCanvasRenderer;
 import com.ka.lych.graphics.LMatrix;
 import com.ka.lych.graphics.LShape;
 import com.ka.lych.observable.LDouble;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -16,9 +16,9 @@ public class LTranslateAnimation extends LAnimation {
     private final Double DEFAULT_FROM_Y = 0.0;
     private final Double DEFAULT_TO_X = 0.0;
     private final Double DEFAULT_TO_Y = 0.0;
-    @Xml
+    @Json
     protected LDouble fromX;
-    @Xml
+    @Json
     protected LDouble toX, fromY, toY;
     protected LMatrix matrix;
     

@@ -1,12 +1,11 @@
 package com.ka.lych.graphics;
 
+import com.ka.lych.annotation.Json;
 import java.util.Objects;
 import com.ka.lych.list.LYosos;
 import com.ka.lych.observable.LDouble;
 import com.ka.lych.observable.LObservable;
-import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.LLog;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -25,14 +24,14 @@ import com.ka.lych.annotation.Xml;
  */
 public class LLinearGradient extends LAbstractPaint {
 
-    @Xml
+    @Json
     protected LDouble x1;
     
-    @Xml
+    @Json
     protected LDouble y1, x2, y2;
-    @Xml
+    @Json
     protected LObservable<LSpreadMethod> spreadMethod;
-    @Xml
+    @Json
     protected LObservable<LYosos<LStop>> stops;
     
     public LLinearGradient() {       

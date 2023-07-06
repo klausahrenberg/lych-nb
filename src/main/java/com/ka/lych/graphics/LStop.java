@@ -1,10 +1,9 @@
 package com.ka.lych.graphics;
 
+import com.ka.lych.annotation.Json;
 import java.util.Objects;
 import com.ka.lych.observable.LDouble;
 import com.ka.lych.observable.LObservable;
-import com.ka.lych.util.ILConstants;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -12,9 +11,9 @@ import com.ka.lych.annotation.Xml;
  */
 public class LStop {
     
-    @Xml
+    @Json
     protected LDouble offset;
-    @Xml
+    @Json
     protected LObservable<LColor> color;
     
     public LStop() {

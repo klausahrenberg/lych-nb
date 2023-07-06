@@ -154,187 +154,6 @@ public class LJsonParser<T> {
             throw new LParseException(LJsonParser.class, ex.getMessage(), ex);
         }
     }
-    
-
-    /*private static String readAll(Reader rd) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        int cp;
-        while ((cp = rd.read()) != -1) {
-            sb.append((char) cp);
-        }
-        return sb.toString();
-    }
-
-    public static <T> T parse(Class<T> requiredClass, URL url) throws LParseException {
-        return parse(requiredClass, url, null);
-    }
-
-    public static <T> T parse(Class<T> requiredClass, URL url, String payload) throws LParseException {
-        try {
-            InputStream is = null;
-            if (LString.isEmpty(payload)) {
-                is = url.openStream();
-            } else {
-                HttpURLConnection http = (HttpURLConnection) url.openConnection();
-                http.setRequestMethod("POST");
-                http.setDoOutput(true);
-                http.setRequestProperty("Accept", "application/json");
-                http.setRequestProperty("Content-Type", "application/json");
-                byte[] out = payload.getBytes(StandardCharsets.UTF_8);
-                OutputStream stream = http.getOutputStream();
-                stream.write(out);
-                if (http.getResponseCode() == LHttpStatus.OK.value()) {
-                    is = http.getInputStream();
-                } else {
-                    throw new LParseException(LJsonParser.class, "Server returned failure response code: " + http.getResponseCode() + " / Reason: " + LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase());
-                }
-            }
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-            String result = readAll(rd);
-            return parse(requiredClass, result);
-        } catch (LParseException lpe) {
-            throw lpe;
-        } catch (Exception ex) {
-            throw new LParseException(LJsonParser.class, ex.getMessage(), ex);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T parse(Class<T> requiredClass, String payload) throws LParseException {
-        var parser = new LJsonParser<T>(requiredClass, payload);
-        parser.parseAll();
-        return (T) parser.result;
-        //return (new LJsonParser<T>(requiredClass, payload)).parseAll();
-    }
-
-    public static <T> T parse(Class<T> requiredClass, InputStream is) throws LParseException {
-        return parse(requiredClass, new BufferedReader(new InputStreamReader(is)));
-    }
-
-    public static <T> Collection<T> parseList(Class<T> requiredClass, InputStream is) throws LParseException {
-        return parseList(requiredClass, new BufferedReader(new InputStreamReader(is)));
-    }
-
-    public static <T> T parse(Class<T> requiredClass, File f) throws LParseException {
-        try {
-            return parse(requiredClass, new BufferedReader(new FileReader(f)));
-        } catch (IOException ex) {
-            throw new LParseException(LJsonParser.class, ex.getMessage(), ex);
-        }
-    }
-    
-    @SuppressWarnings("unchecked")
-    public static <T> void update(T toUpdate, File f) throws LParseException {
-        try {
-            parse((Class<T>) toUpdate.getClass(), new BufferedReader(new FileReader(f)), toUpdate);
-        } catch (IOException ex) {
-            throw new LParseException(LJsonParser.class, ex.getMessage(), ex);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> T parse(Class<T> requiredClass, BufferedReader br) throws LParseException {
-        return parse(requiredClass, br, null);
-    }
-        
-    @SuppressWarnings("unchecked")
-    private static <T> T parse(Class<T> requiredClass, BufferedReader br, T toUpdate) throws LParseException {    
-        try {
-            StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-            while (line != null) {
-                sb.append(line);
-                sb.append(System.lineSeparator());
-                line = br.readLine();
-            }
-            var parser = new LJsonParser<T>(requiredClass, sb.toString());
-            parser.parseAll(toUpdate);
-            br.close();
-            return (T) parser.result;
-        } catch (IOException ex) {
-            throw new LParseException(LJsonParser.class, ex.getMessage(), ex);
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> Collection<T> parseList(Class<T> requiredClass, BufferedReader br) throws LParseException {
-        try {
-            StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-            while (line != null) {
-                sb.append(line);
-                sb.append(System.lineSeparator());
-                line = br.readLine();
-            }
-            var parser = new LJsonParser<T>(requiredClass, sb.toString());            
-            parser.parseAll();
-            br.close();
-            return (Collection<T>) parser.result;
-        } catch (IOException ex) {
-            throw new LParseException(LJsonParser.class, ex.getMessage(), ex);
-        }
-    }
-    
-    @SuppressWarnings("unchecked")
-    public static <T> Collection<T> parseList(Class<T> requiredClass, URL url) throws LParseException {
-        return LJsonParser.parseList(requiredClass, url, null);
-    }
-    
-    @SuppressWarnings("unchecked")
-    public static <T> Collection<T> parseList(Class<T> requiredClass, URL url, String payload) throws LParseException {
-        try {
-            InputStream is = null;
-            if (LString.isEmpty(payload)) {
-                is = url.openStream();
-            } else {
-                HttpURLConnection http = (HttpURLConnection) url.openConnection();
-                http.setRequestMethod("POST");
-                http.setDoOutput(true);
-                http.setRequestProperty("Accept", "application/json");
-                http.setRequestProperty("Content-Type", "application/json");
-                byte[] out = payload.getBytes(StandardCharsets.UTF_8);
-                OutputStream stream = http.getOutputStream();
-                stream.write(out);
-                if (http.getResponseCode() == LHttpStatus.OK.value()) {
-                    is = http.getInputStream();
-                } else {
-                    throw new LParseException(LJsonParser.class, "Server returned failure response code: " + http.getResponseCode() + " / Reason: " + LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase());
-                }
-            }
-            BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
-            String result = readAll(rd);
-            var parser = new LJsonParser<T>(requiredClass, result);
-            parser.parseAll();
-            return (Collection<T>) parser.result;
-        } catch (LParseException lpe) {
-            throw lpe;
-        } catch (Exception ex) {
-            throw new LParseException(LJsonParser.class, ex.getMessage(), ex);
-        }
-    }
-    
-    public static <T> Map<String, T> parseMap(Class<T> requiredClass, InputStream is) throws LParseException {
-        return parseMap(requiredClass, new BufferedReader(new InputStreamReader(is)));
-    }
-    
-    public static <T> Map<String, T> parseMap(Class<T> requiredClass, BufferedReader br) throws LParseException {
-        try {
-            StringBuilder sb = new StringBuilder();
-            String line = br.readLine();
-            while (line != null) {
-                sb.append(line);
-                sb.append(System.lineSeparator());
-                line = br.readLine();
-            }
-            br.close();
-            return parseMap(requiredClass, sb.toString());            
-        } catch (IOException ex) {
-            throw new LParseException(LJsonParser.class, ex.getMessage(), ex);
-        }
-    }
-    
-    @SuppressWarnings("unchecked")
-    */
 
     @SuppressWarnings("unchecked")
     public T parse() throws LParseException {  
@@ -515,7 +334,7 @@ public class LJsonParser<T> {
                 _currentKey = "enums";
             }
             _state = LState.END_KEY;
-        } else if (popped.type() == LType.STRING) {
+        } else if (popped.type() == LType.STRING) {            
             processKeyValue(_currentKey, _buffer.toString());
             _state = LState.AFTER_VALUE;
         } else {
@@ -571,8 +390,8 @@ public class LJsonParser<T> {
         }
         //add to collection
         if (popped.map() != null) {
-            Class<Record> cr = (Class<Record>) _resultClass;
-            if ((_stack.isEmpty()) && (_result != null)) {
+            //Class<Record> cr = (Class<Record>) _resultClass;
+            if ((_stack.isEmpty()) && (_result != null)) {                
                 //Update existing class
                 LReflections.update(_result, popped.map());
             } else {
@@ -720,6 +539,7 @@ public class LJsonParser<T> {
     private void startObject() throws LParseException {
         _state = LState.IN_OBJECT;                        
         LRequiredClass requiredClass = null;
+        LLog.test(this, "start object %s / %s", _resultClass, _stack.isEmpty());
         if (_stack.isEmpty()) {
             requiredClass = new LRequiredClass(_resultClass, null);
         } else if (_stack.peek().type() == LType.ARRAY) {
@@ -742,7 +562,7 @@ public class LJsonParser<T> {
         } else {
             throw new LParseException(this, "Illegal state at start of object");
         }
-        _stack.push(new LMapItem(LType.OBJECT, requiredClass, _currentKey, new LMap<String, Object>(), null));
+        _stack.push(new LMapItem(LType.OBJECT, requiredClass, _currentKey, new LMap<String, Object>(), null));            
         _currentKey = null;
     }
 
@@ -780,7 +600,7 @@ public class LJsonParser<T> {
     @SuppressWarnings("unchecked")
     private void processKeyValue(String key, Object value) throws LParseException {
         var peeked = _stack.peek();
-        if (peeked.map() != null) {
+        if (peeked.map() != null) {            
             if (value != null) {
                 peeked.map().put(_currentKey, value);
             }
@@ -789,6 +609,9 @@ public class LJsonParser<T> {
             if (value != null) {
                 peeked.list().add(value);
             }
+        } else if (_result != null) {
+            LLog.test(this, "key %s / currentKey %s / value %s", key, _currentKey, value);
+            LReflections.update(_result, LMap.of(LMap.entry(_currentKey, value)));
         } else {
             throwException("Illegal state" + _state);
         }

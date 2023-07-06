@@ -1,5 +1,6 @@
 package com.ka.lych.graphics;
 
+import com.ka.lych.annotation.Json;
 import java.util.EnumSet;
 import com.ka.lych.geometry.LAlignment;
 import com.ka.lych.observable.*;
@@ -9,7 +10,6 @@ import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -18,27 +18,27 @@ import com.ka.lych.annotation.Xml;
 public class LTextShape extends LShape
         implements ILConstants {
 
-    @Xml
+    @Json
     protected LString text;
-    @Xml
+    @Json
     protected LObservable<EnumSet<LTextStyle>> textStyle;
-    @Xml
+    @Json
     protected LString fontFamily;
-    @Xml
+    @Json
     protected LObservable<LAlignment> alignment;
-    @Xml
+    @Json
     protected LBoolean adjustFontHeight;
-    @Xml
+    @Json
     protected LBoolean adjustSizeForWidth;
-    @Xml
+    @Json
     protected LBoolean textEditable;
-    @Xml
+    @Json
     protected LBoolean paintText;
-    @Xml
+    @Json
     protected LBoolean multiLine;
-    @Xml
+    @Json
     protected LBoolean wrapText;
-    @Xml
+    @Json
     protected LDouble textSize;
 
     public LTextShape() {

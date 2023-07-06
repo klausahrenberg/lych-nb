@@ -1,5 +1,6 @@
 package com.ka.lych.graphics;
 
+import com.ka.lych.annotation.Json;
 import java.util.Objects;
 import com.ka.lych.observable.LDouble;
 import com.ka.lych.observable.LObservable;
@@ -14,7 +15,6 @@ import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -30,17 +30,17 @@ public class LStroke
     private final Double DEFAULT_MITER_LIMIT = null;
     private final Double DEFAULT_DASH_PHASE = null;
 
-    @Xml
+    @Json
     protected LDouble width;
-    @Xml
+    @Json
     protected LObservable<LStrokeLineJoin> join;
-    @Xml
+    @Json
     protected LObservable<LStrokeLineCap> cap;
-    @Xml
+    @Json
     protected LDouble miterLimit;
-    @Xml
+    @Json
     protected LObservable<Double[]> dash;
-    @Xml
+    @Json
     protected LDouble dashPhase;
 
     public LStroke() {
@@ -202,7 +202,7 @@ public class LStroke
 
     @Override
     public String toString() {
-        return LXmlUtils.classToString(this, Xml.class);
+        return LXmlUtils.classToString(this);
     }
 
     /*@Override

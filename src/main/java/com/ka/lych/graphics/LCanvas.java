@@ -1,5 +1,6 @@
 package com.ka.lych.graphics;
 
+import com.ka.lych.annotation.Json;
 import com.ka.lych.geometry.LPoint;
 import com.ka.lych.geometry.LGeomUtils;
 import com.ka.lych.geometry.ILBounds;
@@ -30,7 +31,6 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -39,25 +39,25 @@ import com.ka.lych.annotation.Xml;
 public class LCanvas extends LShape
         implements ILXmlSupport, ILCloneable {
 
-    @Xml
+    @Json
     protected LObservable<LBounds> viewBounds;
-    @Xml
+    @Json
     protected LDouble rotation;
-    @Xml
+    @Json
     protected LInteger rotationSnap;
-    @Xml
+    @Json
     protected LBoolean rotationEnabled;
-    @Xml
+    @Json
     protected LBoolean scaleRotated;
-    @Xml
+    @Json
     protected LBoolean preserveRatio;
-    @Xml
+    @Json
     protected LObservable<LColor> background;
-    @Xml
+    @Json
     private LYosos<LCanvas> marks;
-    @Xml
+    @Json
     protected LObservable<LCanvasState> state;
-    @Xml
+    @Json
     protected LObservable<LYosos<ILCanvasCommand>> commands;
 
     protected ILCanvasFontRenderer fontRenderer;
@@ -245,12 +245,12 @@ public class LCanvas extends LShape
         return commands.get();
     }
 
-    @Xml
+    @Json
     public void add(ILCanvasCommand command) {
         addCommand(command);
     }
 
-    @Xml
+    @Json
     public void addCommand(ILCanvasCommand command) {
         synchronized (getCommands()) {
             getCommands().add(command);
@@ -562,7 +562,7 @@ public class LCanvas extends LShape
 
     @Override
     public String toString() {
-        return LXmlUtils.classToString(this, Xml.class);
+        return LXmlUtils.classToString(this);
     }
     
     

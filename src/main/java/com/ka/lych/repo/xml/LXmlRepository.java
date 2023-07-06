@@ -93,7 +93,7 @@ public class LXmlRepository implements
                     NodeList headerList = xmlRoot.getElementsByTagName(KEYWORD_XML_HEADER);
                     Element xmlHeader = ((headerList != null) && (headerList.getLength() > 0) ? (Element) headerList.item(0) : null);
                     if (xmlHeader != null) {
-                        LFields fields = LReflections.getFieldsOfInstance(datas, null, Id.class, Json.class);
+                        LFields fields = LReflections.getFieldsOfInstance(datas, null);
                         if (fields != null) {
                             for (int i = 0; i < fields.size(); i++) {   
                                 var f = fields.get(i);                                
@@ -159,7 +159,7 @@ public class LXmlRepository implements
 
                     //header
                     Element xmlHeader = (Element) xmlRoot.appendChild(xmlFile.createElement(KEYWORD_XML_HEADER));
-                    LFields fields = LReflections.getFieldsOfInstance(datas, null, Id.class, Json.class);
+                    LFields fields = LReflections.getFieldsOfInstance(datas, null);
                     if (fields != null) {
                         for (int i = 0; i < fields.size(); i++) {   
                             var f = fields.get(i);                          

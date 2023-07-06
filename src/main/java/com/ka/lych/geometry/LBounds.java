@@ -1,5 +1,6 @@
 package com.ka.lych.geometry;
 
+import com.ka.lych.annotation.Json;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LReflections;
@@ -8,7 +9,6 @@ import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -18,9 +18,9 @@ import com.ka.lych.annotation.Xml;
 public class LBounds<T extends ILBounds> extends LSize<T>
         implements ILPoint, ILBounds {
 
-    @Xml
+    @Json
     private double x;
-    @Xml
+    @Json
     private double y;
 
     public LBounds() {

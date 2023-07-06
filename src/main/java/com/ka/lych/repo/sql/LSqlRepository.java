@@ -26,9 +26,6 @@ import com.ka.lych.util.LReflections.LKeyCompleteness;
 import java.util.Locale;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Id;
-import com.ka.lych.annotation.Xml;
-import com.ka.lych.list.LRecords;
-import java.util.Collection;
 import java.util.Objects;
 
 /**
@@ -41,24 +38,18 @@ public class LSqlRepository implements
     private final Object owner;
     private Connection con = null;
     private Statement queryStatement = null;
-    @Xml
     @Json
     protected LObservable<LoSqlDatabaseType> databaseType;
-    @Xml
-    private LBoolean localService;
-    @Xml
+    @Json
+    private LBoolean localService;    
     @Json
     private LString server;
-    @Xml
     @Json
     private LString database;
-    @Xml
     @Json
     private LString user;
-    @Xml
     @Json
     private LString password;
-    @Xml
     @Json
     private LBoolean readOnly = new LBoolean(true);
 
@@ -1296,7 +1287,7 @@ public class LSqlRepository implements
     public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Optional<? extends Record> parent, Optional<LTerm> filter) {
         return LFuture.<Integer, LDataException>execute(task -> {
             try {
-                String sql = buildSqlStatementForRequery(dataClass, parent, filter, true);
+                String sql = _buildSqlStatementForRequery(dataClass, parent, filter, true);
                 LSqlResultSet sqlResultSet = executeQuery(sql);
                 int count;
                 if (sqlResultSet.next()) {
@@ -1335,7 +1326,7 @@ public class LSqlRepository implements
         return (countData(tableName, sqlFilter) > 0);
     }
 
-    private String buildSqlStatementForRequery(Class<? extends Record> rcdClass, Optional<? extends Record> parent, Optional<LTerm> filter, boolean count) throws LDataException {
+    private String _buildSqlStatementForRequery(Class<? extends Record> rcdClass, Optional<? extends Record> parent, Optional<LTerm> filter, boolean count) throws LDataException {
         StringBuilder sql = new StringBuilder("select ");
         var columns = getColumnsWithoutLinks(rcdClass);
         if (!count) {
@@ -1460,7 +1451,7 @@ public class LSqlRepository implements
             });
             var term = Optional.of(cons.size() > 1 ? LTerm.and(cons.toArray()) : cons.get(0));
             StringBuilder sql = new StringBuilder();
-            sql.append(this.buildSqlStatementForRequery(rcdClass, Optional.empty(), term, false));
+            sql.append(this._buildSqlStatementForRequery(rcdClass, Optional.empty(), term, false));
             try {
                 LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
                 if (sqlResultSet.next()) {
@@ -1520,7 +1511,7 @@ public class LSqlRepository implements
                 if ((query.isPresent()) && (query.get().customSQL().isPresent())) {
                     sql.append(query.get().customSQL().get());
                 } else {
-                    sql.append(buildSqlStatementForRequery(rcdClass, parent, (query.isPresent() ? query.get().filter() : Optional.empty()), false));
+                    sql.append(_buildSqlStatementForRequery(rcdClass, parent, (query.isPresent() ? query.get().filter() : Optional.empty()), false));
                     if (query.isPresent()) {
                         if ((query.get().sortOrders().isPresent()) && (query.get().sortOrders().get().size() > 0)) {
                             sql.append(" order by ");
@@ -1587,7 +1578,7 @@ public class LSqlRepository implements
 
     @Override
     public String toString() {
-        return LXmlUtils.classToString(this, Xml.class);
+        return LXmlUtils.classToString(this);
     }
 
 }

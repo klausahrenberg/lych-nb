@@ -248,7 +248,7 @@ public class LString extends LObservable<String>
         } else if (o instanceof LList) {
             return LString.format(format, (LList) o);
         } else {
-            var fields = (o != null ? LReflections.getFieldsOfInstance(o, null, Json.class) : null);
+            var fields = (o != null ? LReflections.getFieldsOfInstance(o, null) : null);
             return format(format, key -> {
                 var field = (fields != null ? fields.get(key) : null);
                 if (field != null) {

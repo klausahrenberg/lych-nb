@@ -1,5 +1,6 @@
 package com.ka.lych.graphics;
 
+import com.ka.lych.annotation.Json;
 import java.util.EnumSet;
 import java.util.Objects;
 import com.ka.lych.observable.LObservable;
@@ -8,7 +9,6 @@ import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.xml.*;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -18,7 +18,7 @@ public abstract class LAbstractPaint
         implements ILCanvasCommand, ILCloneable, ILConstants {
 
     protected static EnumSet<LPaintStyle> DEFAULT_STYLE = EnumSet.of(LPaintStyle.FILL);
-    @Xml
+    @Json
     protected LObservable<EnumSet<LPaintStyle>> style;
 
     public LAbstractPaint() {
@@ -67,7 +67,7 @@ public abstract class LAbstractPaint
 
     @Override
     public String toString() {
-        return LXmlUtils.classToString(this, Xml.class);
+        return LXmlUtils.classToString(this);
     }
     
     @Override

@@ -63,12 +63,9 @@ public class LJsoperties {
                     if (resStream == null) {
                         LLog.debug(this, "Template of json settings '%s' doesn't exists. Can't copy it to directory '%s'.", templateName, jsonFile.getAbsolutePath());
                     } else {
-                        throw new UnsupportedOperationException("tbi");                        
-                        
-                        //LJsonParser.parse(o, resStream);                        
-                        //Save the loaded values in separate file in user directory
-                        //save(o, id);
-                        //LLog.debug(this, "Settings loaded from template: '%s'. Settings file with default values created at: '%s'.", templateName, jsonFile.getAbsolutePath());
+                        LJsonParser.update(o).inputStream(resStream).parse();
+                        this.save(o, id);
+                        LLog.debug(this, "Settings loaded from template: '%s'. Settings file with default values created at: '%s'.", templateName, jsonFile.getAbsolutePath());
                     }                                        
                 }
             } else {

@@ -20,6 +20,10 @@ public class LRasterImage extends LShape
     protected byte[] rawImage;
     protected Object nativeImage;
 
+    public LRasterImage() {
+        this(0, 0);
+    }
+    
     public LRasterImage(int width, int height) {
         super(0, 0, width, height);
         this.rawWidth = width;

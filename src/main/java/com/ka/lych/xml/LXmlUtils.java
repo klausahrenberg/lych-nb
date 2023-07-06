@@ -1,6 +1,7 @@
 package com.ka.lych.xml;
 
 import com.ka.lych.LBase;
+import com.ka.lych.annotation.Json;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -42,7 +43,6 @@ import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -548,7 +548,7 @@ public class LXmlUtils {
             DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
             Document xml = (Document) docBuilder.parse(f);
-            LXmlParseInfo xmlParseInfo = new LXmlParseInfo(o, LReflections.getFieldsOfInstance(o, null, Xml.class), LReflections.getMethods(o, Xml.class), LList.empty(), null);
+            LXmlParseInfo xmlParseInfo = new LXmlParseInfo(o, LReflections.getFieldsOfInstance(o, null), LReflections.getMethods(o), LList.empty(), null);
             //Read import packages
             for (int i = 0; i < xml.getChildNodes().getLength(); i++) {
                 Node nc = xml.getChildNodes().item(i);
@@ -557,7 +557,7 @@ public class LXmlUtils {
                 }
             }
             //Parse object
-            parseXml(o, o, xml.getDocumentElement(), xmlParseInfo, null, Xml.class, false);
+            parseXml(o, o, xml.getDocumentElement(), xmlParseInfo, null, Json.class, false);
         } catch (SAXParseException err) {
             throw new LParseException(LXmlUtils.class, "Parsing error" + ", line "
                     + err.getLineNumber() + ", uri " + err.getSystemId()
@@ -576,7 +576,7 @@ public class LXmlUtils {
             DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
             Document xml = (Document) docBuilder.parse(inputStream);
-            LXmlParseInfo xmlParseInfo = new LXmlParseInfo(o, LReflections.getFieldsOfInstance(o, null, Xml.class), LReflections.getMethods(o, Xml.class), LList.empty(), null);
+            LXmlParseInfo xmlParseInfo = new LXmlParseInfo(o, LReflections.getFieldsOfInstance(o, null), LReflections.getMethods(o), LList.empty(), null);
             //Read import packages
             for (int i = 0; i < xml.getChildNodes().getLength(); i++) {
                 Node nc = xml.getChildNodes().item(i);
@@ -585,7 +585,7 @@ public class LXmlUtils {
                 }
             }
             //Parse object
-            parseXml(o, o, xml.getDocumentElement(), xmlParseInfo, null, Xml.class, false);
+            parseXml(o, o, xml.getDocumentElement(), xmlParseInfo, null, Json.class, false);
         } catch (SAXParseException err) {
 
             throw new LParseException(LXmlUtils.class, "Parsing error" + ", line "
@@ -605,7 +605,7 @@ public class LXmlUtils {
             DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
             Document xml = (Document) docBuilder.parse(new InputSource(new StringReader(xmlString)));
-            LXmlParseInfo xmlParseInfo = new LXmlParseInfo(o, LReflections.getFieldsOfInstance(o, null, Xml.class), LReflections.getMethods(o, Xml.class), LList.empty(), null);
+            LXmlParseInfo xmlParseInfo = new LXmlParseInfo(o, LReflections.getFieldsOfInstance(o, null), LReflections.getMethods(o), LList.empty(), null);
             //Read import packages
             for (int i = 0; i < xml.getChildNodes().getLength(); i++) {
                 Node nc = xml.getChildNodes().item(i);
@@ -614,7 +614,7 @@ public class LXmlUtils {
                 }
             }
             //Parse object
-            parseXml(o, o, xml.getDocumentElement(), xmlParseInfo, null, Xml.class, false);
+            parseXml(o, o, xml.getDocumentElement(), xmlParseInfo, null, Json.class, false);
         } catch (SAXParseException err) {
 
             throw new LParseException(LXmlUtils.class, "Parsing error" + ", line "
@@ -630,11 +630,11 @@ public class LXmlUtils {
     }
 
     public static void parseXml(Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo) throws LParseException {
-        parseXml(objectToParse, objectToParse, xmlNode, xmlParseInfo, null, Xml.class, true);
+        parseXml(objectToParse, objectToParse, xmlNode, xmlParseInfo, null, Json.class, true);
     }
 
     public static void parseXml(Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo, List<String> excludeList) throws LParseException {
-        parseXml(objectToParse, objectToParse, xmlNode, xmlParseInfo, excludeList, Xml.class, true);
+        parseXml(objectToParse, objectToParse, xmlNode, xmlParseInfo, excludeList, Json.class, true);
     }
 
     public static void parseXml(Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation) throws LParseException {
@@ -681,8 +681,8 @@ public class LXmlUtils {
         if ((!ignoreXmlSupportAtTopLevel) && (objectToParse instanceof ILXmlSupport)) {
             ((ILXmlSupport) objectToParse).parseXml(xmlNode, xmlParseInfo);
         } else {
-            LFields fields = LReflections.getFieldsOfInstance(objectToParse, null, annotation);
-            var methods = LReflections.getMethods(objectToParse, annotation);
+            LFields fields = LReflections.getFieldsOfInstance(objectToParse, null);
+            var methods = LReflections.getMethods(objectToParse);
             LList<LMethod> parentMethods = null;
             //1. check the attributes
             if (xmlNode.hasAttributes()) {
@@ -699,7 +699,7 @@ public class LXmlUtils {
                             if (c1 == parentOfObjectToParse.getClass()) {
                                 //Search method with 2arguments in parentOfObject
                                 if (parentMethods == null) {
-                                    parentMethods = LReflections.getMethods(parentOfObjectToParse, annotation);
+                                    parentMethods = LReflections.getMethods(parentOfObjectToParse);
                                 }
                                 LMethod parentMethod;
                                 if ((parentMethod = getSetOrAddMethod(objectName.substring(dotIndex + 1), parentMethods, 2)) != null) {
@@ -710,7 +710,7 @@ public class LXmlUtils {
                                 }
                             } else {
                                 //Search static method with 2arguments in c1
-                                var staticMethods = LReflections.getMethods(c1, annotation);
+                                var staticMethods = LReflections.getMethods(c1);
                                 LMethod staticMethod;
                                 if ((staticMethod = getSetOrAddMethod(objectName.substring(dotIndex + 1), staticMethods, 2)) != null) {
                                     Object mParam = getObject(objectToParse, attr, staticMethod, xmlParseInfo, excludeList, annotation);
@@ -767,7 +767,7 @@ public class LXmlUtils {
                             if (c1 == parentOfObjectToParse.getClass()) {
                                 //Search method with 2arguments in parentOfObject
                                 if (parentMethods == null) {
-                                    parentMethods = LReflections.getMethods(parentOfObjectToParse, annotation);
+                                    parentMethods = LReflections.getMethods(parentOfObjectToParse);
                                 }
                                 LMethod parentMethod;
                                 if ((parentMethod = getSetOrAddMethod(objectName.substring(dotIndex + 1), parentMethods, 2)) != null) {
@@ -784,7 +784,7 @@ public class LXmlUtils {
                                 }
                             } else {
                                 //Search static method with 2arguments in c1
-                                var staticMethods = LReflections.getMethods(c1, annotation);
+                                var staticMethods = LReflections.getMethods(c1);
                                 LMethod staticMethod;
                                 if ((staticMethod = getSetOrAddMethod(objectName.substring(dotIndex + 1), staticMethods, 2)) != null) {
                                     for (int b = 0; b < nc.getChildNodes().getLength(); b++) {
@@ -1017,8 +1017,8 @@ public class LXmlUtils {
      * @param annotation
      * @return string represantation of the object, e.g., "Point [x=0.0, y=0.0]"
      */
-    public static String classToString(Object object, Class... annotation) {
-        return object.getClass().getName() + " [" + fieldsToString(object, annotation) + "]";
+    public static String classToString(Object object) {
+        return object.getClass().getName() + " [" + fieldsToString(object) + "]";
     }
 
     private static boolean isPrimitiveType(Object object) {
@@ -1037,17 +1037,8 @@ public class LXmlUtils {
         return object.getClass().getName() + "@" + result;
     }
 
-    /**
-     * Convert @LXML marked fields to a readable string, separated by comma. For
-     * property fields the value itself is converted toString()
-     *
-     * @param object, for which the string has to be created
-     * @param annotation
-     * @return list of field names and values separated by comma, e.g., "x=0.0,
-     * y=0.0"
-     */
-    public static String fieldsToString(Object object, Class... annotation) {
-        LFields fields = LReflections.getFieldsOfInstance(object, null, annotation);
+    public static String fieldsToString(Object object) {
+        LFields fields = LReflections.getFieldsOfInstance(object, null);
         return fieldsToString(object, fields);
     }
 

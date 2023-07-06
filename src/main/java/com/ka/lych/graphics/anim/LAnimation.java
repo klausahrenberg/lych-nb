@@ -1,10 +1,10 @@
 package com.ka.lych.graphics.anim;
 
+import com.ka.lych.annotation.Json;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LInteger;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.xml.LXmlUtils;
-import com.ka.lych.annotation.Xml;
 
 /**
  *
@@ -17,11 +17,11 @@ public abstract class LAnimation
     private final Integer DEFAULT_DURATION = 0;
     private final Boolean DEFAULT_INFINITE = false;
     
-    @Xml
+    @Json
     protected LInteger delay;
-    @Xml
+    @Json
     protected LInteger duration;
-    @Xml
+    @Json
     protected LBoolean infinite;  
 
     
@@ -79,7 +79,7 @@ public abstract class LAnimation
 
     @Override
     public String toString() {
-        return LXmlUtils.classToString(this, Xml.class);
+        return LXmlUtils.classToString(this);
     }
     
 }

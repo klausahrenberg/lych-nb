@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
  * @author klausahrenberg
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.METHOD})
 public @interface Json {
     public int value() default 256;
 }
