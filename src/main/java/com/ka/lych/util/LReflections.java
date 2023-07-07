@@ -87,7 +87,6 @@ public abstract class LReflections {
             var field = getField(mi.getKey(), fields);
             if (field != null) {
                 try {
-                    LLog.test(LReflections.class, "update field %s / %s / %s", mi.getKey(),field.isObservable(), isRecord );
                     if (field.isObservable()) {
                         var obs = (LObservable) field.get(toUpdate);
                         if (obs != null) {
@@ -101,10 +100,8 @@ public abstract class LReflections {
                         } else {
                             throw new LParseException(LReflections.class, "Can't set field '" + field.name() + "', because class is a record. Inside of records, only observables can be updated.");
                         }
-                    } else if (!isRecord) {
-                        LLog.test(LReflections.class, "update field %s", mi.getKey());
+                    } else if (!isRecord) {                        
                         field.set(toUpdate, mi.getValue());
-
                     } else {
                         throw new LParseException(LReflections.class, "Can't set field '" + field.name() + "', because class is a record. Inside of records, only observables can be updated.");
                     }
@@ -124,17 +121,13 @@ public abstract class LReflections {
         var mf = new StringBuilder();
         for (LField field : fields) {
             var v = values.get(field.name()); 
-            LLog.test(LReflections.class, "validate field '%s' ", field.name());
             if (field.isObservable()) {
-                LLog.test(LReflections.class, "obs '%s' / '%s", field.name(), v);
                 values.put(field.name(), LRecord.toObservable(field, v));
             } else if ((field.isOptional()) && (v == null)) {
-                LLog.test(LReflections.class, "obs und v = null");
                 values.put(field.name(), Optional.empty());
             } else if (v != null) {
                 var reqClass = (field.isOptional() ? field.requiredClass().parameterClasses().get().get(0) : field.type());                
                 var shouldParsed = ((v instanceof String) && (!String.class.isAssignableFrom(reqClass)));                
-                LLog.test(LReflections.class, "validate field '%s' / rc %s / sp %s ", field.name(), reqClass, shouldParsed);
                 if (shouldParsed) {     
                     if (!LString.equalsIgnoreCase((String) v, ILConstants.NULL)) {
                         if ((double.class.isAssignableFrom(reqClass)) || (Double.class.isAssignableFrom(reqClass))) {
@@ -197,7 +190,6 @@ public abstract class LReflections {
         if (mf.length() > 0) {
             throw new LParseException(LRecord.class, "For record " + classToBeInstanciated.getName() + " id, fields are missing for instanciation: " + mf.toString());
         } else {
-            LLog.test(LReflections.class, "valiadate map... %s / %s", classToBeInstanciated, fields.size());
             _validateMapValues(classToBeInstanciated, fields, values);
         }
         //To be improved: Actually, the first constructor of a class will be taken. Maybe, this fits not for all cases 

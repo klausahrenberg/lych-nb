@@ -27,29 +27,29 @@ import java.util.function.Supplier;
 public class LObservable<T> 
         implements ILObservable<T>, ILLoadable, ILParseable, ILLocalizable {
 
-    private T value;
-    private LList<ILChangeListener<T>> changeListeners;
-    private LList<ILValidator<T>> changeAcceptors;
-    private LList<LObservable<Object>> boundedObservables;    
-    private Function<Object, T> boundedConverter;
-    private boolean changed;
-    private boolean notifyAllowed;
-    private LValueException lastException;
-    private Function<LObservable, Boolean> lateLoader;    
-    protected LLoadingState loadingState;
+    T _value;
+    LList<ILChangeListener<T>> _listeners;
+    LList<ILValidator<T>> _acceptors;
+    LList<LObservable<Object>> _boundedObservables;    
+    Function<Object, T> _boundedConverter;
+    boolean _changed;
+    boolean _notifyAllowed;
+    LValueException _lastException;
+    Function<LObservable, Boolean> _lateLoader;    
+    LLoadingState _loadingState;
 
     @SuppressWarnings("unchecked")
-    protected final ILChangeListener<Object> boundedObservableListener = change -> { 
+    final ILChangeListener<Object> _boundedObservableListener = change -> { 
         if (this.isSingleBound()) {
-            this.fireChangedEvent(new LObservableChangeEvent<>(this, null, (change != null && change.getOldValue() != null ? (T) (boundedConverter != null ? boundedConverter.apply(change.getOldValue()) : change.getOldValue()) : null)));
+            _fireChangedEvent(new LObservableChangeEvent<>(this, null, (change != null && change.getOldValue() != null ? (T) (_boundedConverter != null ? _boundedConverter.apply(change.getOldValue()) : change.getOldValue()) : null)));
         } else {
             //Multiple bounds: compose new value with converter and set local value
-            T newValue = boundedConverter.apply(boundedObservables);            
+            T newValue = _boundedConverter.apply(_boundedObservables);            
             set(newValue);            
         }    
     };
 
-    private ILRegistration valueListener;        
+    ILRegistration _valueListener;        
 
     public LObservable() {
         this(null);
@@ -57,22 +57,22 @@ public class LObservable<T>
 
     public LObservable(T initialValue) {
         super();
-        this.boundedObservables = null;
-        this.boundedConverter = null;
-        this.notifyAllowed = true;
+        _boundedObservables = null;
+        _boundedConverter = null;
+        _notifyAllowed = true;
         set(initialValue);        
-        this.changed = false;
-        this.lastException = null;
-        this.lateLoader = null;
-        this.loadingState = LLoadingState.LOADED;
+        _changed = false;
+        _lastException = null;
+        _lateLoader = null;
+        _loadingState = LLoadingState.LOADED;
     }
 
     @SuppressWarnings("unchecked")
     public T get() {
         if (!isSingleBound()) {            
-            return value;
+            return _value;
         } else {
-            return ((T) (boundedConverter != null ? boundedConverter.apply(getSingleBoundedObservable().get()) : getSingleBoundedObservable().get()));
+            return ((T) (_boundedConverter != null ? _boundedConverter.apply(getSingleBoundedObservable().get()) : getSingleBoundedObservable().get()));
         }    
     }
     
@@ -88,7 +88,7 @@ public class LObservable<T>
     }
     
     public boolean isPresent() {
-        return (isSingleBound() ? getSingleBoundedObservable().isPresent() : value != null);        
+        return (isSingleBound() ? getSingleBoundedObservable().isPresent() : _value != null);        
     }
     
     public LObservable<T> ifPresent(Consumer<? super T> consumer) {
@@ -144,7 +144,7 @@ public class LObservable<T>
      * @param newValue that is intended to set
      * @return changed value, default behaviour just throws the original value
      */    
-    protected T preconfigureValue(T newValue) {
+    protected T _preconfigureValue(T newValue) {
         return newValue;
     }
     
@@ -156,32 +156,32 @@ public class LObservable<T>
     @SuppressWarnings("unchecked")
     final public void setValue(T value, Object trigger) throws LValueException {        
         if (!isSingleBound()) {
-            lastException = null;    
-            value = preconfigureValue(value);
+            _lastException = null;    
+            value = _preconfigureValue(value);
             if (!Objects.equals(get(), value)) {                
-                T oldValue = this.value;
-                this.value = value;
+                T oldValue = _value;
+                _value = value;
                 LObservableChangeEvent<T> changeEvent = new LObservableChangeEvent<>(this, trigger, oldValue);
-                if (changeAcceptors != null) {
-                    changeAcceptors.forEachIf(validator -> (lastException == null), validator -> lastException = validator.accept(changeEvent));
+                if (_acceptors != null) {
+                    _acceptors.forEachIf(validator -> (_lastException == null), validator -> _lastException = validator.accept(changeEvent));
                 }
-                if (lastException == null) {
-                    if (valueListener != null) {
-                        valueListener.remove();
+                if (_lastException == null) {
+                    if (_valueListener != null) {
+                        _valueListener.remove();
                     }
-                    if ((this.value != null) && (this.value instanceof ILObservable)) {                        
-                        valueListener = ((ILObservable<T>) this.value).addListener(change -> this.fireChangedEvent(new LObservableChangeEvent<>(this, null, (change != null ? change.getOldValue() : null))));
+                    if ((_value != null) && (_value instanceof ILObservable)) {                        
+                        _valueListener = ((ILObservable<T>) _value).addListener(change -> _fireChangedEvent(new LObservableChangeEvent<>(this, null, (change != null ? change.getOldValue() : null))));
                     }                    
-                    this.fireChangedEvent(changeEvent);                    
+                    _fireChangedEvent(changeEvent);                    
                 } else {
-                    this.value = oldValue;
+                    _value = oldValue;
                 }
             }
-            if (lastException != null) {
-                throw lastException;
+            if (_lastException != null) {
+                throw _lastException;
             }
         } else {
-            if (boundedConverter != null) {
+            if (_boundedConverter != null) {
                 throw new LValueException(this, "Can't set a bounded observable, if converter is needed.");
             }
             getSingleBoundedObservable().set(value);
@@ -209,52 +209,52 @@ public class LObservable<T>
     }
 
     public LValueException getLastException() {
-        return (!isSingleBound() ? lastException : getSingleBoundedObservable().getLastException());
+        return (!isSingleBound() ? _lastException : getSingleBoundedObservable().getLastException());
     }
 
-    protected void fireChangedEvent(LObservableChangeEvent<T> changeEvent) {        
-        if (notifyAllowed) { 
-            if (changeListeners != null) {
-                changeListeners.forEach(changeListener -> changeListener.changed(changeEvent));
+    protected void _fireChangedEvent(LObservableChangeEvent<T> changeEvent) {        
+        if (_notifyAllowed) { 
+            if (_listeners != null) {
+                _listeners.forEach(changeListener -> changeListener.changed(changeEvent));
             }
-            changed = false;
+            _changed = false;
         }
     }
 
     @Override
     public synchronized ILRegistration addListener(ILChangeListener<T> changeListener) {
-        if (changeListeners == null) {
-            changeListeners = LList.empty();
+        if (_listeners == null) {
+            _listeners = LList.empty();
         }
-        changeListeners.add(changeListener);
+        _listeners.add(changeListener);
         return () -> removeListener(changeListener);
     }
 
     @Override
     public synchronized void removeListener(ILChangeListener<T> changeListener) {
-        if (changeListeners != null) {
-            changeListeners.remove(changeListener);
-            if (changeListeners.isEmpty()) {
-                changeListeners = null;
+        if (_listeners != null) {
+            _listeners.remove(changeListener);
+            if (_listeners.isEmpty()) {
+                _listeners = null;
             }
         }
     }
 
     @Override
     public synchronized ILRegistration addAcceptor(ILValidator<T> changeAcceptor) {
-        if (changeAcceptors == null) {
-            changeAcceptors = LList.empty();
+        if (_acceptors == null) {
+            _acceptors = LList.empty();
         }
-        changeAcceptors.add(changeAcceptor); 
+        _acceptors.add(changeAcceptor); 
         return () -> removeAcceptor(changeAcceptor);
     }
 
     @Override
     public synchronized void removeAcceptor(ILValidator<T> changeAcceptor) {
-        if (changeAcceptors != null) {
-            changeAcceptors.remove(changeAcceptor);
-            if (changeAcceptors.isEmpty()) {
-                changeAcceptors = null;
+        if (_acceptors != null) {
+            _acceptors.remove(changeAcceptor);
+            if (_acceptors.isEmpty()) {
+                _acceptors = null;
             }
         }
     }
@@ -321,7 +321,7 @@ public class LObservable<T>
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(this.value);
+        return Objects.hashCode(_value);
     }
 
     @Override
@@ -330,12 +330,12 @@ public class LObservable<T>
             return true;
         }                
         if (obj == null) {
-            return (this.value == null);
+            return (_value == null);
         }                
         if (obj instanceof LObservable) {
-            obj = ((LObservable) obj).value;            
+            obj = ((LObservable) obj)._value;            
         }
-        return Objects.equals(this.value, obj);
+        return Objects.equals(_value, obj);
         /*if (getClass() != obj.getClass()) {
             return false;
         }
@@ -348,7 +348,7 @@ public class LObservable<T>
 
     @Override
     public String toString() {
-        return getClass().getSimpleName() + " [" + value + "]";
+        return getClass().getSimpleName() + " [" + _value + "]";
     }
 
     @SuppressWarnings("unchecked")
@@ -373,83 +373,83 @@ public class LObservable<T>
         /*if (changeAcceptors != null) {
             throw new IllegalStateException("Can't bind to another observable, if acceptors are present.");
         }*/
-        if (lateLoader != null) {
+        if (_lateLoader != null) {
             throw new IllegalStateException("Can't bind to a late loading observable to another one.");
         }
         //if (!observable.equals(boundedObservable)) {
             unbind();
-            this.boundedConverter = (Function<Object, T>) converter;            
-            boundedObservables = LList.empty();
+            _boundedConverter = (Function<Object, T>) converter;            
+            _boundedObservables = LList.empty();
             for (int i = 0; i < observables.length; i++) {
                 if (observables[i] == null) {
                     throw new IllegalArgumentException("Can't add null observable: arrayIndex " + i);
                 }
-                boundedObservables.add((LObservable<Object>) observables[i]);            
-                ((LObservable<Object>) observables[i]).addListener(boundedObservableListener);
+                _boundedObservables.add((LObservable<Object>) observables[i]);            
+                ((LObservable<Object>) observables[i]).addListener(_boundedObservableListener);
             }
             if (this.isSingleBound()) {
                 //at single bound notify listeners
-                boundedObservableListener.changed(null);//new LObservableChangeEvent<>(this, null));
+                _boundedObservableListener.changed(null);//new LObservableChangeEvent<>(this, null));
             } else {
                 //at multiple bind, compose new local value
-                T newValue = this.boundedConverter.apply(boundedObservables);
+                T newValue = _boundedConverter.apply(_boundedObservables);
                 set(newValue);                
             }
         //}
     }
 
     public void unbind() {
-        if (boundedObservables != null) {
+        if (_boundedObservables != null) {
             if (isSingleBound()) {
-                value = get();
+                _value = get();
             }
-            boundedObservables.forEach(boundedObservable -> boundedObservable.removeListener(boundedObservableListener));
-            boundedObservables.clear();
-            boundedObservables = null;
-            boundedConverter = null;
+            _boundedObservables.forEach(boundedObservable -> boundedObservable.removeListener(_boundedObservableListener));
+            _boundedObservables.clear();
+            _boundedObservables = null;
+            _boundedConverter = null;
         }
     }
 
     public boolean isBoundInAnyWay() {
-        return ((boundedObservables != null) && (boundedObservables.size() > 0));
+        return ((_boundedObservables != null) && (_boundedObservables.size() > 0));
     }
     
     public boolean isSingleBound() {
-        return ((boundedObservables != null) && (boundedObservables.size() == 1));
+        return ((_boundedObservables != null) && (_boundedObservables.size() == 1));
     }
 
     protected LList<LObservable<Object>> getBoundedObservables() {
-        return boundedObservables;
+        return _boundedObservables;
     }
 
     protected LObservable<Object> getSingleBoundedObservable() {
-        return boundedObservables.get(0);
+        return _boundedObservables.get(0);
     }        
 
     @Override
     public boolean isLoadable() {
-        return (lateLoader != null);
+        return (_lateLoader != null);
     }
     
-    public void setLateLoader(Function<LObservable, Boolean> lateLoader) {
+    public void lateLoader(Function<LObservable, Boolean> lateLoader) {
         if (isBoundInAnyWay()) {
             throw new IllegalStateException("Can't set late loading for a bounded observable.");
         }
-        this.lateLoader = lateLoader;
-        this.loadingState = (this.lateLoader != null ? LLoadingState.NOT_LOADED : LLoadingState.LOADED);        
+        _lateLoader = lateLoader;
+        _loadingState = (_lateLoader != null ? LLoadingState.NOT_LOADED : LLoadingState.LOADED);        
     }
 
     @Override
-    public LLoadingState getLoadingState() {
-        return loadingState;
+    public LLoadingState loadingState() {
+        return _loadingState;
     }        
 
     @Override
     public void load() {      
-        if ((this.isLoadable()) && (this.loadingState == LLoadingState.NOT_LOADED)) {
+        if ((this.isLoadable()) && (_loadingState == LLoadingState.NOT_LOADED)) {
             //return LServices.execute((LService runnable, long now) -> {
-                this.loadingState = LLoadingState.LOADING;
-                this.loadingState = (this.lateLoader.apply(this) ? LLoadingState.LOADED : LLoadingState.NOT_LOADED);
+                _loadingState = LLoadingState.LOADING;
+                _loadingState = (_lateLoader.apply(this) ? LLoadingState.LOADED : LLoadingState.NOT_LOADED);
             //});
         } /*else {
             return LWaiter.confirmation();

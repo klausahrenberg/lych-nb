@@ -390,9 +390,7 @@ public class LJson {
                         value = null;
                     }
                     if ((value instanceof Optional) && ((Optional) value).isPresent()) {
-                        LLog.test(LJson.class, "optional a %s", LJson.of(((Optional) value).get()).toString());
-                        value = ((value instanceof Optional) ? (((Optional) value).isEmpty() ? null : ((Optional) value).get()) : value);
-                        LLog.test(LJson.class, "optional b %s", value);
+                        value = ((value instanceof Optional) ? (((Optional) value).isEmpty() ? null : ((Optional) value).get()) : value);                        
                     } else {
 
                         value = ((value instanceof Optional) ? (((Optional) value).isEmpty() ? null : ((Optional) value).get()) : value);
@@ -420,11 +418,8 @@ public class LJson {
                     } else if (Map.class.isAssignableFrom(value.getClass())) {
                         json.propertyMap(field.name(), (Map) value);
                     } else {
-                        LLog.test(LJson.class, "optional c");
                         json.propertyObject(field.name(), value);
-                        LLog.test(LJson.class, "optional d");
                     }
-                    LLog.test(LJson.class, "optional e");
                 }
             }
             json.endObject();
@@ -434,9 +429,10 @@ public class LJson {
     public static String string(String text) {
         //orginalRecord.replaceAll("[\\\\p{Cntrl}^\\r\\n\\t]+", "")
         //return QUOTE + text.replace("\"", "\\\"") + QUOTE;
-        return QUOTE + text.replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "").replace("\"", "\\\"").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r") + QUOTE;
+        var result = QUOTE + text.replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "").replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r") + QUOTE;        
+        return result;
         //var buffer = StandardCharsets.UTF_8.encode(text); 
-        //return QUOTE + StandardCharsets.UTF_8.decode(buffer).toString().replace("\"", "\\\"") + QUOTE;
+        //return QUOTE + StandardCharsets.UTF_8.decode(buffer).toString().replace("\"", "\\\"") + QUOTE;        
     }
 
     public static String integerString(int number) {

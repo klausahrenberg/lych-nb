@@ -34,8 +34,14 @@ public class LMatrix
     private static final int HI_SCALE = APPLY_SCALE << HI_SHIFT;
     private static final int HI_SHEAR = APPLY_SHEAR << HI_SHIFT;
 
-    protected double scaleX = 1.0;
-    protected double m00, m10, m01, m11;
+    @Json
+    double _scaleX; 
+    @Json
+    double _scaleY;
+    @Json
+    double _shearX;
+    @Json
+    double _shearY;
     @Json
     double _translateX;
     @Json
@@ -45,17 +51,17 @@ public class LMatrix
 
     //protected Object nativeMatrix;
     public LMatrix() {
-        m00 = m11 = 1.0;
-        m01 = m10 = _translateX = _translateY = 0.0;
+        _scaleX = _scaleY = 1.0;
+        _shearX = _shearY = _translateX = _translateY = 0.0;
         state = APPLY_IDENTITY;
         type = TYPE_IDENTITY;
     }
 
     public LMatrix(LMatrix srcMatrix) {
-        this.m00 = srcMatrix.m00;
-        this.m10 = srcMatrix.m10;
-        this.m01 = srcMatrix.m01;
-        this.m11 = srcMatrix.m11;
+        _scaleX = srcMatrix._scaleX;
+        _shearY = srcMatrix._shearY;
+        _shearX = srcMatrix._shearX;
+        _scaleY = srcMatrix._scaleY;
         _translateX = srcMatrix._translateX;
         _translateY = srcMatrix._translateY;
         this.state = srcMatrix.state;
@@ -65,10 +71,10 @@ public class LMatrix
     @Override
     public int compareTo(LMatrix mc) {
         if ((mc == null)
-                || (!LGeomUtils.isEqual(m00, mc.m00, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                || (!LGeomUtils.isEqual(m10, mc.m10, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                || (!LGeomUtils.isEqual(m01, mc.m01, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                || (!LGeomUtils.isEqual(m11, mc.m11, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                || (!LGeomUtils.isEqual(_scaleX, mc._scaleX, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                || (!LGeomUtils.isEqual(_shearY, mc._shearY, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                || (!LGeomUtils.isEqual(_shearX, mc._shearX, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                || (!LGeomUtils.isEqual(_scaleY, mc._scaleY, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                 || (!LGeomUtils.isEqual(_translateX, mc._translateX, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                 || (!LGeomUtils.isEqual(_translateY, mc._translateY, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                 || (this.state != mc.state) || (this.type != mc.type)) {
@@ -79,20 +85,20 @@ public class LMatrix
     }
 
     public LMatrix(double m00, double m10, double m01, double m11, double m02, double m12) {
-        this.m00 = m00;
-        this.m10 = m10;
-        this.m01 = m01;
-        this.m11 = m11;
+        _scaleX = m00;
+        _shearY = m10;
+        _shearX = m01;
+        _scaleY = m11;
         _translateX = m02;
         _translateY = m12;
         updateState();
     }
 
     public LMatrix(double[] flatmatrix) {
-        m00 = flatmatrix[0];
-        m10 = flatmatrix[1];
-        m01 = flatmatrix[2];
-        m11 = flatmatrix[3];
+        _scaleX = flatmatrix[0];
+        _shearY = flatmatrix[1];
+        _shearX = flatmatrix[2];
+        _scaleY = flatmatrix[3];
         if (flatmatrix.length > 5) {
             _translateX = flatmatrix[4];
             _translateY = flatmatrix[5];
@@ -101,10 +107,10 @@ public class LMatrix
     }
 
     public LMatrix(float[] flatmatrix) {
-        m00 = flatmatrix[0];
-        m10 = flatmatrix[1];
-        m01 = flatmatrix[2];
-        m11 = flatmatrix[3];
+        _scaleX = flatmatrix[0];
+        _shearY = flatmatrix[1];
+        _shearX = flatmatrix[2];
+        _scaleY = flatmatrix[3];
         if (flatmatrix.length > 5) {
             _translateX = flatmatrix[4];
             _translateY = flatmatrix[5];
@@ -116,10 +122,10 @@ public class LMatrix
             double m01, double m11,
             double m02, double m12,
             int state) {
-        this.m00 = m00;
-        this.m10 = m10;
-        this.m01 = m01;
-        this.m11 = m11;
+        _scaleX = m00;
+        _shearY = m10;
+        _shearX = m01;
+        _scaleY = m11;
         _translateX = m02;
         _translateY = m12;
         this.state = state;
@@ -127,10 +133,10 @@ public class LMatrix
     }
 
     protected final void updateState() {
-        if ((LGeomUtils.isEqual(m01, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                && (LGeomUtils.isEqual(m10, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
-            if ((LGeomUtils.isEqual(m00, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                    && (LGeomUtils.isEqual(m11, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+        if ((LGeomUtils.isEqual(_shearX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                && (LGeomUtils.isEqual(_shearY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+            if ((LGeomUtils.isEqual(_scaleX, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                    && (LGeomUtils.isEqual(_scaleY, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                 if ((LGeomUtils.isEqual(_translateX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                         && (LGeomUtils.isEqual(_translateY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     state = APPLY_IDENTITY;
@@ -147,8 +153,8 @@ public class LMatrix
                 state = (APPLY_SCALE | APPLY_TRANSLATE);
                 type = TYPE_UNKNOWN;
             }
-        } else if ((LGeomUtils.isEqual(m00, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                && (LGeomUtils.isEqual(m11, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+        } else if ((LGeomUtils.isEqual(_scaleX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                && (LGeomUtils.isEqual(_scaleY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
             if ((LGeomUtils.isEqual(_translateX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                     && (LGeomUtils.isEqual(_translateY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                 state = APPLY_SHEAR;
@@ -168,17 +174,17 @@ public class LMatrix
     }
 
     public void setToIdentity() {
-        m00 = m11 = 1.0;
-        m10 = m01 = _translateX = _translateY = 0.0;
+        _scaleX = _scaleY = 1.0;
+        _shearY = _shearX = _translateX = _translateY = 0.0;
         state = APPLY_IDENTITY;
         type = TYPE_IDENTITY;
     }
 
     public void setToTranslation(double tx, double ty) {
-        m00 = 1.0;
-        m10 = 0.0;
-        m01 = 0.0;
-        m11 = 1.0;
+        _scaleX = 1.0;
+        _shearY = 0.0;
+        _shearX = 0.0;
+        _scaleY = 1.0;
         _translateX = tx;
         _translateY = ty;
         if ((!LGeomUtils.isEqual(tx, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
@@ -192,10 +198,10 @@ public class LMatrix
     }
 
     public void setToScale(double sx, double sy) {
-        m00 = sx;
-        m10 = 0.0;
-        m01 = 0.0;
-        m11 = sy;
+        _scaleX = sx;
+        _shearY = 0.0;
+        _shearX = 0.0;
+        _scaleY = sy;
         _translateX = 0.0;
         _translateY = 0.0;
         if ((!LGeomUtils.isEqual(sx, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
@@ -209,10 +215,10 @@ public class LMatrix
     }
 
     public void setTransform(LMatrix Tx) {
-        this.m00 = Tx.m00;
-        this.m10 = Tx.m10;
-        this.m01 = Tx.m01;
-        this.m11 = Tx.m11;
+        _scaleX = Tx._scaleX;
+        _shearY = Tx._shearY;
+        _shearX = Tx._shearX;
+        _scaleY = Tx._scaleY;
         _translateX = Tx._translateX;
         _translateY = Tx._translateY;
         this.state = Tx.state;
@@ -229,23 +235,23 @@ public class LMatrix
         }
         switch (state) {
             case (APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
-                ptDst.setPoint(x * m00 + y * m01 + _translateX,
-                        x * m10 + y * m11 + _translateY);
+                ptDst.setPoint(x * _scaleX + y * _shearX + _translateX,
+                        x * _shearY + y * _scaleY + _translateY);
                 return ptDst;
             case (APPLY_SHEAR | APPLY_SCALE):
-                ptDst.setPoint(x * m00 + y * m01, x * m10 + y * m11);
+                ptDst.setPoint(x * _scaleX + y * _shearX, x * _shearY + y * _scaleY);
                 return ptDst;
             case (APPLY_SHEAR | APPLY_TRANSLATE):
-                ptDst.setPoint(y * m01 + _translateX, x * m10 + _translateY);
+                ptDst.setPoint(y * _shearX + _translateX, x * _shearY + _translateY);
                 return ptDst;
             case (APPLY_SHEAR):
-                ptDst.setPoint(y * m01, x * m10);
+                ptDst.setPoint(y * _shearX, x * _shearY);
                 return ptDst;
             case (APPLY_SCALE | APPLY_TRANSLATE):
-                ptDst.setPoint(x * m00 + _translateX, y * m11 + _translateY);
+                ptDst.setPoint(x * _scaleX + _translateX, y * _scaleY + _translateY);
                 return ptDst;
             case (APPLY_SCALE):
-                ptDst.setPoint(x * m00, y * m11);
+                ptDst.setPoint(x * _scaleX, y * _scaleY);
                 return ptDst;
             case (APPLY_TRANSLATE):
                 ptDst.setPoint(x + _translateX, y + _translateY);
@@ -259,10 +265,10 @@ public class LMatrix
     }
 
     public LVector transform(LVector vector) {
-        double a = this.getM00ScaleX();
-        double b = this.getM10ShearY();
-        double c = this.getM01ShearX();
-        double d = this.getM11ScaleY();
+        double a = this.scaleX();
+        double b = this.shearY();
+        double c = this.shearX();
+        double d = this.scaleY();
         double e = this.translateX();
         double f = this.translateY();
         double x = vector.getX();
@@ -284,31 +290,31 @@ public class LMatrix
                 y -= _translateY;
             // NOBREAK
             case (APPLY_SHEAR | APPLY_SCALE):
-                double det = m00 * m11 - m01 * m10;
+                double det = _scaleX * _scaleY - _shearX * _shearY;
                 if (Math.abs(det) <= Double.MIN_VALUE) {
                     throw new LNoninvertibleMatrixException("Determinant is " + det);
                 }
-                ptDst.setPoint((x * m11 - y * m01) / det, (y * m00 - x * m10) / det);
+                ptDst.setPoint((x * _scaleY - y * _shearX) / det, (y * _scaleX - x * _shearY) / det);
                 return ptDst;
             case (APPLY_SHEAR | APPLY_TRANSLATE):
                 x -= _translateX;
                 y -= _translateY;
             // NOBREAK
             case (APPLY_SHEAR):
-                if (m01 == 0.0 || m10 == 0.0) {
+                if (_shearX == 0.0 || _shearY == 0.0) {
                     throw new LNoninvertibleMatrixException("Determinant is 0");
                 }
-                ptDst.setPoint(y / m10, x / m01);
+                ptDst.setPoint(y / _shearY, x / _shearX);
                 return ptDst;
             case (APPLY_SCALE | APPLY_TRANSLATE):
                 x -= _translateX;
                 y -= _translateY;
             // NOBREAK
             case (APPLY_SCALE):
-                if (m00 == 0.0 || m11 == 0.0) {
+                if (_scaleX == 0.0 || _scaleY == 0.0) {
                     throw new LNoninvertibleMatrixException("Determinant is 0");
                 }
-                ptDst.setPoint(x / m00, y / m11);
+                ptDst.setPoint(x / _scaleX, y / _scaleY);
                 return ptDst;
             case (APPLY_TRANSLATE):
                 ptDst.setPoint(x - _translateX, y - _translateY);
@@ -327,11 +333,11 @@ public class LMatrix
             default:
                 throw new InternalError("missing case in transform state switch");
             case (APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
-                M00 = m00;
-                M01 = m01;
+                M00 = _scaleX;
+                M01 = _shearX;
                 M02 = _translateX;
-                M10 = m10;
-                M11 = m11;
+                M10 = _shearY;
+                M11 = _scaleY;
                 M12 = _translateY;
                 while (--numPts >= 0) {
                     double x = srcPts[srcOff++];
@@ -341,10 +347,10 @@ public class LMatrix
                 }
                 return;
             case (APPLY_SHEAR | APPLY_SCALE):
-                M00 = m00;
-                M01 = m01;
-                M10 = m10;
-                M11 = m11;
+                M00 = _scaleX;
+                M01 = _shearX;
+                M10 = _shearY;
+                M11 = _scaleY;
                 while (--numPts >= 0) {
                     double x = srcPts[srcOff++];
                     double y = srcPts[srcOff++];
@@ -353,9 +359,9 @@ public class LMatrix
                 }
                 return;
             case (APPLY_SHEAR | APPLY_TRANSLATE):
-                M01 = m01;
+                M01 = _shearX;
                 M02 = _translateX;
-                M10 = m10;
+                M10 = _shearY;
                 M12 = _translateY;
                 while (--numPts >= 0) {
                     double x = srcPts[srcOff++];
@@ -364,8 +370,8 @@ public class LMatrix
                 }
                 return;
             case (APPLY_SHEAR):
-                M01 = m01;
-                M10 = m10;
+                M01 = _shearX;
+                M10 = _shearY;
                 while (--numPts >= 0) {
                     double x = srcPts[srcOff++];
                     dstPts[dstOff++] = M01 * srcPts[srcOff++];
@@ -373,9 +379,9 @@ public class LMatrix
                 }
                 return;
             case (APPLY_SCALE | APPLY_TRANSLATE):
-                M00 = m00;
+                M00 = _scaleX;
                 M02 = _translateX;
-                M11 = m11;
+                M11 = _scaleY;
                 M12 = _translateY;
                 while (--numPts >= 0) {
                     dstPts[dstOff++] = M00 * srcPts[srcOff++] + M02;
@@ -383,8 +389,8 @@ public class LMatrix
                 }
                 return;
             case (APPLY_SCALE):
-                M00 = m00;
-                M11 = m11;
+                M00 = _scaleX;
+                M11 = _scaleY;
                 while (--numPts >= 0) {
                     dstPts[dstOff++] = M00 * srcPts[srcOff++];
                     dstPts[dstOff++] = M11 * srcPts[srcOff++];
@@ -406,39 +412,39 @@ public class LMatrix
         }
     }
 
-    public double getM00ScaleX() {
-        return m00;
+    public double scaleX() {
+        return _scaleX;
     }
 
-    protected void setScaleX(double m00) {
-        this.m00 = m00;
+    protected void scaleX(double m00) {
+        _scaleX = m00;
         this.updateState();
     }
 
-    public double getM11ScaleY() {
-        return m11;
+    public double scaleY() {
+        return _scaleY;
     }
 
-    protected void setscaleY(double m11) {
-        this.m11 = m11;
+    protected void scaleY(double m11) {
+        _scaleY = m11;
         this.updateState();
     }
 
-    public double getM01ShearX() {
-        return m01;
+    public double shearX() {
+        return _shearX;
     }
 
-    protected void setShearX(double m01) {
-        this.m01 = m01;
+    protected void shearX(double m01) {
+        _shearX = m01;
         this.updateState();
     }
 
-    public double getM10ShearY() {
-        return m10;
+    public double shearY() {
+        return _shearY;
     }
 
-    protected void setShearY(double m10) {
-        this.m10 = m10;
+    protected void shearY(double m10) {
+        _shearY = m10;
         this.updateState();
     }
 
@@ -463,11 +469,11 @@ public class LMatrix
     @Override
     public String toString() {
         return this.getClass().getName() + " [m00.scaleX="
-                + Double.toString(m00) + ", m01.shearX="
-                + Double.toString(m01) + ", m02.translateX="
+                + Double.toString(_scaleX) + ", m01.shearX="
+                + Double.toString(_shearX) + ", m02.translateX="
                 + Double.toString(_translateX) + ", m10.shearY="
-                + Double.toString(m10) + ", m11.scaleY="
-                + Double.toString(m11) + ", m12.translateY="
+                + Double.toString(_shearY) + ", m11.scaleY="
+                + Double.toString(_scaleY) + ", m12.translateY="
                 + Double.toString(_translateY) + "]";
 
         //double m00, double m10, double m01, double m11, double m02, double m12  
@@ -478,8 +484,8 @@ public class LMatrix
             default:
                 throw new InternalError("missing case in transform state switch");
             case (APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
-                _translateX = tx * m00 + ty * m01 + _translateX;
-                _translateY = tx * m10 + ty * m11 + _translateY;
+                _translateX = tx * _scaleX + ty * _shearX + _translateX;
+                _translateY = tx * _shearY + ty * _scaleY + _translateY;
                 if ((LGeomUtils.isEqual(_translateX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                         && (LGeomUtils.isEqual(_translateY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     state = APPLY_SHEAR | APPLY_SCALE;
@@ -489,8 +495,8 @@ public class LMatrix
                 }
                 return;
             case (APPLY_SHEAR | APPLY_SCALE):
-                _translateX = tx * m00 + ty * m01;
-                _translateY = tx * m10 + ty * m11;
+                _translateX = tx * _scaleX + ty * _shearX;
+                _translateY = tx * _shearY + ty * _scaleY;
                 if ((!LGeomUtils.isEqual(_translateX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                         || (!LGeomUtils.isEqual(_translateY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     state = APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE;
@@ -498,8 +504,8 @@ public class LMatrix
                 }
                 return;
             case (APPLY_SHEAR | APPLY_TRANSLATE):
-                _translateX = ty * m01 + _translateX;
-                _translateY = tx * m10 + _translateY;
+                _translateX = ty * _shearX + _translateX;
+                _translateY = tx * _shearY + _translateY;
                 if ((LGeomUtils.isEqual(_translateX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                         && (LGeomUtils.isEqual(_translateY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     state = APPLY_SHEAR;
@@ -509,8 +515,8 @@ public class LMatrix
                 }
                 return;
             case (APPLY_SHEAR):
-                _translateX = ty * m01;
-                _translateY = tx * m10;
+                _translateX = ty * _shearX;
+                _translateY = tx * _shearY;
                 if ((!LGeomUtils.isEqual(_translateX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                         || (!LGeomUtils.isEqual(_translateY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     state = APPLY_SHEAR | APPLY_TRANSLATE;
@@ -518,8 +524,8 @@ public class LMatrix
                 }
                 return;
             case (APPLY_SCALE | APPLY_TRANSLATE):
-                _translateX = tx * m00 + _translateX;
-                _translateY = ty * m11 + _translateY;
+                _translateX = tx * _scaleX + _translateX;
+                _translateY = ty * _scaleY + _translateY;
                 if ((LGeomUtils.isEqual(_translateX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                         && (LGeomUtils.isEqual(_translateY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     state = APPLY_SCALE;
@@ -529,8 +535,8 @@ public class LMatrix
                 }
                 return;
             case (APPLY_SCALE):
-                _translateX = tx * m00;
-                _translateY = ty * m11;
+                _translateX = tx * _scaleX;
+                _translateY = ty * _scaleY;
                 if ((!LGeomUtils.isEqual(_translateX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                         || (!LGeomUtils.isEqual(_translateY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     state = APPLY_SCALE | APPLY_TRANSLATE;
@@ -565,18 +571,18 @@ public class LMatrix
                 throw new InternalError("missing case in transform state switch");
             case (APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
             case (APPLY_SHEAR | APPLY_SCALE):
-                m00 *= sx;
-                m11 *= sy;
+                _scaleX *= sx;
+                _scaleY *= sy;
             /* NOBREAK */
             case (APPLY_SHEAR | APPLY_TRANSLATE):
             case (APPLY_SHEAR):
-                m01 *= sy;
-                m10 *= sx;
-                if ((LGeomUtils.isEqual(m01, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                        && (LGeomUtils.isEqual(m10, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+                _shearX *= sy;
+                _shearY *= sx;
+                if ((LGeomUtils.isEqual(_shearX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                        && (LGeomUtils.isEqual(_shearY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     stateTemp &= APPLY_TRANSLATE;
-                    if ((LGeomUtils.isEqual(m00, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                            && (LGeomUtils.isEqual(m11, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+                    if ((LGeomUtils.isEqual(_scaleX, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                            && (LGeomUtils.isEqual(_scaleY, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                         this.type = (stateTemp == APPLY_IDENTITY
                                 ? TYPE_IDENTITY
                                 : TYPE_TRANSLATION);
@@ -589,10 +595,10 @@ public class LMatrix
                 return;
             case (APPLY_SCALE | APPLY_TRANSLATE):
             case (APPLY_SCALE):
-                m00 *= sx;
-                m11 *= sy;
-                if ((LGeomUtils.isEqual(m00, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                        && (LGeomUtils.isEqual(m11, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+                _scaleX *= sx;
+                _scaleY *= sy;
+                if ((LGeomUtils.isEqual(_scaleX, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                        && (LGeomUtils.isEqual(_scaleY, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     this.state = (stateTemp &= APPLY_TRANSLATE);
                     this.type = (stateTemp == APPLY_IDENTITY
                             ? TYPE_IDENTITY
@@ -603,8 +609,8 @@ public class LMatrix
                 return;
             case (APPLY_TRANSLATE):
             case (APPLY_IDENTITY):
-                m00 = sx;
-                m11 = sy;
+                _scaleX = sx;
+                _scaleY = sy;
                 if ((LGeomUtils.isEqual(sx, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                         || (!LGeomUtils.isEqual(sy, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     this.state = stateTemp | APPLY_SCALE;
@@ -634,14 +640,14 @@ public class LMatrix
                 rotate180();
             } else if (!LGeomUtils.isEqual(cos, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION)) {
                 double M0, M1;
-                M0 = m00;
-                M1 = m01;
-                m00 = cos * M0 + sin * M1;
-                m01 = -sin * M0 + cos * M1;
-                M0 = m10;
-                M1 = m11;
-                m10 = cos * M0 + sin * M1;
-                m11 = -sin * M0 + cos * M1;
+                M0 = _scaleX;
+                M1 = _shearX;
+                _scaleX = cos * M0 + sin * M1;
+                _shearX = -sin * M0 + cos * M1;
+                M0 = _shearY;
+                M1 = _scaleY;
+                _shearY = cos * M0 + sin * M1;
+                _scaleY = -sin * M0 + cos * M1;
                 updateState();
             }
         }
@@ -664,16 +670,16 @@ public class LMatrix
         /* SH | SC | TR => */ APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE,};
 
     private void rotate90() {
-        double M0 = m00;
-        m00 = m01;
-        m01 = -M0;
-        M0 = m10;
-        m10 = m11;
-        m11 = -M0;
+        double M0 = _scaleX;
+        _scaleX = _shearX;
+        _shearX = -M0;
+        M0 = _shearY;
+        _shearY = _scaleY;
+        _scaleY = -M0;
         int state = rot90conversion[this.state];
         if ((state & (APPLY_SHEAR | APPLY_SCALE)) == APPLY_SCALE
-                && (LGeomUtils.isEqual(m00, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                && (LGeomUtils.isEqual(m11, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+                && (LGeomUtils.isEqual(_scaleX, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                && (LGeomUtils.isEqual(_scaleY, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
             state -= APPLY_SCALE;
         }
         this.state = state;
@@ -681,19 +687,19 @@ public class LMatrix
     }
 
     private void rotate180() {
-        m00 = -m00;
-        m11 = -m11;
+        _scaleX = -_scaleX;
+        _scaleY = -_scaleY;
         int stateTemp = this.state;
         if ((stateTemp & (APPLY_SHEAR)) != 0) {
             // If there was a shear, then this rotation has no
             // effect on the state.
-            m01 = -m01;
-            m10 = -m10;
+            _shearX = -_shearX;
+            _shearY = -_shearY;
         } else // No shear means the SCALE state may toggle when
         // m00 and m11 are negated.
         {
-            if ((LGeomUtils.isEqual(m00, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                    && (LGeomUtils.isEqual(m11, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+            if ((LGeomUtils.isEqual(_scaleX, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                    && (LGeomUtils.isEqual(_scaleY, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                 this.state = stateTemp & ~APPLY_SCALE;
             } else {
                 this.state = stateTemp | APPLY_SCALE;
@@ -703,16 +709,16 @@ public class LMatrix
     }
 
     private void rotate270() {
-        double M0 = m00;
-        m00 = -m01;
-        m01 = M0;
-        M0 = m10;
-        m10 = -m11;
-        m11 = M0;
+        double M0 = _scaleX;
+        _scaleX = -_shearX;
+        _shearX = M0;
+        M0 = _shearY;
+        _shearY = -_scaleY;
+        _scaleY = M0;
         int state = rot90conversion[this.state];
         if ((state & (APPLY_SHEAR | APPLY_SCALE)) == APPLY_SCALE
-                && (LGeomUtils.isEqual(m00, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                && (LGeomUtils.isEqual(m11, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+                && (LGeomUtils.isEqual(_scaleX, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                && (LGeomUtils.isEqual(_scaleY, 1.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
             state -= APPLY_SCALE;
         }
         this.state = state;
@@ -740,12 +746,12 @@ public class LMatrix
 
             /* ---------- this == IDENTITY cases ---------- */
             case (HI_SHEAR | HI_SCALE | HI_TRANSLATE):
-                m01 = Tx.m01;
-                m10 = Tx.m10;
+                _shearX = Tx._shearX;
+                _shearY = Tx._shearY;
             /* NOBREAK */
             case (HI_SCALE | HI_TRANSLATE):
-                m00 = Tx.m00;
-                m11 = Tx.m11;
+                _scaleX = Tx._scaleX;
+                _scaleY = Tx._scaleY;
             /* NOBREAK */
             case (HI_TRANSLATE):
                 _translateX = Tx._translateX;
@@ -754,12 +760,12 @@ public class LMatrix
                 type = Tx.type;
                 return;
             case (HI_SHEAR | HI_SCALE):
-                m01 = Tx.m01;
-                m10 = Tx.m10;
+                _shearX = Tx._shearX;
+                _shearY = Tx._shearY;
             /* NOBREAK */
             case (HI_SCALE):
-                m00 = Tx.m00;
-                m11 = Tx.m11;
+                _scaleX = Tx._scaleX;
+                _scaleY = Tx._scaleY;
                 state = txstate;
                 type = Tx.type;
                 return;
@@ -768,9 +774,9 @@ public class LMatrix
                 _translateY = Tx._translateY;
             /* NOBREAK */
             case (HI_SHEAR):
-                m01 = Tx.m01;
-                m10 = Tx.m10;
-                m00 = m11 = 0.0;
+                _shearX = Tx._shearX;
+                _shearY = Tx._shearY;
+                _scaleX = _scaleY = 0.0;
                 state = txstate;
                 type = Tx.type;
                 return;
@@ -794,56 +800,56 @@ public class LMatrix
             case (HI_SCALE | APPLY_SCALE | APPLY_TRANSLATE):
             case (HI_SCALE | APPLY_SCALE):
             case (HI_SCALE | APPLY_TRANSLATE):
-                scale(Tx.m00, Tx.m11);
+                scale(Tx._scaleX, Tx._scaleY);
                 return;
 
             /* ---------- Tx == SHEAR cases ---------- */
             case (HI_SHEAR | APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
             case (HI_SHEAR | APPLY_SHEAR | APPLY_SCALE):
-                T01 = Tx.m01;
-                T10 = Tx.m10;
-                M0 = m00;
-                m00 = m01 * T10;
-                m01 = M0 * T01;
-                M0 = m10;
-                m10 = m11 * T10;
-                m11 = M0 * T01;
+                T01 = Tx._shearX;
+                T10 = Tx._shearY;
+                M0 = _scaleX;
+                _scaleX = _shearX * T10;
+                _shearX = M0 * T01;
+                M0 = _shearY;
+                _shearY = _scaleY * T10;
+                _scaleY = M0 * T01;
                 type = TYPE_UNKNOWN;
                 return;
             case (HI_SHEAR | APPLY_SHEAR | APPLY_TRANSLATE):
             case (HI_SHEAR | APPLY_SHEAR):
-                m00 = m01 * Tx.m10;
-                m01 = 0.0;
-                m11 = m10 * Tx.m01;
-                m10 = 0.0;
+                _scaleX = _shearX * Tx._shearY;
+                _shearX = 0.0;
+                _scaleY = _shearY * Tx._shearX;
+                _shearY = 0.0;
                 state = mystate ^ (APPLY_SHEAR | APPLY_SCALE);
                 type = TYPE_UNKNOWN;
                 return;
             case (HI_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
             case (HI_SHEAR | APPLY_SCALE):
-                m01 = m00 * Tx.m01;
-                m00 = 0.0;
-                m10 = m11 * Tx.m10;
-                m11 = 0.0;
+                _shearX = _scaleX * Tx._shearX;
+                _scaleX = 0.0;
+                _shearY = _scaleY * Tx._shearY;
+                _scaleY = 0.0;
                 state = mystate ^ (APPLY_SHEAR | APPLY_SCALE);
                 type = TYPE_UNKNOWN;
                 return;
             case (HI_SHEAR | APPLY_TRANSLATE):
-                m00 = 0.0;
-                m01 = Tx.m01;
-                m10 = Tx.m10;
-                m11 = 0.0;
+                _scaleX = 0.0;
+                _shearX = Tx._shearX;
+                _shearY = Tx._shearY;
+                _scaleY = 0.0;
                 state = APPLY_TRANSLATE | APPLY_SHEAR;
                 type = TYPE_UNKNOWN;
                 return;
         }
         // If Tx has more than one attribute, it is not worth optimizing
         // all of those cases...
-        T00 = Tx.m00;
-        T01 = Tx.m01;
+        T00 = Tx._scaleX;
+        T01 = Tx._shearX;
         T02 = Tx._translateX;
-        T10 = Tx.m10;
-        T11 = Tx.m11;
+        T10 = Tx._shearY;
+        T11 = Tx._scaleY;
         T12 = Tx._translateY;
         switch (mystate) {
             default:
@@ -852,53 +858,53 @@ public class LMatrix
                 state = mystate | txstate;
             /* NOBREAK */
             case (APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
-                M0 = m00;
-                M1 = m01;
-                m00 = T00 * M0 + T10 * M1;
-                m01 = T01 * M0 + T11 * M1;
+                M0 = _scaleX;
+                M1 = _shearX;
+                _scaleX = T00 * M0 + T10 * M1;
+                _shearX = T01 * M0 + T11 * M1;
                 _translateX += T02 * M0 + T12 * M1;
 
-                M0 = m10;
-                M1 = m11;
-                m10 = T00 * M0 + T10 * M1;
-                m11 = T01 * M0 + T11 * M1;
+                M0 = _shearY;
+                M1 = _scaleY;
+                _shearY = T00 * M0 + T10 * M1;
+                _scaleY = T01 * M0 + T11 * M1;
                 _translateY += T02 * M0 + T12 * M1;
                 type = TYPE_UNKNOWN;
                 return;
 
             case (APPLY_SHEAR | APPLY_TRANSLATE):
             case (APPLY_SHEAR):
-                M0 = m01;
-                m00 = T10 * M0;
-                m01 = T11 * M0;
+                M0 = _shearX;
+                _scaleX = T10 * M0;
+                _shearX = T11 * M0;
                 _translateX += T12 * M0;
 
-                M0 = m10;
-                m10 = T00 * M0;
-                m11 = T01 * M0;
+                M0 = _shearY;
+                _shearY = T00 * M0;
+                _scaleY = T01 * M0;
                 _translateY += T02 * M0;
                 break;
 
             case (APPLY_SCALE | APPLY_TRANSLATE):
             case (APPLY_SCALE):
-                M0 = m00;
-                m00 = T00 * M0;
-                m01 = T01 * M0;
+                M0 = _scaleX;
+                _scaleX = T00 * M0;
+                _shearX = T01 * M0;
                 _translateX += T02 * M0;
 
-                M0 = m11;
-                m10 = T10 * M0;
-                m11 = T11 * M0;
+                M0 = _scaleY;
+                _shearY = T10 * M0;
+                _scaleY = T11 * M0;
                 _translateY += T12 * M0;
                 break;
 
             case (APPLY_TRANSLATE):
-                m00 = T00;
-                m01 = T01;
+                _scaleX = T00;
+                _shearX = T01;
                 _translateX += T02;
 
-                m10 = T10;
-                m11 = T11;
+                _shearY = T10;
+                _scaleY = T11;
                 _translateY += T12;
                 state = txstate | APPLY_TRANSLATE;
                 type = TYPE_UNKNOWN;
@@ -913,62 +919,62 @@ public class LMatrix
             default:
                 throw new InternalError("missing case in transform state switch");
             case (APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
-                det = m00 * m11 - m01 * m10;
+                det = _scaleX * _scaleY - _shearX * _shearY;
                 if (Math.abs(det) <= Double.MIN_VALUE) {
                     throw new InternalError("Determinant is "
                             + det);
                 }
-                return new LMatrix(m11 / det, -m10 / det,
-                        -m01 / det, m00 / det,
-                        (m01 * _translateY - m11 * _translateX) / det,
-                        (m10 * _translateX - m00 * _translateY) / det,
+                return new LMatrix(_scaleY / det, -_shearY / det,
+                        -_shearX / det, _scaleX / det,
+                        (_shearX * _translateY - _scaleY * _translateX) / det,
+                        (_shearY * _translateX - _scaleX * _translateY) / det,
                         (APPLY_SHEAR
                         | APPLY_SCALE
                         | APPLY_TRANSLATE));
             case (APPLY_SHEAR | APPLY_SCALE):
-                det = m00 * m11 - m01 * m10;
+                det = _scaleX * _scaleY - _shearX * _shearY;
                 if (Math.abs(det) <= Double.MIN_VALUE) {
                     throw new InternalError("Determinant is "
                             + det);
                 }
-                return new LMatrix(m11 / det, -m10 / det,
-                        -m01 / det, m00 / det,
+                return new LMatrix(_scaleY / det, -_shearY / det,
+                        -_shearX / det, _scaleX / det,
                         0.0, 0.0,
                         (APPLY_SHEAR | APPLY_SCALE));
             case (APPLY_SHEAR | APPLY_TRANSLATE):
-                if ((LGeomUtils.isEqual(m01, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                        || (LGeomUtils.isEqual(m10, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+                if ((LGeomUtils.isEqual(_shearX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                        || (LGeomUtils.isEqual(_shearY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     throw new InternalError("Determinant is 0");
                 }
-                return new LMatrix(0.0, 1.0 / m01,
-                        1.0 / m10, 0.0,
-                        -_translateY / m10, -_translateX / m01,
+                return new LMatrix(0.0, 1.0 / _shearX,
+                        1.0 / _shearY, 0.0,
+                        -_translateY / _shearY, -_translateX / _shearX,
                         (APPLY_SHEAR | APPLY_TRANSLATE));
             case (APPLY_SHEAR):
-                if ((LGeomUtils.isEqual(m01, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                        || (LGeomUtils.isEqual(m10, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+                if ((LGeomUtils.isEqual(_shearX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                        || (LGeomUtils.isEqual(_shearY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     throw new InternalError("Determinant is 0");
                 }
-                return new LMatrix(0.0, 1.0 / m01,
-                        1.0 / m10, 0.0,
+                return new LMatrix(0.0, 1.0 / _shearX,
+                        1.0 / _shearY, 0.0,
                         0.0, 0.0,
                         (APPLY_SHEAR));
             case (APPLY_SCALE | APPLY_TRANSLATE):
-                if ((LGeomUtils.isEqual(m00, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                        || (LGeomUtils.isEqual(m11, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+                if ((LGeomUtils.isEqual(_scaleX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                        || (LGeomUtils.isEqual(_scaleY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     throw new InternalError("Determinant is 0");
                 }
-                return new LMatrix(1.0 / m00, 0.0,
-                        0.0, 1.0 / m11,
-                        -_translateX / m00, -_translateY / m11,
+                return new LMatrix(1.0 / _scaleX, 0.0,
+                        0.0, 1.0 / _scaleY,
+                        -_translateX / _scaleX, -_translateY / _scaleY,
                         (APPLY_SCALE | APPLY_TRANSLATE));
             case (APPLY_SCALE):
-                if ((LGeomUtils.isEqual(m00, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                        || (LGeomUtils.isEqual(m11, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+                if ((LGeomUtils.isEqual(_scaleX, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                        || (LGeomUtils.isEqual(_scaleY, 0.0, LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
                     throw new InternalError("Determinant is 0");
                 }
-                return new LMatrix(1.0 / m00, 0.0,
-                        0.0, 1.0 / m11,
+                return new LMatrix(1.0 / _scaleX, 0.0,
+                        0.0, 1.0 / _scaleY,
                         0.0, 0.0,
                         (APPLY_SCALE));
             case (APPLY_TRANSLATE):
@@ -997,13 +1003,13 @@ public class LMatrix
         switch (state) {
             case APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE:
             case APPLY_SHEAR | APPLY_SCALE:
-                return this.getM00ScaleX() * this.getM11ScaleY() - this.getM01ShearX() * this.getM10ShearY();
+                return this.scaleX() * this.scaleY() - this.shearX() * this.shearY();
             case APPLY_SHEAR | APPLY_TRANSLATE:
             case APPLY_SHEAR:
-                return -(this.getM01ShearX() * this.getM10ShearY());
+                return -(this.shearX() * this.shearY());
             case APPLY_SCALE | APPLY_TRANSLATE:
             case APPLY_SCALE:
-                return this.getM00ScaleX() * this.getM11ScaleY();
+                return this.scaleX() * this.scaleY();
             case APPLY_TRANSLATE:
             case APPLY_IDENTITY:
                 return 1.0;

@@ -1,6 +1,5 @@
 package com.ka.lych.observable;
 
-import com.ka.lych.annotation.Json;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
 import com.ka.lych.util.ILConstants;

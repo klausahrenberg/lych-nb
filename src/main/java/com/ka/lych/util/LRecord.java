@@ -17,7 +17,6 @@ import com.ka.lych.util.LReflections.LRequiredClass;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -139,7 +138,6 @@ public abstract class LRecord {
             result = (shouldParsed ? LDatetime.of((String) value) : new LDatetime((LocalDateTime) value));
         } else if (LObservable.class.isAssignableFrom(field.type())) {
             if (value != null) {
-                LLog.test(LReflections.class, "validate field '%s' ", field.requiredClass().requiredClass());
                 if ((Map.class.isAssignableFrom(field._requiredClass.requiredClass())) && (!(value instanceof LMap))) {
                 //if (!(value instanceof LMap)) {
                     if ((field._requiredClass.parameterClasses().isEmpty()) || (field._requiredClass.parameterClasses().get().size() < 2)) {

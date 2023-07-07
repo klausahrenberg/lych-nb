@@ -43,7 +43,7 @@ public class LEventHandler<T extends LEvent> extends LObservable<ILHandler<T>> {
                 additionalListeners = new LYosos<>();
             }
             additionalListeners.add(newValue);
-            this.fireChangedEvent(new LObservableChangeEvent<>(this, null, null));
+            _fireChangedEvent(new LObservableChangeEvent<>(this, null, null));
         } else {
             throw new IllegalStateException("Multiple listeners are not allowed.");
         }

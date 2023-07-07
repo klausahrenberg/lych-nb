@@ -31,7 +31,7 @@ public class LUrl extends LString {
     }
 
     @Override
-    protected String preconfigureValue(String newValue) {        
+    protected String _preconfigureValue(String newValue) {        
         if ((newValue != null) && (newValue.trim().startsWith(ILConstants.KEYWORD_RESOURCE_URL))) {
             newValue = newValue.substring(ILConstants.KEYWORD_RESOURCE_URL.length());
             if (newValue.startsWith(ILConstants.SLASH)) {
@@ -40,7 +40,7 @@ public class LUrl extends LString {
             URL u = ClassLoader.getSystemResource(newValue);
             return (u != null ? u.toString() : newValue);
         } else {
-            return super.preconfigureValue(newValue);
+            return super._preconfigureValue(newValue);
         }
     }    
 

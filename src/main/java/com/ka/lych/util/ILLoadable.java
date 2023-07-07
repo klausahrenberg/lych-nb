@@ -17,21 +17,21 @@ public interface ILLoadable<E extends Throwable> {
      */    
     public boolean isLoadable();
     
-    public LLoadingState getLoadingState();    
+    public LLoadingState loadingState();    
     
     //public LWaiter<E> load();
     public void load() throws E;
     
     default public boolean isNotLoaded() {
-        return this.getLoadingState() == LLoadingState.NOT_LOADED;
+        return this.loadingState() == LLoadingState.NOT_LOADED;
     }
     
     default public boolean isLoading() {
-        return this.getLoadingState() == LLoadingState.LOADING;
+        return this.loadingState() == LLoadingState.LOADING;
     }
     
     default public boolean isLoaded() {
-        return this.getLoadingState() == LLoadingState.LOADED;
+        return this.loadingState() == LLoadingState.LOADED;
     }
     
 }
