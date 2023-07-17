@@ -17,8 +17,8 @@ public class LEventHandler<T extends LEvent> extends LObservable<ILHandler<T>> {
     private LYosos<ILHandler<T>> additionalListeners;
 
     private final ILChangeListener<ILHandler<T>> valueListener = change -> {
-        if ((change.getNewValue() != get()) && (supportMultipleListeners)) {
-            if (change.getNewValue() == null) {                
+        if ((change.newValue() != get()) && (supportMultipleListeners)) {
+            if (change.newValue() == null) {                
                 throw new IllegalArgumentException("Event properties with multiple listeners can't set to null. Use function remove(EventHandler<T>) instead.");
             }
             if (get() != null) {

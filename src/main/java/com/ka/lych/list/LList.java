@@ -69,7 +69,7 @@ public class LList<T> extends ArrayList<T> {
     
     public static <T> LList<T> empty() {
         return new LList<>();
-    }
+    }    
     
     public String toString(boolean showEntries) {
         String result = getClass().getName() + " [" + size() + (size() == 1 ? " entry" : " entries");

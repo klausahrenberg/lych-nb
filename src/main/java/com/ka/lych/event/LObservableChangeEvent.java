@@ -10,37 +10,37 @@ import java.util.function.Consumer;
  */
 public class LObservableChangeEvent<E> extends LEvent<LObservable<E>> {
     
-    private final E oldValue;   
-    private final Object trigger;
+    final E _oldValue;   
+    final Object _trigger;
     
     public LObservableChangeEvent(LObservable<E> source, Object trigger, E oldValue) {
         super(source);
-        this.oldValue = oldValue;
-        this.trigger = trigger;
+        _oldValue = oldValue;
+        _trigger = trigger;
     }
 
-    public Object getTrigger() {
-        return trigger;
+    public Object trigger() {
+        return _trigger;
     }
 
-    public E getOldValue() {
-        return oldValue;
+    public E oldValue() {
+        return _oldValue;
     } 
     
-    public E getNewValue() {
+    public E newValue() {
         return getSource().get();
     } 
     
     public LObservableChangeEvent<E> ifOldValueExists(Consumer<E> action) {
-        if (oldValue != null) {
-            action.accept(oldValue);
+        if (_oldValue != null) {
+            action.accept(_oldValue);
         }
         return this;
     }
     
     public LObservableChangeEvent<E> ifNewValueExists(Consumer<E> action) {
-        if (getNewValue() != null) {
-            action.accept(getNewValue());
+        if (newValue() != null) {
+            action.accept(newValue());
         }
         return this;
     }

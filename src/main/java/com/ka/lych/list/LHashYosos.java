@@ -19,17 +19,17 @@ public class LHashYosos<K, V extends ILHashYoso> extends LYosos<V>
     protected ArrayList<LxHashIndex<K, V>> hashIndexes = new ArrayList<>();
 
     private final ILValidator<K> hashYosoAcceptor = (LObservableChangeEvent<K> change) -> {
-        return (existsHashKey(change.getNewValue())
-                ? new LValueException(this, "Key already exists: " + change.getNewValue())
+        return (existsHashKey(change.newValue())
+                ? new LValueException(this, "Key already exists: " + change.newValue())
                 : null);
     };
 
     @SuppressWarnings("unchecked")
     private final ILChangeListener<K> hashYosoListener = change -> {
-        if (change.getOldValue() != null) {
-            this.removeHashKey(change.getOldValue());
+        if (change.oldValue() != null) {
+            this.removeHashKey(change.oldValue());
         }
-        if (change.getNewValue() != null) {
+        if (change.newValue() != null) {
             try {
                 this.addHashKey((V) change.getSource());
             } catch (LDoubleHashKeyException dhke) {

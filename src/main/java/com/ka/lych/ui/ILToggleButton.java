@@ -7,7 +7,7 @@ import com.ka.lych.observable.LBoolean;
  * @author klausahrenberg
  * @param <T>
  */
-public interface ILToggleButton<T> extends ILButton<T> {
+public interface ILToggleButton<T, BC> extends ILButton<T, BC> {
 
     public LBoolean selected();
     

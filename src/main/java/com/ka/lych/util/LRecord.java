@@ -238,7 +238,7 @@ public abstract class LRecord {
         var fields = LRecord.getFields(rcd.getClass());
         var oldIdObjects = getOldIdObjects(rcd);
         //Update oldIds, if necessary
-        if ((oldIdObjects == null) && (change.getOldValue() != null)) {
+        if ((oldIdObjects == null) && (change.oldValue() != null)) {
             boolean complete = true;
             LObservable[] oldIds = new LObservable[fields.sizeKey()];
             for (int i = 0; (complete) && (i < fields.sizeKey()); i++) {
@@ -251,7 +251,7 @@ public abstract class LRecord {
                         try {
                             LObservable cloneObs = LObservable.clone(obs);
                             if (obs == change.getSource()) {
-                                cloneObs.set(change.getOldValue());
+                                cloneObs.set(change.oldValue());
                             }
                             oldIds[i] = cloneObs;
                         } catch (CloneNotSupportedException cnse) {

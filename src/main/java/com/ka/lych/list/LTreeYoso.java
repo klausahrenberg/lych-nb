@@ -32,11 +32,11 @@ public class LTreeYoso<K, V extends LTreeYoso<K, V>> extends LHashYoso<K>
         if (childrens == null) {
             childrens = new LObservable<>(DEFAULT_CHILDRENS);
             childrens.addListener(change -> {
-                if (change.getOldValue() != null) {
-                    change.getOldValue().removeListener(yososListener);
+                if (change.oldValue() != null) {
+                    change.oldValue().removeListener(yososListener);
                 }
-                if (change.getNewValue() != null) {
-                    change.getNewValue().addListener(yososListener);
+                if (change.newValue() != null) {
+                    change.newValue().addListener(yososListener);
                 }
                 updateHasChildrens();
             });

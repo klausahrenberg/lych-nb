@@ -78,7 +78,7 @@ public class LCanvas extends LShape
     private final ILChangeListener<Double> rotationListener = change -> {
         if (marks != null) {
             for (LCanvas mark : marks) {
-                mark.setRotation(mark.getRotation() + this.getRotation() - change.getOldValue().doubleValue());
+                mark.setRotation(mark.getRotation() + this.getRotation() - change.oldValue().doubleValue());
             }
         }
     };

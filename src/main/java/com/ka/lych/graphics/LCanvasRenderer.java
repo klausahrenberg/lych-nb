@@ -109,10 +109,10 @@ public abstract class LCanvasRenderer<C, D>
             canvas = new LObservable<>(DEFAULT_CANVAS);
             canvas.addListener(change -> {
                 cancelRendering();
-                if (change.getOldValue() != null) {
-                    change.getOldValue().onChanged().remove(canvasChangedEvent);
+                if (change.oldValue() != null) {
+                    change.oldValue().onChanged().remove(canvasChangedEvent);
                     //oldValue.observableState().removeListener(canvasStateListener);
-                    change.getOldValue().rotation().removeListener(canvasRotationListener);
+                    change.oldValue().rotation().removeListener(canvasRotationListener);
                 }
                 if (getCanvas() != null) {
                     getCanvas().rotation().addListener(canvasRotationListener);

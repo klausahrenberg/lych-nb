@@ -9,11 +9,15 @@ import com.ka.lych.ui.observable.ILHasTitle;
  * @author klausahrenberg
  * @param <T>
  */
-public interface ILLabel<T> extends ILHasTitle, ILSupportsObservables<T> {
+public interface ILLabel<T, BC> extends ILHasTitle<BC>, ILSupportsObservables<T> {
     
     public LString icon();       
     
-    public void setIcon(String icon);
+    @SuppressWarnings("unchecked")
+    default public BC icon(String icon) {
+        icon().set(icon);
+        return (BC) this;
+    }
     
     public void setIconCanvas(LCanvas canvas);
     

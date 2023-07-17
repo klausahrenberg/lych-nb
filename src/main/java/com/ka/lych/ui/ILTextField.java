@@ -9,6 +9,6 @@ import com.ka.lych.ui.observable.ILSupportsReadOnly;
  *
  * @author klausahrenberg 
  */
-public interface ILTextField extends ILControl, ILHasText, ILHasTitle, ILSupportsReadOnly, ILHasCaretPosition {   
+public interface ILTextField<BC> extends ILControl, ILHasText, ILHasTitle<BC>, ILSupportsReadOnly, ILHasCaretPosition {   
     
 }

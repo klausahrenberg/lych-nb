@@ -13,6 +13,8 @@ import com.ka.lych.util.ILParseable;
 import com.ka.lych.util.ILRegistration;
 import com.ka.lych.util.LLoadingState;
 import com.ka.lych.util.LLog;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -41,7 +43,7 @@ public class LObservable<T>
     @SuppressWarnings("unchecked")
     final ILChangeListener<Object> _boundedObservableListener = change -> { 
         if (this.isSingleBound()) {
-            _fireChangedEvent(new LObservableChangeEvent<>(this, null, (change != null && change.getOldValue() != null ? (T) (_boundedConverter != null ? _boundedConverter.apply(change.getOldValue()) : change.getOldValue()) : null)));
+            _fireChangedEvent(new LObservableChangeEvent<>(this, null, (change != null && change.oldValue() != null ? (T) (_boundedConverter != null ? _boundedConverter.apply(change.oldValue()) : change.oldValue()) : null)));
         } else {
             //Multiple bounds: compose new value with converter and set local value
             T newValue = _boundedConverter.apply(_boundedObservables);            
@@ -170,7 +172,7 @@ public class LObservable<T>
                         _valueListener.remove();
                     }
                     if ((_value != null) && (_value instanceof ILObservable)) {                        
-                        _valueListener = ((ILObservable<T>) _value).addListener(change -> _fireChangedEvent(new LObservableChangeEvent<>(this, null, (change != null ? change.getOldValue() : null))));
+                        _valueListener = ((ILObservable<T>) _value).addListener(change -> _fireChangedEvent(new LObservableChangeEvent<>(this, null, (change != null ? change.oldValue() : null))));
                     }                    
                     _fireChangedEvent(changeEvent);                    
                 } else {
@@ -454,6 +456,30 @@ public class LObservable<T>
         } /*else {
             return LWaiter.confirmation();
         }*/
+    }
+    
+    @SuppressWarnings("unchecked")
+    public static LObservable of(Object value) {
+        if (value != null) {
+            var valueClass = value.getClass();
+            if (String.class.isAssignableFrom(valueClass)) {
+                return new LString((String) value);
+            } else if (Double.class.isAssignableFrom(valueClass)) {
+                return new LDouble((Double) value);
+            } else if (Integer.class.isAssignableFrom(valueClass)) {
+                return new LInteger((Integer) value);
+            } else if (Boolean.class.isAssignableFrom(valueClass)) {
+                return new LBoolean((Boolean) value);
+            } else if (LocalDate.class.isAssignableFrom(valueClass)) {
+                return new LDate((LocalDate) value);                
+            } else if (LocalDateTime.class.isAssignableFrom(valueClass)) {
+                return new LDatetime((LocalDateTime) value);
+            } else {
+                return new LObservable(value);
+            }
+        } else {
+            return new LObservable(null);
+        }
     }
 
 }

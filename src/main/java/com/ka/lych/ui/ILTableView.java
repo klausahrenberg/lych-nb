@@ -11,13 +11,13 @@ import com.ka.lych.util.ILHandler;
  * @author klausahrenberg
  * @param <T>
  */
-public interface ILTableView<T> extends ILControl {
+public interface ILTableView<T, BC> extends ILControl {
     
     public LObservable<LYosos<T>> observableYosos();
     
-    public LYosos<T> getYosos();
+    public LYosos<T> yosos();
             
-    public void setYosos(LYosos<T> items);
+    public BC yosos(LYosos<T> items);
     
     public void addAcceptedFileExtension(String... extensions);
     
