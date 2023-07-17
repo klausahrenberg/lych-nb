@@ -195,6 +195,7 @@ public class LTerm
         switch (_operation) {            
             case OR -> result = LString.concatWithSpacer(KEYWORD_OR, "", psubs.toArray());
             case LIKE -> result = psubs.get(0) + KEYWORD_LIKE + psubs.get(1);
+            case EQUAL -> result = psubs.get(0) + KEYWORD_EQUAL + psubs.get(1);
             case VALUE_CONST, VALUE_VARIABLE -> result = (_valueConstant != null ? _valueConstant.toString() : KEYWORD_NULL);
             default -> throw new UnsupportedOperationException("Not supported operation: " + _operation);
         }   
