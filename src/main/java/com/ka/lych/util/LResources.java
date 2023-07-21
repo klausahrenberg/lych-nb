@@ -52,8 +52,10 @@ public class LResources
     public ResourceBundle getBundle(Class sender) {
         if (bundle == null) {
             try {
-                bundle = ResourceBundle.getBundle("language" , getLocale());
+                //bundle = ResourceBundle.getBundle("language" , getLocale());
+                bundle = ResourceBundle.getBundle("languages.language" , getLocale());
             } catch (MissingResourceException mre) {
+                mre.printStackTrace();
                 bundle = ResourceBundle.getBundle(sender.getPackageName().concat(".res.language") , getLocale());
             }    
         }
