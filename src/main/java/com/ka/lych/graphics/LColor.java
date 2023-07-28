@@ -7,6 +7,7 @@ import com.ka.lych.util.LLog;
 import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.*;
 import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
+import java.util.function.Function;
 import org.w3c.dom.*;
 
 /**
@@ -15,6 +16,8 @@ import org.w3c.dom.*;
  */
 public class LColor
         implements ILXmlSupport, Comparable<LColor>, ILParseable {
+
+    public static Function<String, Integer> SYSTEM_COLOR_PROVIDER;
 
     public final static LColor WHITE = new LColor(255, 255, 255);
     public final static LColor LIGHT_GRAY = new LColor(192, 192, 192);
@@ -54,11 +57,7 @@ public class LColor
     }
 
     private void setValue(int r, int g, int b, int a) {
-        value = ((a & 0xFF) << 24)
-                | ((b & 0xFF) << 16)
-                | ((g & 0xFF) << 8)
-                | ((r & 0xFF));
-        testColorValueRange(r, g, b, a);
+        value = rgbValue(r, g, b, a);
     }
 
     private static void testColorValueRange(int r, int g, int b, int a) {
@@ -134,7 +133,7 @@ public class LColor
     public String toXmlStr() {
         return toXmlStr(this);
     }
-    
+
     @Override
     public String toParseableString() {
         return "rgb(" + LString.concatWithComma(getRed(), getGreen(), getBlue()) + ")";
@@ -198,7 +197,7 @@ public class LColor
             default: {
                 boolean found = false;
                 sValue = sValue.toLowerCase().trim();
-                sValue = sValue.replace('_', '-');                
+                sValue = sValue.replace('_', '-');
                 /*if (LBase.getBaseUI() != null) {
                     LColor c = LBase.getBaseUI().getUiColor(sValue);
                     if (c != null) {
@@ -206,28 +205,48 @@ public class LColor
                         found = true;
                     }
                 }*/
-                if (!found) {                    
+                if (!found) {
                     found = true;
                     switch (sValue) {
-                        case "white" -> value = WHITE.value;                            
-                        case "light-gray" -> value = LIGHT_GRAY.value;
-                        case "gray" -> value = GRAY.value;
-                        case "dark-gray" -> value = DARK_GRAY.value;
-                        case "black" -> value = BLACK.value;
-                        case "red" -> value = RED.value;
-                        case "pink" -> value = PINK.value;
-                        case "orange" -> value = ORANGE.value;
-                        case "yellow" -> value = YELLOW.value;
-                        case "green" -> value = GREEN.value;
-                        case "magenta" -> value = MAGENTA.value;
-                        case "cyan" -> value = CYAN.value;
-                        case "blue" -> value = BLUE.value;
-                        case "transparent" -> value = TRANSPARENT.value;
-                        default -> found = false;
-                    }                    
+                        case "white" ->
+                            value = WHITE.value;
+                        case "light-gray" ->
+                            value = LIGHT_GRAY.value;
+                        case "gray" ->
+                            value = GRAY.value;
+                        case "dark-gray" ->
+                            value = DARK_GRAY.value;
+                        case "black" ->
+                            value = BLACK.value;
+                        case "red" ->
+                            value = RED.value;
+                        case "pink" ->
+                            value = PINK.value;
+                        case "orange" ->
+                            value = ORANGE.value;
+                        case "yellow" ->
+                            value = YELLOW.value;
+                        case "green" ->
+                            value = GREEN.value;
+                        case "magenta" ->
+                            value = MAGENTA.value;
+                        case "cyan" ->
+                            value = CYAN.value;
+                        case "blue" ->
+                            value = BLUE.value;
+                        case "transparent" ->
+                            value = TRANSPARENT.value;
+                        default ->
+                            found = false;
+                    }
+                }
+                if ((!found) && (SYSTEM_COLOR_PROVIDER != null)) {
+                    Integer v = SYSTEM_COLOR_PROVIDER.apply(sValue);
+                    found = (v != null);
+                    value = (v != null ? v : value);
                 }
                 if (!found) {
-                    LParseException pe = new LParseException(this, "Unknown color value: " + sValue);                                        
+                    LParseException pe = new LParseException(this, "Unknown color value: " + sValue);
                     LLog.error(this, pe.getMessage());
                     throw pe;
                 }
@@ -269,6 +288,15 @@ public class LColor
     @Override
     public void parse(String value) throws LParseException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    public static int rgbValue(int r, int g, int b, int a) {
+        testColorValueRange(r, g, b, a);
+        return ((a & 0xFF) << 24)
+                | ((b & 0xFF) << 16)
+                | ((g & 0xFF) << 8)
+                | ((r & 0xFF));
+
     }
 
 }
