@@ -59,7 +59,7 @@ public abstract class LCanvasRenderer<C, D>
         availableSize = new LObservable<>(new LSize(0, 0));
         availableSize.addListener(oldValue -> updatePaintBounds());
         paintBounds = new LObservable<>(new LBounds());
-        paintBounds.addListener(oldValue -> needsNewRendering = true);
+        paintBounds.addListener(ce -> needsNewRendering = true);
         loadingService = new LLoadingService();
         setCanvas(canvas);
     }
@@ -253,8 +253,9 @@ public abstract class LCanvasRenderer<C, D>
             if (!(getCanvas() instanceof ILLoadable)) {
                 throw new IllegalStateException("Canvas is not parseable (ILParseable not implemented) and state is 'not parsed'");
             }                        
-            loadingService.addLoadable((ILLoadable) getCanvas(), renderPriority);
+            loadingService.addLoadable((ILLoadable) getCanvas(), renderPriority);           
         }
+         LLog.test(this, "np %s %s %s", (needsNewRendering), (getPaintBounds().getWidth() > 0), (getPaintBounds().getHeight() > 0));
         if ((needsNewRendering) && (getPaintBounds().getWidth() > 0) && (getPaintBounds().getHeight() > 0)) {            
             needsNewRendering = false;
             cancelRendering();

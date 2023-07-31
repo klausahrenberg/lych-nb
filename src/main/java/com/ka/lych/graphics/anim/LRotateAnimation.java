@@ -5,6 +5,7 @@ import com.ka.lych.graphics.LCanvasRenderer;
 import com.ka.lych.graphics.LMatrix;
 import com.ka.lych.graphics.LShape;
 import com.ka.lych.observable.LDouble;
+import com.ka.lych.util.LLog;
 
 /**
  *
@@ -28,8 +29,12 @@ public class LRotateAnimation extends LAnimation {
 
     @Override
     public void execute(LCanvasRenderer canvasRenderer, LShape shape, long now) {
+        
+        LLog.test(this, "rotate %s / delay %s / duration %s", now, getDelay(), getDuration() );
         if ((now >= getDelay()) && (now < getDelay() + getDuration())) {
             double angle = getFromAngle() + (getToAngle() - getFromAngle()) * (now - getDelay()) / getDuration();            
+            
+            
             matrix.rotate(Math.toRadians(angle), getCx(), getCy());
             canvasRenderer.setMatrix(matrix, true);
             matrix.rotate(-Math.toRadians(angle), getCx(), getCy());

@@ -29,21 +29,21 @@ public abstract class LAnimation
         
     }
 
-    public LInteger delay() {
+    /*public LInteger delay() {
         if (delay == null) {
             delay = new LInteger(DEFAULT_DELAY);
         }
         return delay;
-    }
+    }*/
 
     @Override
     public Integer getDelay() {
         return (delay != null ? delay.get() : DEFAULT_DELAY);
     }    
 
-    public void setDelay(Integer delay) {
+    /*public void setDelay(Integer delay) {
         delay().set(delay);
-    }
+    }*/
     
     public LInteger duration() {
         if (duration == null) {
