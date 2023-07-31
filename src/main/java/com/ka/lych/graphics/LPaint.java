@@ -3,50 +3,43 @@ package com.ka.lych.graphics;
 import com.ka.lych.annotation.Json;
 import java.util.EnumSet;
 import java.util.Objects;
-import com.ka.lych.observable.LObservable;
 import com.ka.lych.util.LLog;
 
 /**
  *
  * @author klausahrenberg
  */
-public class LPaint extends LAbstractPaint {
+public class LPaint extends LAbstractPaint<LPaint> {
 
     @Json
-    protected LObservable<LColor> color;
+    LColor _color;
 
     public LPaint() {
     }
     
     public LPaint(LColor color) {
-        setColor(color);
+        color(color);
     }
     
     public LPaint(LPaintStyle style, LColor color) {
-        setStyle(EnumSet.of(style));
-        setColor(color);
+        style(EnumSet.of(style));
+        color(color);
     }
 
-    public final LObservable<LColor> color() {
-        if (color == null) {
-            color = new LObservable<>();
-        }
-        return color;
+    public final LPaint color(LColor color) {
+        _color = color;
+        return this;
     }
 
-    public final void setColor(LColor color) {
-        color().set(color);
-    }
-
-    public final LColor getColor() {
-        return (color != null ? color.get() : null);
+    public final LColor color() {
+        return _color;
     }
 
     @Override
     public Object clone() {
         try {
             LPaint p = (LPaint) super.clone();
-            LObservable.clone(color);
+            p._color = _color;            
             return p;
         } catch (Exception e) {
             LLog.error(this, "clone failed", e);
@@ -61,7 +54,7 @@ public class LPaint extends LAbstractPaint {
 
     @Override
     public int hashCode() {       
-        return Objects.hash(getStyle(), getColor());
+        return Objects.hash(style(), color());
     }
 
 }

@@ -389,7 +389,7 @@ public class LYosos<T> extends LList<T>
             LMethod m = null;
             if (size() > 0) {
                 Class[] parameters = new Class[]{};
-                m = LReflections.getMethod(get(0), "clone", parameters);
+                m = LReflections.getMethod(get(0).getClass(), "clone", parameters);
                 //m = get(0).getClass().getm.getMethod("clone", parameters);
             }
             Object[] params = new Object[]{};

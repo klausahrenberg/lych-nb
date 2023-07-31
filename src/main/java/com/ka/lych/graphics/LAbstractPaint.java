@@ -3,7 +3,6 @@ package com.ka.lych.graphics;
 import com.ka.lych.annotation.Json;
 import java.util.EnumSet;
 import java.util.Objects;
-import com.ka.lych.observable.LObservable;
 import com.ka.lych.util.ILCloneable;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.LLog;
@@ -14,37 +13,31 @@ import com.ka.lych.xml.*;
  *
  * @author klausahrenberg
  */
-public abstract class LAbstractPaint
+public abstract class LAbstractPaint<BC>
         implements ILCanvasCommand, ILCloneable, ILConstants {
 
-    protected static EnumSet<LPaintStyle> DEFAULT_STYLE = EnumSet.of(LPaintStyle.FILL);
+    static EnumSet<LPaintStyle> DEFAULT_STYLE = EnumSet.of(LPaintStyle.FILL);
     @Json
-    protected LObservable<EnumSet<LPaintStyle>> style;
+    EnumSet<LPaintStyle> _style;
 
     public LAbstractPaint() {
     }
 
-    public LObservable<EnumSet<LPaintStyle>> style() {
-        if (style == null) {
-            style = new LObservable<>(DEFAULT_STYLE);
-        }
-        return style;
+    public EnumSet<LPaintStyle> style() {
+        return (_style != null ? _style : DEFAULT_STYLE);
+    }
+    
+    public BC style(EnumSet<LPaintStyle> style) {
+        _style = style;
+        return (BC) this;
     }
 
-    public boolean isStyle(LPaintStyle style) {
-        return getStyle().contains(style);
+    public boolean contains(LPaintStyle style) {
+        return style().contains(style);
     }
 
-    public EnumSet<LPaintStyle> getStyle() {
-        return (style != null ? style.get() : DEFAULT_STYLE);
-    }
-
-    public void setStyle(EnumSet<LPaintStyle> style) {
-        style().set(style);
-    }
-
-    public void addStyle(LPaintStyle style) {
-        style().get().add(style);
+    public void add(LPaintStyle style) {
+        style().add(style);
     }
 
     @Override
@@ -57,7 +50,7 @@ public abstract class LAbstractPaint
     public Object clone() {
         try {
             LAbstractPaint p = (LAbstractPaint) LReflections.newInstance(getClass());
-            p.style = LObservable.clone(style);
+            p._style = _style;
             return p;
         } catch (Exception e) {
             LLog.error(this, "clone failed", e);
@@ -77,7 +70,7 @@ public abstract class LAbstractPaint
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getStyle());
+        return Objects.hashCode(style());
     }
 
 }

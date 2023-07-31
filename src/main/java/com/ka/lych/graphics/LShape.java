@@ -718,45 +718,30 @@ public class LShape
         LShape.ShapeIterator p_it = new LShape.ShapeIterator(this);
         while (!p_it.isDone()) {
             switch (p_it.getPointType()) {
-                case LShape.SEG_MOVETO:
+                case LShape.SEG_MOVETO ->
                     path += "M " + Double.toString(p_it.getPointCoordinateX(0))
                             + " " + Double.toString(p_it.getPointCoordinateY(0))
                             + " ";
-                    break;
-                case LShape.SEG_LINETO:
+                case LShape.SEG_LINETO ->
                     path += "L " + Double.toString(p_it.getPointCoordinateX(0))
                             + " " + Double.toString(p_it.getPointCoordinateY(0))
-                            + " ";
-                    break;
-                case LShape.SEG_QUADTO:
+                            + " ";                    
+                case LShape.SEG_QUADTO ->
                     path += "Q " + Double.toString(p_it.getPointCoordinateX(0))
                             + " " + Double.toString(p_it.getPointCoordinateY(0))
                             + " " + Double.toString(p_it.getPointCoordinateX(1))
                             + " " + Double.toString(p_it.getPointCoordinateY(1))
-                            + " ";
-                    break;
-
-                case LShape.SEG_CUBICTO:
+                            + " ";                    
+                case LShape.SEG_CUBICTO ->
                     path += "C " + Double.toString(p_it.getPointCoordinateX(0))
                             + " " + Double.toString(p_it.getPointCoordinateY(0))
                             + " " + Double.toString(p_it.getPointCoordinateX(1))
                             + " " + Double.toString(p_it.getPointCoordinateY(1))
                             + " " + Double.toString(p_it.getPointCoordinateX(2))
                             + " " + Double.toString(p_it.getPointCoordinateY(2))
-                            + " ";
-                    break;
-                /*case LShape.SEG_ARCTO:    
-                    path += "A " + Double.toString(p_it.getPointCoordinateX(0))
-                            + " " + Double.toString(p_it.getPointCoordinateY(0))                            
-                            + " " + Double.toString(p_it.getDouble(4))
-                            + " " + (p_it.getFlag(5) ? "1" : "0")
-                            + " " + (p_it.getFlag(6) ? "1" : "0")
-                            + " " + Double.toString(p_it.getPointCoordinateX(1))
-                            + " " + Double.toString(p_it.getPointCoordinateY(1))
-                            + " ";*/
-                case LShape.SEG_CLOSE:
+                            + " ";                    
+                case LShape.SEG_CLOSE ->
                     path += "Z ";
-                    break;
             }
             p_it.next();
         }

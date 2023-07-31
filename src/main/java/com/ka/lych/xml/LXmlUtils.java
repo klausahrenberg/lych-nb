@@ -29,6 +29,7 @@ import com.ka.lych.observable.*;
 import com.ka.lych.ui.ILControl;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.ILHandler;
+import com.ka.lych.util.ILParseable;
 import com.ka.lych.util.LArrays;
 import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LLog;
@@ -503,7 +504,7 @@ public class LXmlUtils {
                 //which should instanciate the property                
                 String methodName = fieldName;
                 try {
-                    LMethod m = LReflections.getMethod(o, methodName);
+                    LMethod m = LReflections.getMethod(o.getClass(), methodName);
                     obs = (LObservable) m.invoke(o);
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException nsme) {
                     throw new LParseException(LXmlUtils.class, "Can't call method '" + methodName + "()'", nsme);
@@ -674,7 +675,7 @@ public class LXmlUtils {
      * @throws com.ka.lych.util.LParseException
      */
     @SuppressWarnings("unchecked")
-    protected static void parseXml(Object parentOfObjectToParse, Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation, boolean ignoreXmlSupportAtTopLevel) throws LParseException {
+    protected static void parseXml(Object parentOfObjectToParse, Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation, boolean ignoreXmlSupportAtTopLevel) throws LParseException {       
         if (objectToParse == null) {
             throw new IllegalArgumentException("Object can't be null");
         }
@@ -873,7 +874,7 @@ public class LXmlUtils {
                         LObservable prop = null;
                         String methodName = nc.getNodeName();
                         try {
-                            LMethod m = LReflections.getMethod(o, methodName);
+                            LMethod m = LReflections.getMethod(o.getClass(), methodName);
                             prop = (LObservable) m.invoke(o);
                         } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException nsme) {
                             //throw new LParseException("Can't call method 'observable" + nc.getNodeName() + "()'", nsme);
@@ -978,16 +979,12 @@ public class LXmlUtils {
                 if (requiredClass.parameterClasses().isPresent()) {                    
                     mParam = LXmlUtils.xmlStrToEnumSet(n.getTextContent(), requiredClass.parameterClasses().get().get(0));
                 }
+            } else if (ILParseable.class.isAssignableFrom(requiredClass.requiredClass())) {
+                mParam = ILParseable.of(requiredClass.requiredClass(), n.getTextContent());
             } else {
                 try {
                     Class c = getClass(n.getNodeName(), xmlParseInfo.importPackages(), null);
-                    Node beanNode = (n.hasAttributes() ? n.getAttributes().getNamedItem(ILConstants.KEYWORD_BEAN) : null);
-                    if (beanNode != null) {
-                        Class beanType = getClass(beanNode.getTextContent(), xmlParseInfo.importPackages(), null);
-                        mParam = LReflections.newInstance(c, beanType);
-                    } else {
-                        mParam = LReflections.newInstance(c);
-                    }
+                    mParam = LReflections.newInstance(c);
                     parseXml(parent, mParam, n, xmlParseInfo, excludeList, annotation, false);
                 } catch (LParseException | IllegalStateException ex) {
                     throw new LParseException(LXmlUtils.class, "Object not found for node " + n.getNodeName() + ". Required class: " + requiredClass.requiredClass() + ". Error: " + ex.getMessage(), ex);
@@ -997,7 +994,7 @@ public class LXmlUtils {
         return mParam;
     }
 
-    protected static LList<String> keyWords = new LList<>(new String[]{ILConstants.KEYWORD_CONTROLLER, ILConstants.KEYWORD_ID, ILConstants.KEYWORD_COMPONENT, ILConstants.KEYWORD_BEAN, "#text", "#comment"});
+    protected static LList<String> keyWords = new LList<>(new String[]{ILConstants.KEYWORD_CONTROLLER, ILConstants.KEYWORD_ID, ILConstants.KEYWORD_COMPONENT, "#text", "#comment"});
     protected final static String KEYWORD_CONSTRAINTS = "constraints";
 
     protected static boolean isNotExcluded(String aName, List<String> excludeList) {

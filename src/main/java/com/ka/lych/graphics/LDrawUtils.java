@@ -25,16 +25,16 @@ public class LDrawUtils {
     }
     
     public static LColor mixColor(LColor c1, LColor c2) {
-        return new LColor((c1.getRed()+c2.getRed())/2,
-                          (c1.getGreen()+c2.getGreen())/2,
-                          (c1.getBlue()+c2.getBlue())/2);        
+        return new LColor((c1.red()+c2.red())/2,
+                          (c1.green()+c2.green())/2,
+                          (c1.blue()+c2.blue())/2);        
     }
     
     public static LColor fadeColor(LColor c, float fade) {        
         int offset = Math.round(255 * fade - 255);
-        int r = c.getRed() + offset;
-        int g = c.getGreen() + offset;
-        int b = c.getBlue() + offset;
+        int r = c.red() + offset;
+        int g = c.green() + offset;
+        int b = c.blue() + offset;
         r = (r > 255 ? 255 : r);
         g = (g > 255 ? 255 : g);
         b = (b > 255 ? 255 : b);

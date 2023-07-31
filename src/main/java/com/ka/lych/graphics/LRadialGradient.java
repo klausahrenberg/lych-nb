@@ -20,7 +20,7 @@ import com.ka.lych.util.LLog;
  * </LRadialGradient>
  * 
  */
-public class LRadialGradient extends LAbstractPaint {
+public class LRadialGradient extends LAbstractPaint<LRadialGradient> {
 
     @Json
     protected LDouble cx;
@@ -191,7 +191,7 @@ public class LRadialGradient extends LAbstractPaint {
         //cx, cy, r, fx, fy;
         //spreadMethod;
         //<LYosos<LStop>> stops;
-        return Objects.hash(getStyle(), getCx(), getCy(), getR(), getFx(), getFy(), getSpreadMethod(), getStops());
+        return Objects.hash(style(), getCx(), getCy(), getR(), getFx(), getFy(), getSpreadMethod(), getStops());
     }
 
 }

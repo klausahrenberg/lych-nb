@@ -22,7 +22,7 @@ import com.ka.lych.util.LLog;
  * </LLinearGradient>
  * 
  */
-public class LLinearGradient extends LAbstractPaint {
+public class LLinearGradient extends LAbstractPaint<LLinearGradient> {
 
     @Json
     protected LDouble x1;
@@ -163,7 +163,7 @@ public class LLinearGradient extends LAbstractPaint {
         //x1, y1, x2, y2;
         //spreadMethod;
         //<LYosos<LStop>> stops;
-        return Objects.hash(getStyle(), getX1(), getY1(), getX2(), getY2(), getSpreadMethod(), getStops());
+        return Objects.hash(style(), getX1(), getY1(), getX2(), getY2(), getSpreadMethod(), getStops());
     }
     
 }
