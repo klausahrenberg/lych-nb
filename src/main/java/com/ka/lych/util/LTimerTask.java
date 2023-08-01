@@ -15,14 +15,20 @@ public class LTimerTask<R, T extends Throwable> extends LTask<R, T> {
 
     public LTimerTask(ILRunnable<R, T> runnable, long delay, long duration, boolean looping) {
         super(runnable);
+        LLog.test(this, "timer task created %s %s", delay, looping);
         this.delay = delay;
         this.duration = duration;
         this.looping = looping;
     }
 
     public void restart() {
+        LLog.test(this, "restart now is 0");
         now = 0;
         startAnim = System.currentTimeMillis();
+    }
+    
+    public long now() {
+        return now;
     }
 
     @Override
@@ -59,6 +65,7 @@ public class LTimerTask<R, T extends Throwable> extends LTask<R, T> {
                         now = 0;
                         startAnim = System.currentTimeMillis();
                     }
+                    LLog.test(this, "now is %s", now);
                 }
             } while ((!isCancelled()) && (duration > 0) && ((now < duration) || (looping)));
         }

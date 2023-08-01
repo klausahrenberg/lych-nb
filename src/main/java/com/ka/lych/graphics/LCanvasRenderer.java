@@ -261,7 +261,7 @@ public abstract class LCanvasRenderer<C, D>
             cancelRendering();
             if (runInThread) {
                 if (isHandlingAnimations()) {
-                    var canvasAnim = getCanvas().checkAnimations();
+                    var canvasAnim = getCanvas().checkAnimations();                    
                     LFuture.execute(this, 0, canvasAnim.duration(), canvasAnim.infinite());
                 } else {
                     LFuture.execute(this);
@@ -364,7 +364,7 @@ public abstract class LCanvasRenderer<C, D>
         @SuppressWarnings("unchecked")
         LChangedEvent changedEvent = (getOnChanged() != null ? new LChangedEvent(LCanvasRenderer.this) : null);
         this.service = service;
-        getCanvas().execute(this, System.currentTimeMillis());
+        getCanvas().execute(this, (task instanceof LTimerTask ? ((LTimerTask) task).now() : System.currentTimeMillis()));
         if (!isRenderingCancelled()) {
             notifyOnChanged(changedEvent);
         }
