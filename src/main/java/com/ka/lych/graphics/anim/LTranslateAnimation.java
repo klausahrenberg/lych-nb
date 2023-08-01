@@ -36,9 +36,9 @@ public class LTranslateAnimation extends LAnimation {
 
     @Override
     public void execute(LCanvasRenderer canvasRenderer, LShape shape, long now) {
-        if ((now >= getDelay()) && (now < getDelay() + getDuration())) {
-            double deltaX = getFromX() + (getToX() - getFromX()) * (now - getDelay()) / getDuration();
-            double deltaY = getFromY() + (getToY() - getFromY()) * (now - getDelay()) / getDuration();            
+        if ((now >= delay()) && (now < delay() + duration())) {
+            double deltaX = getFromX() + (getToX() - getFromX()) * (now - delay()) / duration();
+            double deltaY = getFromY() + (getToY() - getFromY()) * (now - delay()) / duration();            
             matrix.setToTranslation(deltaX, deltaY);
             canvasRenderer.setMatrix(matrix, true);
         }

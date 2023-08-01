@@ -9,11 +9,11 @@ import com.ka.lych.graphics.LShape;
  */
 public interface ILAnimation {
     
-    public Integer getDelay();
+    public int delay();
     
-    public Integer getDuration();
+    public int duration();
     
-    public Boolean isInfinite();
+    public boolean isInfinite();
     
     public void execute(LCanvasRenderer canvasRenderer, LShape shape, long now);
     

@@ -500,7 +500,7 @@ public class LCanvas extends LShape
                         LYososIterator<ILAnimation> it_anim = new LYososIterator<>(shape.getAnimations());
                         while (it_anim.hasNext()) {
                             ILAnimation anim = it_anim.next();
-                            duration = Math.max(duration, anim.getDelay() + anim.getDuration());
+                            duration = Math.max(duration, anim.delay() + anim.duration());
                             infinite = ((infinite) || (anim.isInfinite()));
                         }
                     }

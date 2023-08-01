@@ -12,69 +12,37 @@ import com.ka.lych.xml.LXmlUtils;
  */
 public abstract class LAnimation 
         implements ILAnimation, ILConstants {
-
-    private final Integer DEFAULT_DELAY = 0;
-    private final Integer DEFAULT_DURATION = 0;
-    private final Boolean DEFAULT_INFINITE = false;
     
     @Json
-    protected LInteger delay;
+    int _delay = 0;
     @Json
-    protected LInteger duration;
+    int _duration = 0;
     @Json
-    protected LBoolean infinite;  
-
+    boolean _infinite = false;  
     
-    public LAnimation() {
-        
+    public LAnimation() {        
     }
 
-    /*public LInteger delay() {
-        if (delay == null) {
-            delay = new LInteger(DEFAULT_DELAY);
-        }
-        return delay;
-    }*/
-
     @Override
-    public Integer getDelay() {
-        return (delay != null ? delay.get() : DEFAULT_DELAY);
+    public int delay() {
+        return _delay;
     }    
 
-    /*public void setDelay(Integer delay) {
-        delay().set(delay);
-    }*/
-    
-    public LInteger duration() {
-        if (duration == null) {
-            duration = new LInteger(DEFAULT_DURATION);
-        }
-        return duration;
-    }
-
     @Override
-    public Integer getDuration() {
-        return (duration != null ? duration.get() : DEFAULT_DURATION);
+    public int duration() {
+        return _duration;
     }
 
-    public void setDuration(Integer duration) {
-        duration().set(duration);
-    }
-
-    public LBoolean infinite() {
-        if (infinite == null) {
-            infinite = new LBoolean(DEFAULT_INFINITE);
-        }
-        return infinite;
+    public void duration(int duration) {
+        _duration = duration;
     }
     
-    @Override
-    public Boolean isInfinite(){
-        return infinite != null ? infinite.get() : DEFAULT_INFINITE;
+    public boolean isInfinite(){
+        return _infinite;
     }
 
-    public void setInfinite(Boolean infinite) {
-        infinite().set(infinite);
+    public void setInfinite(boolean infinite) {
+        _infinite = infinite;
     }
 
     @Override
