@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 /**
  *
  * @author klausahrenberg
- * @param <R> type of result after successful future operation
+ * @param <R> type of result after successful _future operation
  */
 public abstract class LFuture<R, T extends Throwable>
         implements ILRegistration {
@@ -187,7 +187,7 @@ public abstract class LFuture<R, T extends Throwable>
             }
             
         };
-        task.future = future;
+        task._future = future;
         runningTasks.add(task);        
         task.start();
         return future;
@@ -195,8 +195,7 @@ public abstract class LFuture<R, T extends Throwable>
 
     public static <R, T extends Throwable> void cancel(LFuture<R, T> future) {
         if (runningTasks != null) {
-            runningTasks.forEachIf(s -> s == future.service, s -> {                
-                s.cancelService();});
+            runningTasks.forEachIf(s -> s == future.service, s -> s.cancel());
         }
     }
     
@@ -212,12 +211,12 @@ public abstract class LFuture<R, T extends Throwable>
 
     public static <R, T extends Throwable> void cancel(ILRunnable<R, T> runnable) {
         if (runningTasks != null) {
-            runningTasks.forEachIf(s -> s.getRunnable() == runnable, s -> s.cancelService());
+            runningTasks.forEachIf(s -> s.runnable() == runnable, s -> s.cancel());
         }
     }
 
     public static <R, T extends Throwable> boolean isExecuting(ILRunnable<R, T> runnable) {
-        return runningTasks.getIf(service -> service.getRunnable() == runnable) != null;
+        return runningTasks.getIf(service -> service.runnable() == runnable) != null;
     }
 
     public static <R, T extends Throwable> boolean isExecuting(LFuture<R, T> future) {

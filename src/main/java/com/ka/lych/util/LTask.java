@@ -8,19 +8,19 @@ package com.ka.lych.util;
  */
 public class LTask<R, T extends Throwable> extends Thread {
 
-    protected final ILRunnable<R, T> runnable;    
-    protected LFuture<R, T> future;
-    protected boolean cancelled;
+    final ILRunnable<R, T> _runnable;    
+    LFuture<R, T> _future;
+    boolean _cancelled;
 
     public LTask(ILRunnable<R, T> runnable) {
         super(LTask.class.getSimpleName() + "-" + runnable.getClass().getSimpleName() + "-" + runnable.getClass().hashCode());
-        this.runnable = runnable;        
-        this.cancelled = false;
+        _runnable = runnable;        
+        _cancelled = false;
         this.setDaemon(true);
     }
 
-    public ILRunnable<R, T> getRunnable() {
-        return runnable;
+    public ILRunnable<R, T> runnable() {
+        return _runnable;
     }
 
     @Override
@@ -29,21 +29,21 @@ public class LTask<R, T extends Throwable> extends Thread {
         T error = null;
         R result = null;                        
         try {
-            result = runnable.run(this);            
+            result = _runnable.run(this);            
         } catch (Throwable e) {    
             error = (T) e;
         }
-        if (this.future != null) {
-            this.future.finish(error, (!cancelled ? result : null), cancelled);
+        if (_future != null) {
+            _future.finish(error, (!_cancelled ? result : null), _cancelled);
         }
     }
 
     public boolean isCancelled() {
-        return cancelled;
+        return _cancelled;
     }
     
-    public void cancelService() {
-        this.cancelled = true;
+    public void cancel() {
+        _cancelled = true;
     }    
 
 }

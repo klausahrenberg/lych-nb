@@ -430,8 +430,8 @@ public class LCanvas extends LShape
     @Override
     public void toXml(Document doc, Element node) {
         throw new UnsupportedOperationException("Not supported yet.");
-        /*LXmlUtils.setAttribute(node, "viewBounds", LXmlUtils.boundsToXmlStr(viewBounds));
-        LXmlUtils.setAttribute(node, "contentBounds", LXmlUtils.boundsToXmlStr(contentBounds));
+        /*LXmlUtils.setAttribute(node, "viewBounds", LXmlUtils.boundsToXmlStr(viewBounds.get()));
+        //LXmlUtils.setAttribute(node, "contentBounds", LXmlUtils.boundsToXmlStr(contentBounds));
         //rotateAllowed
         LXmlUtils.setAttribute(node, "rotateAllowed", Boolean.toString(rotateAllowed));
         //rotation
