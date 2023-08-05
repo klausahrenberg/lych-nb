@@ -28,7 +28,7 @@ public class LStarShape extends LShape {
     @Override
     protected void createPath() {
         countPoints = numCoords = 0;
-        if ((getWidth() > 0) && (getHeight() > 0)) {
+        if ((width().get() > 0) && (height().get() > 0)) {
             int vertexCount = 5;
             double innerRadius = 0.4;
             double degreeOffset = 0;
@@ -36,7 +36,7 @@ public class LStarShape extends LShape {
             for (int i = 0; i < vertexCount * 2; i++) {
                 radiuses[i] = 0;
             }
-            this.createPath(this.getPoints(getX(), getY(), getWidth(), getHeight(), innerRadius, vertexCount, degreeOffset),
+            this.createPath(this.getPoints(getX(), getY(), width().get(), height().get(), innerRadius, vertexCount, degreeOffset),
                     radiuses,
                     true);
         }

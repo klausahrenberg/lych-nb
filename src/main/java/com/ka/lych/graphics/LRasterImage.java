@@ -41,8 +41,8 @@ public class LRasterImage extends LShape
         var ois = new ObjectInputStream(is);
         rawWidth = ois.readInt();
         rawHeight = ois.readInt();
-        this.setWidth(rawWidth);
-        this.setHeight(rawHeight);
+        width(rawWidth);
+        height(rawHeight);
         rawImage = new byte[rawWidth * rawHeight * 4];
         ois.readFully(rawImage, 0, rawImage.length);
     }
@@ -119,7 +119,7 @@ public class LRasterImage extends LShape
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + " [x=" + getX() + "; y=" + getY() + "; width=" + getWidth() + "; height=" + getHeight()
+        return this.getClass().getSimpleName() + " [x=" + getX() + "; y=" + getY() + "; width=" + width().get() + "; height=" + height().get()
                 + "; rawWidth=" + getRawWidth() + "; rawHeight=" + getRawHeight() + "]";
     }
     

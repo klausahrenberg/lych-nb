@@ -36,7 +36,7 @@ import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
  *
  * @author klausahrenberg
  */
-public class LCanvas extends LShape
+public class LCanvas extends LShape<LCanvas>
         implements ILXmlSupport, ILCloneable {
 
     @Json
@@ -116,13 +116,13 @@ public class LCanvas extends LShape
             //3. if the paintbounds don't fit to the resulting space from test matrix, center the canvas inside the paintbounds
             switch (scaleMode) {
                 case FIT_PAGE:
-                    if (!LGeomUtils.isEqual(paintBounds.getHeight(), s.getHeight(), LGeomUtils.DEFAULT_DOUBLE_PRECISION)) {
-                        translateY += (paintBounds.getHeight() / 2 - s.getHeight() / 2);
+                    if (!LGeomUtils.isEqual(paintBounds.height().get(), s.height().get(), LGeomUtils.DEFAULT_DOUBLE_PRECISION)) {
+                        translateY += (paintBounds.height().get() / 2 - s.height().get() / 2);
                     }
                 // no break
                 case FIT_WIDTH:
-                    if (!LGeomUtils.isEqual(paintBounds.getWidth(), s.getWidth(), LGeomUtils.DEFAULT_DOUBLE_PRECISION)) {
-                        translateX += (paintBounds.getWidth() / 2 - s.getWidth() / 2);
+                    if (!LGeomUtils.isEqual(paintBounds.width().get(), s.width().get(), LGeomUtils.DEFAULT_DOUBLE_PRECISION)) {
+                        translateX += (paintBounds.width().get() / 2 - s.width().get() / 2);
                     }
                     break;
                 case FACTOR:
@@ -146,11 +146,11 @@ public class LCanvas extends LShape
 
     public LBounds getShapeTransformed(LMatrix matrix, LShape shape) {
         if (!shape.isRotatable()) {
-            matrix.rotate(Math.toRadians(-this.getRotation()), shape.getX() + shape.getWidth() / 2, shape.getY() + shape.getHeight() / 2);
+            matrix.rotate(Math.toRadians(-this.getRotation()), shape.getX() + shape.width().get() / 2, shape.getY() + shape.height().get() / 2);
         }
         LBounds b = getRectangleTransformed(matrix, shape);
         if (!shape.isRotatable()) {
-            matrix.rotate(Math.toRadians(this.getRotation()), shape.getX() + shape.getWidth() / 2, shape.getY() + shape.getHeight() / 2);
+            matrix.rotate(Math.toRadians(this.getRotation()), shape.getX() + shape.width().get() / 2, shape.getY() + shape.height().get() / 2);
         }
         return b;
     }
@@ -159,17 +159,17 @@ public class LCanvas extends LShape
         LPoint p = matrix.transform(rect.getX(), rect.getY(), null);
         double x1 = p.getX(), x2 = p.getX();
         double y1 = p.getY(), y2 = p.getY();
-        p = matrix.transform(rect.getX() + rect.getWidth(), rect.getY(), null);
+        p = matrix.transform(rect.getX() + rect.width().get(), rect.getY(), null);
         x1 = (p.getX() < x1 ? p.getX() : x1);
         y1 = (p.getY() < y1 ? p.getY() : y1);
         x2 = (p.getX() > x2 ? p.getX() : x2);
         y2 = (p.getY() > y2 ? p.getY() : y2);
-        p = matrix.transform(rect.getX() + rect.getWidth(), rect.getY() + rect.getHeight(), null);
+        p = matrix.transform(rect.getX() + rect.width().get(), rect.getY() + rect.height().get(), null);
         x1 = (p.getX() < x1 ? p.getX() : x1);
         y1 = (p.getY() < y1 ? p.getY() : y1);
         x2 = (p.getX() > x2 ? p.getX() : x2);
         y2 = (p.getY() > y2 ? p.getY() : y2);
-        p = matrix.transform(rect.getX(), rect.getY() + rect.getHeight(), null);
+        p = matrix.transform(rect.getX(), rect.getY() + rect.height().get(), null);
         x1 = (p.getX() < x1 ? p.getX() : x1);
         y1 = (p.getY() < y1 ? p.getY() : y1);
         x2 = (p.getX() > x2 ? p.getX() : x2);
@@ -178,7 +178,7 @@ public class LCanvas extends LShape
     }
 
     public LBounds getRectangleInverseTransformed(LMatrix matrix, ILBounds rect) throws LNoninvertibleMatrixException {
-        return getRectangleInverseTransformed(matrix, rect.getX(), rect.getY(), rect.getWidth(), rect.getHeight());
+        return getRectangleInverseTransformed(matrix, rect.getX(), rect.getY(), rect.width().get(), rect.height().get());
     }
 
     public LBounds getRectangleInverseTransformed(LMatrix matrix, double x, double y, double width, double height) throws LNoninvertibleMatrixException {
@@ -544,8 +544,8 @@ public class LCanvas extends LShape
             LCanvas clone = (LCanvas) super.clone();
             clone.x = LDouble.clone(x);
             clone.y = LDouble.clone(y);
-            clone.width = LDouble.clone(width);
-            clone.height = LDouble.clone(height);
+            clone._width = LDouble.clone(_width);
+            clone._height = LDouble.clone(_height);
             clone.viewBounds = LObservable.clone(viewBounds);
             clone.commands = LObservable.clone(commands);
             clone.rotation = LDouble.clone(rotation);

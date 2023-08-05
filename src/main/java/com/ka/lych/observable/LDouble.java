@@ -167,5 +167,9 @@ public class LDouble extends LObservable<Double> {
         result.parse(value);
         return result;
     }
+    
+    public static LDouble of(double value) {
+        return new LDouble(value);
+    }
 
 }

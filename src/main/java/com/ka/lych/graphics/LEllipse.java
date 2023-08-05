@@ -36,22 +36,22 @@ public class LEllipse extends LShape {
     protected void createPath() {
         
         countPoints = numCoords = 0;
-        if ((getWidth() > 0) && (getHeight() > 0)) {
+        if ((width().get() > 0) && (height().get() > 0)) {
             //1. LineTo start point
             double[] ctrls = ctrlpts[3];
             pointTypes[countPoints++] = SEG_MOVETO;
-            doubleCoords[numCoords++] = getX() + ctrls[4] * getWidth();
-            doubleCoords[numCoords++] = getY() + ctrls[5] * getHeight();
+            doubleCoords[numCoords++] = getX() + ctrls[4] * width().get();
+            doubleCoords[numCoords++] = getY() + ctrls[5] * height().get();
             //2..4. Curve
             for (int index = 1; index <= 4; index++) {
                 ctrls = ctrlpts[index - 1];
                 pointTypes[countPoints++] = SEG_CUBICTO;
-                doubleCoords[numCoords++] = getX() + ctrls[0] * getWidth();
-                doubleCoords[numCoords++] = getY() + ctrls[1] * getHeight();
-                doubleCoords[numCoords++] = getX() + ctrls[2] * getWidth();
-                doubleCoords[numCoords++] = getY() + ctrls[3] * getHeight();
-                doubleCoords[numCoords++] = getX() + ctrls[4] * getWidth();
-                doubleCoords[numCoords++] = getY() + ctrls[5] * getHeight();
+                doubleCoords[numCoords++] = getX() + ctrls[0] * width().get();
+                doubleCoords[numCoords++] = getY() + ctrls[1] * height().get();
+                doubleCoords[numCoords++] = getX() + ctrls[2] * width().get();
+                doubleCoords[numCoords++] = getY() + ctrls[3] * height().get();
+                doubleCoords[numCoords++] = getX() + ctrls[4] * width().get();
+                doubleCoords[numCoords++] = getY() + ctrls[5] * height().get();
             }
             //5. closePath
             pointTypes[countPoints++] = SEG_CLOSE;

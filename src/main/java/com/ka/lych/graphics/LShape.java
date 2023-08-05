@@ -27,8 +27,8 @@ import org.w3c.dom.Node;
  *
  * @author klausahrenberg
  */
-public class LShape
-        implements ILBounds, ILCloneable, ILXmlSupport, Comparable<LShape>, ILCanvasCommand {
+public class LShape<BC extends LShape>
+        implements ILBounds<BC>, ILCloneable, ILXmlSupport, Comparable<BC>, ILCanvasCommand {
 
     protected static EnumSet<LPaintStyle> DEFAULT_STYLE = EnumSet.of(LPaintStyle.STROKE);
     /**
@@ -51,7 +51,11 @@ public class LShape
     @Json
     protected LDouble x;
     @Json
-    protected LDouble y, width, height;
+    protected LDouble y; 
+    @Json
+    protected LDouble _width = LDouble.of(0.0);
+    @Json
+    protected LDouble _height = LDouble.of(0.0);
     @Json
     protected LBoolean visible;
     @Json
@@ -69,8 +73,8 @@ public class LShape
     protected String[] neededShapeAttributes;
 
     private final ILChangeListener boundsListener = oldValue -> {
-        if ((x != null) && (y != null) && (width != null) && (height != null)
-                && (LGeomUtils.isNotEqual(getWidth(), 0.0)) && (LGeomUtils.isNotEqual(getHeight(), 0.0))) {
+        if ((x != null) && (y != null) && (_width != null) && (_height != null)
+                && (LGeomUtils.isNotEqual(width().get(), 0.0)) && (LGeomUtils.isNotEqual(height().get(), 0.0))) {
             createPath();
         }
     };
@@ -81,6 +85,8 @@ public class LShape
 
     public LShape(int initialPointTypes, int initialDoubleCoords) {
         super();
+        _width.addListener(boundsListener);
+        _height.addListener(boundsListener);
         this.pointTypes = new byte[initialPointTypes];
         this.doubleCoords = new double[initialDoubleCoords];
         this.windingRule = WIND_NON_ZERO;
@@ -96,7 +102,7 @@ public class LShape
     }
 
     public LShape(ILBounds bounds) {
-        this(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+        this(bounds.getX(), bounds.getY(), bounds.width().get(), bounds.height().get());
     }
 
     public LShape(double x, double y, double width, double height) {
@@ -787,69 +793,41 @@ public class LShape
         y().set(y);
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
     public final LDouble width() {
-        if (width == null) {
-            width = new LDouble();
-            width.addListener(boundsListener);
-        }
-        return width;
+        return _width;
     }
 
     @Override
-    public final double getWidth() {
-        return (width != null ? width.get() : 0.0);
-    }
-
-    @Override
-    public final void setWidth(double width) {
-        width().set(width);
-    }
-
-    @SuppressWarnings("unchecked")
     public final LDouble height() {
-        if (height == null) {
-            height = new LDouble();
-            height.addListener(boundsListener);
-        }
-        return height;
-    }
-
-    @Override
-    public final double getHeight() {
-        return (height != null ? height.get() : 0.0);
-    }
-
-    @Override
-    public final void setHeight(double height) {
-        height().set(height);
+        return _height;
     }
 
     @Override
     public final void setBounds(double x, double y, double width, double height) {
         setX(x);
         setY(y);
-        setWidth(width);
-        setHeight(height);
+        width(width);
+        height(height);
     }
 
     protected void createPath() {
     }
 
     public LBounds getBounds() {
-        return new LBounds(getX(), getY(), getWidth(), getHeight());
+        return new LBounds(getX(), getY(), width().get(), height().get());
     }
 
     public void setBounds(ILBounds bounds) {
-        this.setBounds(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+        this.setBounds(bounds.getX(), bounds.getY(), bounds.width().get(), bounds.height().get());
     }
 
     public double getCenterX() {
-        return getX() + getWidth() / 2;
+        return getX() + width().get() / 2;
     }
 
     public double getCenterY() {
-        return getY() + getHeight() / 2;
+        return getY() + height().get() / 2;
     }
 
     public final synchronized LPoint getCurrentPoint() {
@@ -893,11 +871,11 @@ public class LShape
     }
 
     public int getWidthIntValue() {
-        return (int) Math.round(getWidth());
+        return (int) Math.round(width().get());
     }
 
     public int getHeightIntValue() {
-        return (int) Math.round(getHeight());
+        return (int) Math.round(height().get());
     }
 
     public int getXIntValueCeil() {
@@ -909,11 +887,11 @@ public class LShape
     }
 
     public int getWidthIntCeil() {
-        return (int) Math.ceil(getWidth());
+        return (int) Math.ceil(width().get());
     }
 
     public int getHeightIntCeil() {
-        return (int) Math.ceil(getHeight());
+        return (int) Math.ceil(height().get());
     }
 
     public int getXIntValueFloor() {
@@ -925,16 +903,16 @@ public class LShape
     }
 
     public int getWidthIntValueFloor() {
-        return (int) Math.floor(getWidth());
+        return (int) Math.floor(width().get());
     }
 
     public int getHeightIntValueFloor() {
-        return (int) Math.floor(getHeight());
+        return (int) Math.floor(height().get());
     }
 
     @Override
     public boolean isEmpty() {
-        return ((getWidth() <= 0.0) || (getHeight() <= 0.0));
+        return ((width().get() <= 0.0) || (height().get() <= 0.0));
     }
 
     public boolean contains(LShape otherShape) {
@@ -943,13 +921,13 @@ public class LShape
         }
         return ((otherShape.getX() >= getX())
                 && (otherShape.getY() >= getY())
-                && (otherShape.getX() + otherShape.getWidth() <= getX() + getWidth())
-                && (otherShape.getY() + otherShape.getHeight() <= getY() + getHeight()));
+                && (otherShape.getX() + otherShape.width().get() <= getX() + width().get())
+                && (otherShape.getY() + otherShape.height().get() <= getY() + height().get()));
     }
 
     public boolean contains(double x, double y) {
-        return ((x >= getX()) && (y >= getY()) && (x <= getX() + getWidth()) && (y <= getY()
-                + getHeight()));
+        return ((x >= getX()) && (y >= getY()) && (x <= getX() + width().get()) && (y <= getY()
+                + height().get()));
     }
 
     @Override
@@ -960,12 +938,12 @@ public class LShape
     protected void ensureThatPointIsInShape(boolean initialMove, double x, double y) {
         double x1 = (initialMove ? x : Math.min(x, getX()));
         double y1 = (initialMove ? y : Math.min(y, getY()));
-        double x2 = (initialMove ? x : Math.max(x, getX() + getWidth()));
-        double y2 = (initialMove ? y : Math.max(y, getY() + getHeight()));
+        double x2 = (initialMove ? x : Math.max(x, getX() + width().get()));
+        double y2 = (initialMove ? y : Math.max(y, getY() + height().get()));
         setX(x1);
         setY(y1);
-        setWidth(x2 - x1);
-        setHeight(y2 - y1);
+        width(x2 - x1);
+        height(y2 - y1);
         //center.setLocation(this.x + this.width / 2, this.y + this.height / 2);
     }
 
@@ -1046,10 +1024,10 @@ public class LShape
     }
 
     public static LShape getResizedShape(ILBounds r, ILBounds viewBounds, ILBounds paintBounds) {
-        LShape result = new LShape(LDrawUtils.getX(paintBounds, r.getX() / viewBounds.getWidth()),
-                LDrawUtils.getY(paintBounds, r.getY() / viewBounds.getHeight()),
-                LDrawUtils.getWidth(paintBounds, r.getWidth() / viewBounds.getWidth()),
-                LDrawUtils.getHeight(paintBounds, r.getHeight() / viewBounds.getHeight()));
+        LShape result = new LShape(LDrawUtils.getX(paintBounds, r.getX() / viewBounds.width().get()),
+                LDrawUtils.getY(paintBounds, r.getY() / viewBounds.height().get()),
+                LDrawUtils.getWidth(paintBounds, r.width().get() / viewBounds.width().get()),
+                LDrawUtils.getHeight(paintBounds, r.height().get() / viewBounds.height().get()));
         return result;
     }
 
@@ -1084,8 +1062,8 @@ public class LShape
             LShape p = (LShape) LReflections.newInstance(getClass());
             p.x = LDouble.clone(x);
             p.y = LDouble.clone(y);
-            p.width = LDouble.clone(width);
-            p.height = LDouble.clone(height);
+            p._width = LDouble.clone(_width);
+            p._height = LDouble.clone(_height);
             p.id = LString.clone(id);
             p.visible = LBoolean.clone(visible);
             p.style = LObservable.clone(style);
@@ -1140,11 +1118,11 @@ public class LShape
         }
         if ((LGeomUtils.isEqual(getX(), os.getX(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                 && (LGeomUtils.isEqual(getY(), os.getY(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                && (LGeomUtils.isEqual(getWidth(), os.getWidth(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                && (LGeomUtils.isEqual(getHeight(), os.getHeight(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
+                && (LGeomUtils.isEqual(width().get(), os.width().get(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                && (LGeomUtils.isEqual(height().get(), os.height().get(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
             return 0;
         } else {
-            return (int) Math.ceil((getWidth() * getHeight()) - (os.getWidth() * os.getHeight()));
+            return (int) Math.ceil((width().get() * height().get()) - (os.width().get() * os.height().get()));
         }
     }
 

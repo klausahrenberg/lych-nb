@@ -11,6 +11,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import com.ka.lych.observable.ILValidator;
+import com.ka.lych.observable.LDouble;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
 import com.ka.lych.util.ILRegistration;
@@ -21,149 +22,134 @@ import com.ka.lych.util.ILRegistration;
  * @param <T>
  */
 public class LSize<T extends ILSize> 
-        implements ILSize, ILCloneable, Comparable<T>, ILObservable<LSize<T>>, ILXmlSupport {
+        implements ILSize<T>, ILCloneable, Comparable<T>/*, ILObservable<LSize<T>>*/, ILXmlSupport {
 
     @Json
-    private double width;
+    LDouble _width = new LDouble();
     @Json
-    private double height;
-    protected double precision;
-    protected boolean notifyAllowed;
-    protected ILChangeListener<LSize<T>> changeListener;
+    LDouble _height = new LDouble();
+    double _precision;
+    boolean _notifyAllowed;
+    //ILChangeListener<LSize<T>> _changeListener;
 
     public LSize() {
         this(0, 0);
     }
 
     public LSize(double width, double height) {
-        this.width = width;
-        this.height = height;
-        this.notifyAllowed = true;
-        precision = LGeomUtils.DEFAULT_DOUBLE_PRECISION;
+        _width.set(width);
+        _height.set(height);
+        _notifyAllowed = true;
+        _precision = LGeomUtils.DEFAULT_DOUBLE_PRECISION;
     }
 
-    @Override
+    /*@Override
     public ILRegistration addListener(ILChangeListener<LSize<T>> changeListener) {
-        if (this.changeListener != null) {
+        if (this._changeListener != null) {
             throw new IllegalStateException("Listener is already available");
         }
-        this.changeListener = changeListener;
+        this._changeListener = changeListener;
         return () -> removeListener(changeListener);
     }
 
     @Override
     public void removeListener(ILChangeListener<LSize<T>> changeListener) {
-        if (this.changeListener != this.changeListener) {
+        if (this._changeListener != this._changeListener) {
             throw new IllegalStateException("Current defined listener is another one");
         }
-        this.changeListener = null;
-    }
-
-    
-    /*@Override
-    public void addListener(_ILObservableListener<LSize<T>> changeListener) {
-        if (this.changeListener != null) {
-            throw new IllegalStateException("Listener is already available");
-        }
-        this.changeListener = changeListener;
-    }
-
-    @Override
-    public void removeListener(_ILObservableListener<LSize<T>> changeListener) {
-        if (this.changeListener != changeListener) {
-            throw new IllegalStateException("Current defined changeListener is another one");
-        }
-        this.changeListener = null;
+        this._changeListener = null;
     }*/
-
+    
     @Override
-    public double getWidth() {
-        return width;
+    public LDouble width() {
+        return _width;
     }
     
     public int getWidthIntValue() {
-        return (int) Math.round(getWidth());
+        return (int) Math.round(width().get());
     }
     
     public int getWidthIntCeil() {
-        return (int) Math.ceil(getWidth());
+        return (int) Math.ceil(width().get());
     }
 
-    @Override
-    public void setWidth(double width) {
-        if ((notifyAllowed) && (changeListener != null) && (LGeomUtils.isNotEqual(width, this.width, precision))) {
-            double oldValue = this.width;
-            this.width = width;
-            synchronized(changeListener) {
-                changeListener.changed(null);
+    /*@Override
+    public T width(double width) {
+        if ((_notifyAllowed) && (_changeListener != null) && (LGeomUtils.isNotEqual(width, _width.get(), _precision))) {
+            double oldValue = _width.get();
+            this._width = width;
+            synchronized(_changeListener) {
+                _changeListener.changed(null);
             }
         } else {
-            this.width = width;
+            this._width = width;
         }
-    }
+        return (T) this;
+    }*/
 
     @Override
-    public double getHeight() {
-        return height;
+    public LDouble height() {
+        return _height;
     }
     
     public int getHeightIntValue() {
-        return (int) Math.round(getHeight());
+        return (int) Math.round(height().get());
     }   
 
     public int getHeightIntCeil() {
-        return (int) Math.ceil(getHeight());
+        return (int) Math.ceil(height().get());
     }
 
-    @Override
-    public void setHeight(double height) {
-        if ((notifyAllowed) && (changeListener != null) && (LGeomUtils.isNotEqual(height, this.height, precision))) {
-            double oldValue = this.height;
-            this.height = height;
-            synchronized(changeListener) {
-                changeListener.changed(null);
+    /*@Override
+    public T height(double height) {
+        if ((_notifyAllowed) && (_changeListener != null) && (LGeomUtils.isNotEqual(height, this._height, _precision))) {
+            double oldValue = this._height;
+            this._height = height;
+            synchronized(_changeListener) {
+                _changeListener.changed(null);
             }    
         } else {
-            this.height = height;
+            this._height = height;
         }
-    }
+        return (T) this;
+    }*/
     
-    public void setSize(double width, double height) {
-        if ((notifyAllowed) && (changeListener != null)
-                && ((LGeomUtils.isNotEqual(width, this.width, precision))
-                || (LGeomUtils.isNotEqual(height, this.height, precision)))) {
-            double oldValue = this.width;
-            this.width = width;
-            this.height = height;
-            synchronized(changeListener) {
-                changeListener.changed(null);
+    /*public void setSize(double width, double height) {
+        if ((_notifyAllowed) && (_changeListener != null)
+                && ((LGeomUtils.isNotEqual(width, this._width, _precision))
+                || (LGeomUtils.isNotEqual(height, this._height, _precision)))) {
+            double oldValue = this._width;
+            this._width = width;
+            this._height = height;
+            synchronized(_changeListener) {
+                _changeListener.changed(null);
             }    
         } else {
-            this.width = width;
-            this.height = height;
+            this._width = width;
+            this._height = height;
         }
-    }
+    }*/
 
     public double getPrecision() {
-        return precision;
+        return _precision;
     }
 
     public void setPrecision(double precision) {
-        this.precision = precision;
+        this._precision = precision;
     }
     
     @Override
     public boolean isEmpty() {
-        return ((getWidth() <= 0.0) || (getHeight() <= 0.0));
+        return ((_width.get() <= 0.0) || (_height.get() <= 0.0));
     }
 
     @Override
     public Object clone() {
         try {
             LSize p = (LSize) LReflections.newInstance(getClass());            
-            p.width = width;
-            p.height = height;
-            p.precision = precision;
+            p._width = _width;
+            p._height = _height;
+            p._precision = _precision;
             return p;
         } catch (Exception ex) {
             throw new InternalError(ex);
@@ -172,7 +158,7 @@ public class LSize<T extends ILSize>
 
     @Override
     public String toString() {
-        return this.getClass().getName() + " [" + width + ", " + height + "]";
+        return this.getClass().getName() + " [" + _width + ", " + _height + "]";
     }
 
     @Override
@@ -180,11 +166,11 @@ public class LSize<T extends ILSize>
         if (os == null) {
             return 1;
         }
-        if ((LGeomUtils.isEqual(width, os.getWidth(), precision))
-                && (LGeomUtils.isEqual(height, os.getHeight(), precision))) {
+        if ((LGeomUtils.isEqual(_width.get(), os.width().get(), _precision))
+                && (LGeomUtils.isEqual(_height.get(), os.height().get(), _precision))) {
             return 0;
         } else {
-            return (int) Math.ceil((width * height) - (os.getWidth() * os.getHeight()));
+            return (int) Math.ceil((_width.get() * _height.get()) - (os.width().get() * os.height().get()));
         }
     }
 
@@ -194,22 +180,12 @@ public class LSize<T extends ILSize>
             LXmlUtils.parseXml(this, n, xmlParseInfo);
         } else {
             double[] coord = LXmlUtils.xmlStrToDoubleArray(new StringBuilder(n.getTextContent()), 2);
-            this.setSize(coord[0], coord[1]);
+            this.width(coord[0]).height(coord[1]);
         }
     }
 
     @Override
     public void toXml(Document doc, Element node) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public ILRegistration addAcceptor(ILValidator<LSize<T>> valueAcceptor) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-    }
-
-    @Override
-    public void removeAcceptor(ILValidator<LSize<T>> valueAcceptor) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

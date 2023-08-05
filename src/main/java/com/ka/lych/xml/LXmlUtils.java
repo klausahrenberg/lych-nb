@@ -160,7 +160,7 @@ public class LXmlUtils {
     }
 
     public static String sizeToXmlStr(LSize d) {
-        return (d != null ? Double.toString(d.getWidth()) + " " + Double.toString(d.getHeight()) : null);
+        return (d != null ? Double.toString(d.width().get()) + " " + Double.toString(d.height().get()) : null);
     }
 
     public static LSize xmlStrToSize(String value) throws NumberFormatException {
@@ -194,7 +194,7 @@ public class LXmlUtils {
 
     public static String boundsToXmlStr(ILBounds r) {
         return (r != null ? Double.toString(r.getX()) + " " + Double.toString(r.getY()) + " "
-                + Double.toString(r.getWidth()) + " " + Double.toString(r.getHeight())
+                + Double.toString(r.width().get()) + " " + Double.toString(r.height().get())
                 : null);
     }
 

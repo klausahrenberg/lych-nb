@@ -30,7 +30,7 @@ public class LRectangle extends LShape {
     }
 
     public LRectangle(ILBounds bounds) {
-        this(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight());
+        this(bounds.getX(), bounds.getY(), bounds.width().get(), bounds.height().get());
     }    
     
     public LRectangle(double x, double y, double width, double height) {
@@ -63,17 +63,17 @@ public class LRectangle extends LShape {
     protected void createPath() {
         countPoints = numCoords = 0;
         
-        if ((LGeomUtils.isNotEqual(getWidth(), 0.0)) && (LGeomUtils.isNotEqual(getHeight(), 0.0))) {
+        if ((LGeomUtils.isNotEqual(width().get(), 0.0)) && (LGeomUtils.isNotEqual(height().get(), 0.0))) {
             double[] xpoints = new double[4];
             double[] ypoints = new double[4];
             xpoints[0] = getX();
             ypoints[0] = getY();
-            xpoints[1] = getX() + getWidth();
+            xpoints[1] = getX() + width().get();
             ypoints[1] = getY();
-            xpoints[2] = getX() + getWidth();
-            ypoints[2] = getY() + getHeight();
+            xpoints[2] = getX() + width().get();
+            ypoints[2] = getY() + height().get();
             xpoints[3] = getX();
-            ypoints[3] = getY() + getHeight();
+            ypoints[3] = getY() + height().get();
             this.createPath(xpoints, ypoints, radiuses, true);
         }
     }

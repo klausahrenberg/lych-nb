@@ -9,19 +9,19 @@ import com.ka.lych.geometry.ILBounds;
 public class LDrawUtils {
     
     public static double getX(ILBounds bounds, double percent) {
-        return percent * bounds.getWidth() + bounds.getX();
+        return percent * bounds.width().get() + bounds.getX();
     }
     
     public static double getY(ILBounds bounds, double percent) {
-        return percent * bounds.getHeight() + bounds.getY();
+        return percent * bounds.height().get() + bounds.getY();
     }
     
     public static double getWidth(ILBounds bounds, double percent) {
-        return percent * bounds.getWidth();
+        return percent * bounds.width().get();
     }
     
     public static double getHeight(ILBounds bounds, double percent) {
-        return percent * bounds.getHeight();
+        return percent * bounds.height().get();
     }
     
     public static LColor mixColor(LColor c1, LColor c2) {

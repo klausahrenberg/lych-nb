@@ -199,7 +199,7 @@ public abstract class LCanvasRenderer<C, D>
      * @param availableHeight
      */
     public void setAvailableSize(double availableWidth, double availableHeight) {
-        getAvailableSize().setSize(availableWidth, availableHeight);
+        getAvailableSize().size(availableWidth, availableHeight);
     }
 
     public LObservable<LInsets> insets() {
@@ -217,20 +217,20 @@ public abstract class LCanvasRenderer<C, D>
     private boolean updatePaintBounds() {
         if ((!adjustingScale) && (getCanvas() != null) && (availableSize != null) && (insets != null)) {
             double w, h;
-            double availableWidth = getAvailableSize().getWidth() - (getInsets().getLeft() + getInsets().getRight());
+            double availableWidth = getAvailableSize().width().get() - (getInsets().getLeft() + getInsets().getRight());
             if ((getScaleMode() == LScaleMode.FIT_WIDTH) || (getScaleMode() == LScaleMode.FIT_PAGE)) {
                 LMatrix matrix = getCanvas().getInitialMatrix(LScaleMode.FACTOR, 1.0, null, false, null);
                 LBounds vB = getCanvas().getViewBoundsTransformed(matrix);
-                double availableHeight = getAvailableSize().getHeight() - (getInsets().getTop() + getInsets().getBottom());
-                double newScaleFactor = availableWidth / vB.getWidth();
+                double availableHeight = getAvailableSize().height().get() - (getInsets().getTop() + getInsets().getBottom());
+                double newScaleFactor = availableWidth / vB.width().get();
                 w = availableWidth;
-                h = vB.getHeight() * newScaleFactor;
+                h = vB.height().get() * newScaleFactor;
                 if ((getScaleMode() == LScaleMode.FIT_PAGE) && (h > availableHeight)) {
                     newScaleFactor = availableHeight / h;
                     w = w * newScaleFactor;
                     h = availableHeight;
                     //Correct to final scaleFactor
-                    newScaleFactor = w / vB.getWidth();
+                    newScaleFactor = w / vB.width().get();
                 }
                 adjustingScale = true;
                 scaleFactor().set(newScaleFactor);
@@ -238,8 +238,8 @@ public abstract class LCanvasRenderer<C, D>
             } else {
                 LMatrix matrix = getCanvas().getInitialMatrix(getScaleMode(), getScaleFactor(), null, false, null);
                 LBounds vB = getCanvas().getViewBoundsTransformed(matrix);
-                w = vB.getWidth();
-                h = vB.getHeight();
+                w = vB.width().get();
+                h = vB.height().get();
 
             }
             double x = getInsets().getLeft() + (getScaleMode() == LScaleMode.FACTOR ? 0.0 : (availableWidth - w) / 2.0);
@@ -255,8 +255,8 @@ public abstract class LCanvasRenderer<C, D>
             }                        
             loadingService.addLoadable((ILLoadable) getCanvas(), renderPriority);           
         }
-         LLog.test(this, "np %s %s %s", (needsNewRendering), (getPaintBounds().getWidth() > 0), (getPaintBounds().getHeight() > 0));
-        if ((needsNewRendering) && (getPaintBounds().getWidth() > 0) && (getPaintBounds().getHeight() > 0)) {            
+         LLog.test(this, "np %s %s %s", (needsNewRendering), (getPaintBounds().width().get() > 0), (getPaintBounds().height().get() > 0));
+        if ((needsNewRendering) && (getPaintBounds().width().get() > 0) && (getPaintBounds().height().get() > 0)) {            
             needsNewRendering = false;
             cancelRendering();
             if (runInThread) {

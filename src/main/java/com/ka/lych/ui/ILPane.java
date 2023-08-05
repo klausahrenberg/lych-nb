@@ -9,6 +9,6 @@ public interface ILPane<C> extends ILControl, ILChildrensIterable<C> {
 
     public void buildView();
     
-    public void initModel();
+    public void initialize();
     
 }

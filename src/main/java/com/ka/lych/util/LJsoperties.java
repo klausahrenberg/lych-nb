@@ -70,8 +70,6 @@ public class LJsoperties {
                 }
             } else {
                 LJsonParser.update(o).file(jsonFile).parse();
-                //LJsonParser.update(o, jsonFile);
-                
                 LLog.debug(this, "Settings with new loading from file: '%s'.", jsonFile.getAbsolutePath());
             }
         } catch (Exception ex) {
@@ -80,9 +78,29 @@ public class LJsoperties {
         }
     }
     
-    public void save(Object o, String id) {
+    public <T> T load(Class<T> requiredClass, Object owner, String id) {
         try {
-            var fileName = o.getClass().getSimpleName() + (!LString.isEmpty(id) ? ILConstants.DOT + id : "");
+            var fileName = owner.getClass().getSimpleName() + (!LString.isEmpty(id) ? ILConstants.DOT + id : "");
+            File jsonFile = new File(userHomeDirectory + File.separator + fileName + ILConstants.DOT + ILConstants.KEYWORD_FILE_JSON_SUFFIX);
+            if (jsonFile.exists()) {
+                return LJsonParser.of(requiredClass).file(jsonFile).parse();
+            } else {
+                LLog.debug(this, "Can't find '%s'.", jsonFile.getAbsolutePath());
+            }
+         } catch (Exception ex) {
+            //jsonFile = null;
+            LLog.error(this, ex.getMessage(), ex);
+        }   
+        return null;
+    }
+    
+    public void save(Object o, String id) {
+        save(o, o, id);
+    }
+    
+    public void save(Object o, Object owner, String id) {
+        try {
+            var fileName = owner.getClass().getSimpleName() + (!LString.isEmpty(id) ? ILConstants.DOT + id : "");
             File jsonFile = new File(userHomeDirectory + File.separator + fileName + ILConstants.DOT + ILConstants.KEYWORD_FILE_JSON_SUFFIX);
             
             BufferedWriter writer = new BufferedWriter(new FileWriter(jsonFile));

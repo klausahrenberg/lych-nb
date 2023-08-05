@@ -3,8 +3,9 @@ package com.ka.lych.geometry;
 /**
  *
  * @author klausahrenberg
+ * @param <BC>
  */
-public interface ILBounds extends ILSize {
+public interface ILBounds<BC extends ILBounds> extends ILSize<BC> {
     
     public double getX();
 
