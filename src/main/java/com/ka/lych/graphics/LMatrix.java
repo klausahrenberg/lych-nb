@@ -226,7 +226,7 @@ public class LMatrix
     }
 
     public LPoint transform(LPoint ptSrc, LPoint ptDst) {
-        return transform(ptSrc.getX(), ptSrc.getY(), ptDst);
+        return transform(ptSrc.x().get(), ptSrc.y().get(), ptDst);
     }
 
     public LPoint transform(double x, double y, LPoint ptDst) {
@@ -235,29 +235,29 @@ public class LMatrix
         }
         switch (state) {
             case (APPLY_SHEAR | APPLY_SCALE | APPLY_TRANSLATE):
-                ptDst.setPoint(x * _scaleX + y * _shearX + _translateX,
+                ptDst.point(x * _scaleX + y * _shearX + _translateX,
                         x * _shearY + y * _scaleY + _translateY);
                 return ptDst;
             case (APPLY_SHEAR | APPLY_SCALE):
-                ptDst.setPoint(x * _scaleX + y * _shearX, x * _shearY + y * _scaleY);
+                ptDst.point(x * _scaleX + y * _shearX, x * _shearY + y * _scaleY);
                 return ptDst;
             case (APPLY_SHEAR | APPLY_TRANSLATE):
-                ptDst.setPoint(y * _shearX + _translateX, x * _shearY + _translateY);
+                ptDst.point(y * _shearX + _translateX, x * _shearY + _translateY);
                 return ptDst;
             case (APPLY_SHEAR):
-                ptDst.setPoint(y * _shearX, x * _shearY);
+                ptDst.point(y * _shearX, x * _shearY);
                 return ptDst;
             case (APPLY_SCALE | APPLY_TRANSLATE):
-                ptDst.setPoint(x * _scaleX + _translateX, y * _scaleY + _translateY);
+                ptDst.point(x * _scaleX + _translateX, y * _scaleY + _translateY);
                 return ptDst;
             case (APPLY_SCALE):
-                ptDst.setPoint(x * _scaleX, y * _scaleY);
+                ptDst.point(x * _scaleX, y * _scaleY);
                 return ptDst;
             case (APPLY_TRANSLATE):
-                ptDst.setPoint(x + _translateX, y + _translateY);
+                ptDst.point(x + _translateX, y + _translateY);
                 return ptDst;
             case (APPLY_IDENTITY):
-                ptDst.setPoint(x, y);
+                ptDst.point(x, y);
                 return ptDst;
             default:
                 throw new InternalError("missing case in transform state switch");
@@ -277,7 +277,7 @@ public class LMatrix
     }
     
     public LPoint inverseTransform(LPoint ptSrc, LPoint ptDst) throws LNoninvertibleMatrixException {
-        return inverseTransform(ptSrc.getX(), ptSrc.getY(), ptDst);
+        return inverseTransform(ptSrc.x().get(), ptSrc.y().get(), ptDst);
     }
 
     public LPoint inverseTransform(double x, double y, LPoint ptDst) throws LNoninvertibleMatrixException {
@@ -294,7 +294,7 @@ public class LMatrix
                 if (Math.abs(det) <= Double.MIN_VALUE) {
                     throw new LNoninvertibleMatrixException("Determinant is " + det);
                 }
-                ptDst.setPoint((x * _scaleY - y * _shearX) / det, (y * _scaleX - x * _shearY) / det);
+                ptDst.point((x * _scaleY - y * _shearX) / det, (y * _scaleX - x * _shearY) / det);
                 return ptDst;
             case (APPLY_SHEAR | APPLY_TRANSLATE):
                 x -= _translateX;
@@ -304,7 +304,7 @@ public class LMatrix
                 if (_shearX == 0.0 || _shearY == 0.0) {
                     throw new LNoninvertibleMatrixException("Determinant is 0");
                 }
-                ptDst.setPoint(y / _shearY, x / _shearX);
+                ptDst.point(y / _shearY, x / _shearX);
                 return ptDst;
             case (APPLY_SCALE | APPLY_TRANSLATE):
                 x -= _translateX;
@@ -314,13 +314,13 @@ public class LMatrix
                 if (_scaleX == 0.0 || _scaleY == 0.0) {
                     throw new LNoninvertibleMatrixException("Determinant is 0");
                 }
-                ptDst.setPoint(x / _scaleX, y / _scaleY);
+                ptDst.point(x / _scaleX, y / _scaleY);
                 return ptDst;
             case (APPLY_TRANSLATE):
-                ptDst.setPoint(x - _translateX, y - _translateY);
+                ptDst.point(x - _translateX, y - _translateY);
                 return ptDst;
             case (APPLY_IDENTITY):
-                ptDst.setPoint(x, y);
+                ptDst.point(x, y);
                 return ptDst;
             default:
                 throw new InternalError("missing case in transform state switch");

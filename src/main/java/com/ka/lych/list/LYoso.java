@@ -22,11 +22,11 @@ import com.ka.lych.util.ILRegistration;
  * @author klausahrenberg
  */
 public abstract class LYoso
-        implements ILYoso, ILObservables, ILObservable<LYoso> {
+        implements ILYoso, ILObservables, ILObservable<LYoso, LYoso> {
 
     private static LMap<Class, LFields> YOSO_FIELDS;
     private LList<LYosos> parents;
-    private LList<ILChangeListener<LYoso>> changeListeners;
+    private LList<ILChangeListener<LYoso, LYoso>> changeListeners;
     private boolean updated;
     @Ignore
     private LBoolean changed;
@@ -130,7 +130,7 @@ public abstract class LYoso
     }
 
     @Override
-    public ILRegistration addListener(ILChangeListener<LYoso> changeListener) {
+    public ILRegistration addListener(ILChangeListener<LYoso, LYoso> changeListener) {
         if (this.changeListeners == null) {
             this.changeListeners = LList.empty();
         }
@@ -139,19 +139,19 @@ public abstract class LYoso
     }
 
     @Override
-    public void removeListener(ILChangeListener<LYoso> changeListener) {
+    public void removeListener(ILChangeListener<LYoso, LYoso> changeListener) {
         if (this.changeListeners != null) {
             this.changeListeners.remove(changeListener);
         }
     }
 
     @Override
-    public ILRegistration addAcceptor(ILValidator<LYoso> valueAcceptor) {
+    public ILRegistration addAcceptor(ILValidator<LYoso, LYoso> valueAcceptor) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void removeAcceptor(ILValidator<LYoso> valueAcceptor) {
+    public void removeAcceptor(ILValidator<LYoso, LYoso> valueAcceptor) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -213,6 +213,11 @@ public abstract class LYoso
     public String toString() {
         String result = LXmlUtils.fieldsToString(this, fields);
         return result;
+    }
+
+    @Override
+    public LYoso clone() throws CloneNotSupportedException {
+        return (LYoso) super.clone();    
     }
 
 }

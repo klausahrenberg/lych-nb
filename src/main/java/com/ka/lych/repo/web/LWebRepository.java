@@ -20,9 +20,9 @@ import java.util.Optional;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.repo.LColumnItem;
 import com.ka.lych.util.LParseException;
-import com.ka.lych.util.LRecord;
 import com.ka.lych.util.LReflections.LField;
 import java.net.MalformedURLException;
 import java.util.Collection;
@@ -34,7 +34,7 @@ import java.util.function.Function;
  * @author klausahrenberg
  */
 public class LWebRepository implements
-        ILRepository {
+        ILRepository<LWebRepository> {
 
     final String _url;
     Function<Void, Collection> _listFactory;
@@ -61,7 +61,7 @@ public class LWebRepository implements
     }
 
     @Override
-    public LObservable<LDataServiceState> state() {
+    public LObject<LDataServiceState> state() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
@@ -71,7 +71,7 @@ public class LWebRepository implements
     }
 
     @Override
-    public LFuture<LObservable<LDataServiceState>, LDataException> setConnected(boolean connected) {
+    public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
@@ -120,6 +120,19 @@ public class LWebRepository implements
                 LLog.test(this, "request %s", request);
                 
                 return (LList<T>) LJsonParser.of(dataClass).listFactory(_listFactory).url(new URL(_url + "/fetch"), request).parseList();                                
+            } catch (Exception ex) {
+                throw new LDataException(this, ex.getLocalizedMessage(), ex);
+            }
+        });
+    }
+
+    @Override
+    public <R extends Record> LFuture<R, LDataException> fetchRoot(Class<R> dataClass, Optional<String> rootName) {
+        return LFuture.<R, LDataException>execute(task -> {
+            try {
+                var request = LJson.of(new LRequestRoot(dataClass.getSimpleName(), rootName)).toString();
+                LLog.test(this, "fecthRoot: '%s'", request);
+                return (R) LJsonParser.of(dataClass).listFactory(_listFactory).url(new URL(_url + "/root"), request).parse();                                
             } catch (Exception ex) {
                 throw new LDataException(this, ex.getLocalizedMessage(), ex);
             }
@@ -197,6 +210,10 @@ public class LWebRepository implements
 
     public record LOdwRequest(@Json String data, @Json Optional<LQuery> query) {
 
+    }
+    
+    public record LRequestRoot(@Json String data, @Json Optional<String> rootName) {
+        
     }
 
     public record LOdwRequestMap(@Json String data, @Json LMap<String, Object> map) {

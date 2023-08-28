@@ -15,7 +15,7 @@ public class LTestCanvas extends LCanvas {
         //setRotation(60);
         //setScaleFactor(1.50);
         //setScaleMode(LCanvas.SCALEMODE_FITWIDTH);
-        this.setViewBounds(new LBounds(0, 0, 500, 400));
+        this.viewBounds(new LBounds(0, 0, 500, 400));
         //this.add(new LSolidPaint(fillColor));
         this.add(new LRectangle(20, 20, 100, 50));
     }

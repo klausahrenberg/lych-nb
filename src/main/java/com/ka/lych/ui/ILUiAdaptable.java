@@ -9,7 +9,7 @@ import com.ka.lych.observable.*;
  */
 public interface ILUiAdaptable<T> extends ILControl {
 
-    public void setObservableObject(LObservable<T> observable);
+    public void setObservableObject(LObservable<T, ILObservable> observable);
 
     public String getObservable();
 

@@ -22,7 +22,7 @@ public class LStarShape extends LShape {
 
     public LStarShape(double x, double y, double width, double height) {
         super(21, 60);
-        setBounds(x, y, width, height);
+        bounds(x, y, width, height);
     }
     
     @Override
@@ -36,7 +36,7 @@ public class LStarShape extends LShape {
             for (int i = 0; i < vertexCount * 2; i++) {
                 radiuses[i] = 0;
             }
-            this.createPath(this.getPoints(getX(), getY(), width().get(), height().get(), innerRadius, vertexCount, degreeOffset),
+            this.createPath(this.getPoints(x().get(), y().get(), width().get(), height().get(), innerRadius, vertexCount, degreeOffset),
                     radiuses,
                     true);
         }

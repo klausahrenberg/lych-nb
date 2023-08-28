@@ -4,7 +4,6 @@ import com.ka.lych.LBase;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.LLog;
 import com.ka.lych.list.LList;
-import com.ka.lych.observable.LObservable;
 import com.ka.lych.repo.LQuery;
 import com.ka.lych.repo.LQuery.LSortDirection;
 import com.ka.lych.repo.LQuery.LSortOrder;
@@ -14,6 +13,7 @@ import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Lazy;
 import com.ka.lych.annotation.Index;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.util.ILLocalizable;
 import com.ka.lych.util.LArrays;
 
@@ -120,8 +120,8 @@ public class LWebRepositoryTest extends LBase {
     public record KPpap(
             @Id(32) LString id,
             @Id(16) LString revision,
-            @Id LObservable<KContact> supplier,
-            @Json LObservable<KContact> customer) {
+            @Id LObject<KContact> supplier,
+            @Json LObject<KContact> customer) {
 
     }
 

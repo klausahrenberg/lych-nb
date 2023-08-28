@@ -8,18 +8,17 @@ import com.ka.lych.util.LLog;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LInteger;
-import com.ka.lych.observable.LObservable;
 import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LRecord;
 import java.util.Optional;
 import com.ka.lych.annotation.Id;
-import com.ka.lych.annotation.Lazy;
 import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LRecords;
 import com.ka.lych.observable.LDate;
 import com.ka.lych.observable.LDouble;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.util.LArrays;
 
 /**
@@ -35,7 +34,7 @@ public class LRecordTest2 extends LBase {
     public void start() {
         version = "0.01";
         LLog.LOG_LEVEL = LLog.LLogLevel.DEBUGGING;
-        repository = new LSqlRepository(this);
+        repository = new LSqlRepository();
         repository.databaseType().set(LoSqlDatabaseType.DERBY_EMBEDDED);
         repository.database().set("test_db");
         repository.registerTable(KPart.class);
@@ -118,8 +117,8 @@ public class LRecordTest2 extends LBase {
     }        
     
     public record KPartKPartRelation(
-        @Json @Id LObservable<KPart> parent,           
-        @Json @Id LObservable<KPart> child,
+        @Json @Id LObject<KPart> parent,           
+        @Json @Id LObject<KPart> child,
         @Json @Id LInteger position,
         @Json LDouble quantity,
         @Json LString location,

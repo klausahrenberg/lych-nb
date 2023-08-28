@@ -12,6 +12,8 @@ import com.ka.lych.list.LMap;
 import com.ka.lych.list.LYosos;
 import com.ka.lych.list.LYososIterator;
 import com.ka.lych.observable.*;
+import com.ka.lych.ui.observable.ILHasId;
+import com.ka.lych.ui.observable.ILHasVisibility;
 import com.ka.lych.util.ILCloneable;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LParseException;
@@ -26,11 +28,12 @@ import org.w3c.dom.Node;
 /**
  *
  * @author klausahrenberg
+ * @param <BC>
  */
 public class LShape<BC extends LShape>
-        implements ILBounds<BC>, ILCloneable, ILXmlSupport, Comparable<BC>, ILCanvasCommand {
+        implements ILHasId<BC>, ILHasVisibility<BC>, ILBounds<BC>, ILCloneable, ILXmlSupport, Comparable<BC>, ILCanvasCommand {
 
-    protected static EnumSet<LPaintStyle> DEFAULT_STYLE = EnumSet.of(LPaintStyle.STROKE);
+    protected static EnumSet<LStyle> DEFAULT_STYLE = EnumSet.of(LStyle.STROKE);
     /**
      * Used constant for calculating circles with biezier curves kappe = 4 *
      * (sqrt(2) - 1) / 3
@@ -47,23 +50,23 @@ public class LShape<BC extends LShape>
     protected static final int EXPAND_MAX = 500;
     protected static final int INITIAL_SIZE = 12;
     @Json
-    protected LString id;
+    LString _id = LString.empty();
     @Json
-    protected LDouble x;
+    LDouble _x = LDouble.of(0.0);
     @Json
-    protected LDouble y; 
+    LDouble _y = LDouble.of(0.0);
     @Json
-    protected LDouble _width = LDouble.of(0.0);
+    LDouble _width = LDouble.of(0.0);
     @Json
-    protected LDouble _height = LDouble.of(0.0);
+    LDouble _height = LDouble.of(0.0);
     @Json
-    protected LBoolean visible;
+    LBoolean _visible = LBoolean.of(true);
     @Json
-    protected LObservable<EnumSet<LPaintStyle>> style;
+    LObject<EnumSet<LStyle>> _style = LObject.of(DEFAULT_STYLE);
     @Json
-    protected LBoolean rotatable;
+    LBoolean _rotatable = LBoolean.of(true);
     @Json
-    protected LObservable<LYosos<ILAnimation>> animations;
+    protected LObject<LYosos<ILAnimation>> animations;
     protected LMap<String, Object> clientProperties;
     protected transient byte[] pointTypes;
     protected transient int countPoints;
@@ -73,7 +76,7 @@ public class LShape<BC extends LShape>
     protected String[] neededShapeAttributes;
 
     private final ILChangeListener boundsListener = oldValue -> {
-        if ((x != null) && (y != null) && (_width != null) && (_height != null)
+        if ((_x != null) && (_y != null) && (_width != null) && (_height != null)
                 && (LGeomUtils.isNotEqual(width().get(), 0.0)) && (LGeomUtils.isNotEqual(height().get(), 0.0))) {
             createPath();
         }
@@ -85,6 +88,8 @@ public class LShape<BC extends LShape>
 
     public LShape(int initialPointTypes, int initialDoubleCoords) {
         super();
+        _x.addListener(boundsListener);
+        _y.addListener(boundsListener);
         _width.addListener(boundsListener);
         _height.addListener(boundsListener);
         this.pointTypes = new byte[initialPointTypes];
@@ -102,84 +107,52 @@ public class LShape<BC extends LShape>
     }
 
     public LShape(ILBounds bounds) {
-        this(bounds.getX(), bounds.getY(), bounds.width().get(), bounds.height().get());
+        this(bounds.x().get(), bounds.y().get(), bounds.width().get(), bounds.height().get());
     }
 
     public LShape(double x, double y, double width, double height) {
-        setBounds(x, y, width, height);
+        bounds(x, y, width, height);
     }
 
+    @Override
     public LString id() {
-        if (id == null) {
-            id = new LString();
-        }
-        return id;
+        return _id;
     }
 
-    public String getId() {
-        return (id != null ? id.get() : null);
-    }
-
-    public void setId(String id) {
-        id().set(id);
-    }
-
+    @Override
     public LBoolean visible() {
-        if (visible == null) {
-            visible = new LBoolean(true);
-        }
-        return visible;
+        return _visible;
     }
 
-    public boolean isVisible() {
-        return (visible != null ? visible.get() : true);
+    public LObject<EnumSet<LStyle>> style() {
+        return _style;
     }
 
-    public void setVisible(boolean visible) {
-        visible().set(visible);
+    public boolean isStyle(LStyle style) {
+        return style().get().contains(style);
     }
 
-    public LObservable<EnumSet<LPaintStyle>> style() {
-        if (style == null) {
-            style = new LObservable<>(DEFAULT_STYLE);
-        }
-        return style;
-    }
-
-    public boolean isStyle(LPaintStyle style) {
-        return getStyle().contains(style);
-    }
-    
-    public EnumSet<LPaintStyle> getStyle() {
-        return (style != null ? style.get() : DEFAULT_STYLE);
-    }
-    
-    public void setStyle(EnumSet<LPaintStyle> style) {
+    public LShape style(EnumSet<LStyle> style) {
         style().set(style);
+        return this;
     }
-    
-    public void addStyle(LPaintStyle style) {
+
+    public LShape addStyle(LStyle style) {
         style().get().add(style);
-    }  
+        return this;
+    }
 
     public LBoolean rotatable() {
-        if (rotatable == null) {
-            rotatable = new LBoolean(true);
-        }
-        return rotatable;
+        return _rotatable;
     }
 
     public boolean isRotatable() {
-        return (rotatable != null ? rotatable.get() : true);
+        return rotatable().get();
     }
 
-    public void setRotatable(boolean rotatable) {
-        rotatable().set(rotatable);
-    }
-
-    public final LObservable<LYosos<ILAnimation>> animations() {
+    public final LObject<LYosos<ILAnimation>> animations() {
         if (animations == null) {
-            animations = new LObservable<>(new LYosos<>());
+            animations = new LObject<>(new LYosos<>());
         }
         return animations;
     }
@@ -219,7 +192,7 @@ public class LShape<BC extends LShape>
             doubleCoords[numCoords++] = y;
             ensureThatPointIsInShape((countPoints == 1), x, y);
         }
-        
+
     }
 
     public final synchronized void lineTo(double x, double y) {
@@ -256,17 +229,17 @@ public class LShape<BC extends LShape>
     }
 
     /**
-     * Adds an elliptical arc, defined by two radii, an angle from the x-axis, a
-     * flag to choose the large arc or not, a flag to indicate if we increase or
-     * decrease the angles and the final point of the arc.
+     * Adds an elliptical arc, defined by two radii, an angle from the _x-axis,
+     * a flag to choose the large arc or not, a flag to indicate if we increase
+     * or decrease the angles and the final point of the arc.
      *
      * @deprecated 2018-02-19 function doesnt work
      *
-     * @param rx the x radius of the ellipse
-     * @param ry the y radius of the ellipse
+     * @param rx the _x radius of the ellipse
+     * @param ry the _y radius of the ellipse
      *
-     * @param angle the angle from the x-axis of the current coordinate system
-     * to the x-axis of the ellipse in degrees.
+     * @param angle the angle from the _x-axis of the current coordinate system
+     * to the _x-axis of the ellipse in degrees.
      *
      * @param largeArcFlag the large arc flag. If true the arc spanning less
      * than or equal to 180 degrees is chosen, otherwise the arc spanning
@@ -276,38 +249,38 @@ public class LShape<BC extends LShape>
      * sweeps through decreasing angles otherwise it sweeps through increasing
      * angles
      *
-     * @param x the absolute x coordinate of the final point of the arc.
-     * @param y the absolute y coordinate of the final point of the arc.
+     * @param x the absolute _x coordinate of the final point of the arc.
+     * @param y the absolute _y coordinate of the final point of the arc.
      */
     @Deprecated
     public synchronized void arcTo(double rx, double ry, double angle, boolean largeArcFlag, boolean sweepFlag, double x, double y) {
         /*
         // Ensure radii are valid
         if (rx == 0 || ry == 0) {
-            lineTo(x, y);
+            lineTo(_x, _y);
             return;
         }
         needRoom(true, 7);
         pointTypes[countPoints++] = SEG_ARCTO;
         doubleCoords[numCoords++] = rx;
         doubleCoords[numCoords++] = ry;
-        doubleCoords[numCoords++] = x;
-        doubleCoords[numCoords++] = y;
+        doubleCoords[numCoords++] = _x;
+        doubleCoords[numCoords++] = _y;
         doubleCoords[numCoords++] = angle;
         doubleCoords[numCoords++] = (largeArcFlag ? 1 : 0);
         doubleCoords[numCoords++] = (sweepFlag ? 1 : 0);        
-        ensureThatPointIsInShape(x, y);*/
+        ensureThatPointIsInShape(_x, _y);*/
 
         LPoint pc = this.getCurrentPoint();
-        double x0 = pc.getX();
-        double y0 = pc.getY();
+        double x0 = pc.x().get();
+        double y0 = pc.y().get();
         // Ensure radii are valid
         if (rx == 0 || ry == 0) {
             this.lineTo((float) x, (float) y);
             return;
         }
         if (x0 == x && y0 == y) {
-            // If the endpoints (x, y) and (x0, y0) are identical, then this
+            // If the endpoints (_x, _y) and (x0, y0) are identical, then this
             // is equivalent to omitting the elliptical arc segment entirely.
             return;
         }
@@ -451,7 +424,7 @@ public class LShape<BC extends LShape>
 
     public final synchronized void reset() {
         countPoints = numCoords = 0;
-        setBounds(0, 0, 0, 0);
+        bounds(0, 0, 0, 0);
     }
 
     protected void needRoom(boolean needMove, int newCoords) {
@@ -502,35 +475,35 @@ public class LShape<BC extends LShape>
                 LPoint curr = points[i_curr];
                 double radX = (radiuses != null ? (points.length * 2 == radiuses.length ? radiuses[i_curr * 2] : radiuses[i_curr]) : 0);
                 double radY = (radiuses != null ? (points.length * 2 == radiuses.length ? radiuses[i_curr * 2 + 1] : radiuses[i_curr]) : 0);
-                if ((radX > 0) && (radY > 0)) {                    
+                if ((radX > 0) && (radY > 0)) {
                     int i = (i_curr - 1 < 0 ? points.length - 1 : i_curr - 1);
-                    prev.setPoint(points[i].getX(), points[i].getY());
+                    prev.point(points[i].x().get(), points[i].y().get());
                     i = (i_curr + 1 >= points.length ? 0 : i_curr + 1);
-                    next.setPoint(points[i].getX(), points[i].getY());
+                    next.point(points[i].x().get(), points[i].y().get());
 
                     convertCurveCoord(curr, prev, (i_curr % 2 == 0 ? radX : radY));
                     convertCurveCoord(curr, next, (i_curr % 2 == 0 ? radY : radX));
 
                     //Move to start Point or draw Line to next curve
                     pointTypes[countPoints++] = (start ? SEG_MOVETO : SEG_LINETO);
-                    doubleCoords[numCoords++] = prev.getX();
-                    doubleCoords[numCoords++] = prev.getY();
+                    doubleCoords[numCoords++] = prev.x().get();
+                    doubleCoords[numCoords++] = prev.y().get();
                     start = false;
                     //Draw the curve
                     pointTypes[countPoints++] = SEG_QUADTO;
-                    doubleCoords[numCoords++] = curr.getX();
-                    doubleCoords[numCoords++] = curr.getY();
-                    doubleCoords[numCoords++] = next.getX();
-                    doubleCoords[numCoords++] = next.getY();
+                    doubleCoords[numCoords++] = curr.x().get();
+                    doubleCoords[numCoords++] = curr.y().get();
+                    doubleCoords[numCoords++] = next.x().get();
+                    doubleCoords[numCoords++] = next.y().get();
                 } else if (start) {
                     pointTypes[countPoints++] = SEG_MOVETO;
-                    doubleCoords[numCoords++] = curr.getX();
-                    doubleCoords[numCoords++] = curr.getY();
+                    doubleCoords[numCoords++] = curr.x().get();
+                    doubleCoords[numCoords++] = curr.y().get();
                     start = false;
                 } else {
                     pointTypes[countPoints++] = SEG_LINETO;
-                    doubleCoords[numCoords++] = curr.getX();
-                    doubleCoords[numCoords++] = curr.getY();
+                    doubleCoords[numCoords++] = curr.x().get();
+                    doubleCoords[numCoords++] = curr.y().get();
                 }
             }
             if (closePath) {
@@ -542,12 +515,12 @@ public class LShape<BC extends LShape>
     }
 
     protected void convertCurveCoord(LPoint curr, LPoint curvCoord, double radius) {
-        double dx = curvCoord.getX() - curr.getX();
-        double dy = curvCoord.getY() - curr.getY();
+        double dx = curvCoord.x().get() - curr.x().get();
+        double dy = curvCoord.y().get() - curr.y().get();
         double dh = Math.sqrt(dx * dx + dy * dy);
         radius = (radius * 2 > dh ? dh / 2 : radius);
-        curvCoord.setX(curr.getX() + dx * radius / dh);
-        curvCoord.setY(curr.getY() + dy * radius / dh);
+        curvCoord.x(curr.x().get() + dx * radius / dh);
+        curvCoord.y(curr.y().get() + dy * radius / dh);
     }
 
     public final void append(LShape s, boolean connect) {
@@ -654,10 +627,14 @@ public class LShape<BC extends LShape>
                 if (Character.isUpperCase(c)) {
                     secPoint[0] = secPoint[0] - lastPoint[0];
                     secPoint[1] = secPoint[1] - lastPoint[1];
-                    if (c != 'V') lastPoint[0] = 0.0;
-                    if (c != 'H') lastPoint[1] = 0.0;
+                    if (c != 'V') {
+                        lastPoint[0] = 0.0;
+                    }
+                    if (c != 'H') {
+                        lastPoint[1] = 0.0;
+                    }
                 }
-                
+
                 switch (Character.toUpperCase(c)) {
                     case 'M' -> {
                         lastPoint = LXmlUtils.xmlStrToDoubleArray(d, 2, lastPoint[0], lastPoint[1]);
@@ -692,7 +669,7 @@ public class LShape<BC extends LShape>
                         lastPoint[1] = al[3];
                         secPoint[0] = al[0] - al[2];
                         secPoint[1] = al[1] - al[3];
-                        
+
                     }
                     case 'Q', 'T' -> {
                         al = LXmlUtils.xmlStrToDoubleArray(d, 4, lastPoint[0], lastPoint[1]);
@@ -705,13 +682,13 @@ public class LShape<BC extends LShape>
                         arcToBezier(al[0], al[1], al[2], al[3], al[4], al[5], (al[6] == 1));
                         lastPoint[0] = al[0];
                         lastPoint[1] = al[1];
-                    }    
+                    }
                     case 'Z' -> {
                         closePath();
                     }
                     default -> {
                         throw new IllegalArgumentException("Unknown path command '" + c + "' / Rest of string to parse: " + d);
-                    }    
+                    }
                 }
             }
         }
@@ -731,13 +708,13 @@ public class LShape<BC extends LShape>
                 case LShape.SEG_LINETO ->
                     path += "L " + Double.toString(p_it.getPointCoordinateX(0))
                             + " " + Double.toString(p_it.getPointCoordinateY(0))
-                            + " ";                    
+                            + " ";
                 case LShape.SEG_QUADTO ->
                     path += "Q " + Double.toString(p_it.getPointCoordinateX(0))
                             + " " + Double.toString(p_it.getPointCoordinateY(0))
                             + " " + Double.toString(p_it.getPointCoordinateX(1))
                             + " " + Double.toString(p_it.getPointCoordinateY(1))
-                            + " ";                    
+                            + " ";
                 case LShape.SEG_CUBICTO ->
                     path += "C " + Double.toString(p_it.getPointCoordinateX(0))
                             + " " + Double.toString(p_it.getPointCoordinateY(0))
@@ -745,7 +722,7 @@ public class LShape<BC extends LShape>
                             + " " + Double.toString(p_it.getPointCoordinateY(1))
                             + " " + Double.toString(p_it.getPointCoordinateX(2))
                             + " " + Double.toString(p_it.getPointCoordinateY(2))
-                            + " ";                    
+                            + " ";
                 case LShape.SEG_CLOSE ->
                     path += "Z ";
             }
@@ -755,42 +732,14 @@ public class LShape<BC extends LShape>
         LXmlUtils.setAttribute(node, "d", path);
     }
 
-    @SuppressWarnings("unchecked")
+    @Override
     public final LDouble x() {
-        if (x == null) {
-            x = new LDouble();
-            x.addListener(boundsListener);
-        }
-        return x;
+        return _x;
     }
 
     @Override
-    public final double getX() {
-        return (x != null ? x.get() : 0.0);
-    }
-
-    @Override
-    public final void setX(double x) {
-        x().set(x);
-    }
-
-    @SuppressWarnings("unchecked")
     public final LDouble y() {
-        if (y == null) {
-            y = new LDouble();
-            y.addListener(boundsListener);
-        }
-        return y;
-    }
-
-    @Override
-    public final double getY() {
-        return (y != null ? y.get() : 0.0);
-    }
-
-    @Override
-    public final void setY(double y) {
-        y().set(y);
+        return _y;
     }
 
     @Override
@@ -803,31 +752,7 @@ public class LShape<BC extends LShape>
         return _height;
     }
 
-    @Override
-    public final void setBounds(double x, double y, double width, double height) {
-        setX(x);
-        setY(y);
-        width(width);
-        height(height);
-    }
-
     protected void createPath() {
-    }
-
-    public LBounds getBounds() {
-        return new LBounds(getX(), getY(), width().get(), height().get());
-    }
-
-    public void setBounds(ILBounds bounds) {
-        this.setBounds(bounds.getX(), bounds.getY(), bounds.width().get(), bounds.height().get());
-    }
-
-    public double getCenterX() {
-        return getX() + width().get() / 2;
-    }
-
-    public double getCenterY() {
-        return getY() + height().get() / 2;
     }
 
     public final synchronized LPoint getCurrentPoint() {
@@ -862,54 +787,6 @@ public class LShape<BC extends LShape>
         return new LPoint(doubleCoords[coordindex], doubleCoords[coordindex + 1]);
     }
 
-    public int getXIntValue() {
-        return (int) Math.round(getX());
-    }
-
-    public int getYIntValue() {
-        return (int) Math.round(getY());
-    }
-
-    public int getWidthIntValue() {
-        return (int) Math.round(width().get());
-    }
-
-    public int getHeightIntValue() {
-        return (int) Math.round(height().get());
-    }
-
-    public int getXIntValueCeil() {
-        return (int) Math.ceil(getX());
-    }
-
-    public int getYIntValueCeil() {
-        return (int) Math.ceil(getY());
-    }
-
-    public int getWidthIntCeil() {
-        return (int) Math.ceil(width().get());
-    }
-
-    public int getHeightIntCeil() {
-        return (int) Math.ceil(height().get());
-    }
-
-    public int getXIntValueFloor() {
-        return (int) Math.floor(getX());
-    }
-
-    public int getYIntValueFloor() {
-        return (int) Math.floor(getY());
-    }
-
-    public int getWidthIntValueFloor() {
-        return (int) Math.floor(width().get());
-    }
-
-    public int getHeightIntValueFloor() {
-        return (int) Math.floor(height().get());
-    }
-
     @Override
     public boolean isEmpty() {
         return ((width().get() <= 0.0) || (height().get() <= 0.0));
@@ -919,14 +796,14 @@ public class LShape<BC extends LShape>
         if (otherShape == null) {
             return false;
         }
-        return ((otherShape.getX() >= getX())
-                && (otherShape.getY() >= getY())
-                && (otherShape.getX() + otherShape.width().get() <= getX() + width().get())
-                && (otherShape.getY() + otherShape.height().get() <= getY() + height().get()));
+        return ((otherShape.x().get() >= x().get())
+                && (otherShape.y().get() >= y().get())
+                && (otherShape.x().get() + otherShape.width().get() <= x().get() + width().get())
+                && (otherShape.y().get() + otherShape.height().get() <= y().get() + height().get()));
     }
 
     public boolean contains(double x, double y) {
-        return ((x >= getX()) && (y >= getY()) && (x <= getX() + width().get()) && (y <= getY()
+        return ((x >= x().get()) && (y >= y().get()) && (x <= x().get() + width().get()) && (y <= y().get()
                 + height().get()));
     }
 
@@ -936,15 +813,14 @@ public class LShape<BC extends LShape>
     }
 
     protected void ensureThatPointIsInShape(boolean initialMove, double x, double y) {
-        double x1 = (initialMove ? x : Math.min(x, getX()));
-        double y1 = (initialMove ? y : Math.min(y, getY()));
-        double x2 = (initialMove ? x : Math.max(x, getX() + width().get()));
-        double y2 = (initialMove ? y : Math.max(y, getY() + height().get()));
-        setX(x1);
-        setY(y1);
+        double x1 = (initialMove ? x : Math.min(x, x().get()));
+        double y1 = (initialMove ? y : Math.min(y, y().get()));
+        double x2 = (initialMove ? x : Math.max(x, x().get() + width().get()));
+        double y2 = (initialMove ? y : Math.max(y, y().get() + height().get()));
+        x(x1);
+        y(y1);
         width(x2 - x1);
         height(y2 - y1);
-        //center.setLocation(this.x + this.width / 2, this.y + this.height / 2);
     }
 
     @Override
@@ -1001,7 +877,7 @@ public class LShape<BC extends LShape>
         } else {
             x1 = y1 = x2 = y2 = 0.0;
         }
-        setBounds(x1, y1, x2 - x1, y2 - y1);
+        bounds(x1, y1, x2 - x1, y2 - y1);
     }
 
     public Object getClientProperty(String key) {
@@ -1024,8 +900,8 @@ public class LShape<BC extends LShape>
     }
 
     public static LShape getResizedShape(ILBounds r, ILBounds viewBounds, ILBounds paintBounds) {
-        LShape result = new LShape(LDrawUtils.getX(paintBounds, r.getX() / viewBounds.width().get()),
-                LDrawUtils.getY(paintBounds, r.getY() / viewBounds.height().get()),
+        LShape result = new LShape(LDrawUtils.getX(paintBounds, r.x().get() / viewBounds.width().get()),
+                LDrawUtils.getY(paintBounds, r.y().get() / viewBounds.height().get()),
                 LDrawUtils.getWidth(paintBounds, r.width().get() / viewBounds.width().get()),
                 LDrawUtils.getHeight(paintBounds, r.height().get() / viewBounds.height().get()));
         return result;
@@ -1042,32 +918,32 @@ public class LShape<BC extends LShape>
                 }
             }
         }
-        EnumSet<LPaintStyle> pStyle = getStyle();
-        if (pStyle.contains(LPaintStyle.CLIP)) {
+        EnumSet<LStyle> pStyle = LShape.this.style().get();
+        if (pStyle.contains(LStyle.CLIP)) {
             canvasRenderer.clip(this);
         }
-        if (pStyle.contains(LPaintStyle.FILL)) {
+        if (pStyle.contains(LStyle.FILL)) {
             canvasRenderer.fillShape(this);
             canvasRenderer.setLastShape(this);
         }
-        if (pStyle.contains(LPaintStyle.STROKE)) {
+        if (pStyle.contains(LStyle.STROKE)) {
             canvasRenderer.strokeShape(this);
         }
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public Object clone() {
+    public LShape clone() {
         try {
             LShape p = (LShape) LReflections.newInstance(getClass());
-            p.x = LDouble.clone(x);
-            p.y = LDouble.clone(y);
-            p._width = LDouble.clone(_width);
-            p._height = LDouble.clone(_height);
-            p.id = LString.clone(id);
-            p.visible = LBoolean.clone(visible);
-            p.style = LObservable.clone(style);
-            p.rotatable = LBoolean.clone(rotatable);
+            p.x(_x.get());
+            p.y(_y.get());
+            p.width(_width.get());
+            p.height(_height.get());
+            p.id().set(_id.get());
+            p.visible().set(_visible.get());
+            p.style().set(_style.get());
+            p.rotatable().set(_rotatable.get());
             LShape.ShapeIterator p_it = new LShape.ShapeIterator(this);
             while (!p_it.isDone()) {
                 switch (p_it.getPointType()) {
@@ -1116,8 +992,8 @@ public class LShape<BC extends LShape>
         if (os == null) {
             return 1;
         }
-        if ((LGeomUtils.isEqual(getX(), os.getX(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))
-                && (LGeomUtils.isEqual(getY(), os.getY(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+        if ((LGeomUtils.isEqual(x().get(), os.x().get(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))
+                && (LGeomUtils.isEqual(y().get(), os.y().get(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                 && (LGeomUtils.isEqual(width().get(), os.width().get(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))
                 && (LGeomUtils.isEqual(height().get(), os.height().get(), LGeomUtils.DEFAULT_DOUBLE_PRECISION))) {
             return 0;

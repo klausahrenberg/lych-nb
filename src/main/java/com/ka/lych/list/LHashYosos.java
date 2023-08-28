@@ -4,6 +4,7 @@ import java.io.*;
 import java.util.*;
 import com.ka.lych.event.LObservableChangeEvent;
 import com.ka.lych.observable.ILChangeListener;
+import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.LValueException;
 import com.ka.lych.observable.ILValidator;
 
@@ -18,14 +19,14 @@ public class LHashYosos<K, V extends ILHashYoso> extends LYosos<V>
 
     protected ArrayList<LxHashIndex<K, V>> hashIndexes = new ArrayList<>();
 
-    private final ILValidator<K> hashYosoAcceptor = (LObservableChangeEvent<K> change) -> {
+    private final ILValidator<K, ILObservable> hashYosoAcceptor = (LObservableChangeEvent<K, ILObservable> change) -> {
         return (existsHashKey(change.newValue())
                 ? new LValueException(this, "Key already exists: " + change.newValue())
                 : null);
     };
 
     @SuppressWarnings("unchecked")
-    private final ILChangeListener<K> hashYosoListener = change -> {
+    private final ILChangeListener<K, ILObservable> hashYosoListener = change -> {
         if (change.oldValue() != null) {
             this.removeHashKey(change.oldValue());
         }

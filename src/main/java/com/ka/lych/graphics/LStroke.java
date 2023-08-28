@@ -3,7 +3,7 @@ package com.ka.lych.graphics;
 import com.ka.lych.annotation.Json;
 import java.util.Objects;
 import com.ka.lych.observable.LDouble;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.util.ILCloneable;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.LLog;
@@ -33,13 +33,13 @@ public class LStroke
     @Json
     protected LDouble width;
     @Json
-    protected LObservable<LStrokeLineJoin> join;
+    protected LObject<LStrokeLineJoin> join;
     @Json
-    protected LObservable<LStrokeLineCap> cap;
+    protected LObject<LStrokeLineCap> cap;
     @Json
     protected LDouble miterLimit;
     @Json
-    protected LObservable<Double[]> dash;
+    protected LObject<Double[]> dash;
     @Json
     protected LDouble dashPhase;
 
@@ -87,9 +87,9 @@ public class LStroke
         width().set(width);
     }
 
-    public LObservable<LStrokeLineJoin> join() {
+    public LObject<LStrokeLineJoin> join() {
         if (join == null) {
-            join = new LObservable<>(DEFAULT_JOIN);
+            join = new LObject<>(DEFAULT_JOIN);
         }
         return join;
     }
@@ -102,9 +102,9 @@ public class LStroke
         join().set(join);
     }
 
-    public LObservable<LStrokeLineCap> cap() {
+    public LObject<LStrokeLineCap> cap() {
         if (cap == null) {
-            cap = new LObservable<>(DEFAULT_CAP);
+            cap = new LObject<>(DEFAULT_CAP);
         }
         return cap;
     }
@@ -132,9 +132,9 @@ public class LStroke
         miterLimit().set(miterLimit);
     }    
 
-    public LObservable<Double[]> dash() {
+    public LObject<Double[]> dash() {
         if (dash == null) {
-            dash = new LObservable<>(DEFAULT_DASH);
+            dash = new LObject<>(DEFAULT_DASH);
         }
         return dash;
     }
@@ -183,16 +183,16 @@ public class LStroke
     @SuppressWarnings("unchecked")
     public LStroke clone() {
         try {
-            LStroke po = (LStroke) LReflections.newInstance(getClass());                       
-            po.width = LDouble.clone(width);
-            po.join = LObservable.clone(join);
-            po.cap = LObservable.clone(cap);
-            po.miterLimit = LDouble.clone(miterLimit);
-            po.dash = LObservable.clone(dash);
+            LStroke po = (LStroke) LReflections.newInstance(getClass()); 
+            po.width().set(width.get());
+            po.join().set(join.get());
+            po.cap().set(cap.get());
+            po.miterLimit().set(miterLimit.get());
+            po.dash().set(dash.get());
+            po.dashPhase().set(dashPhase.get());
             /*if (dash != null) {
                 po.dash = Arrays.copyOf(dash, dash.length);
             }*/
-            po.dashPhase = LDouble.clone(dashPhase);
             return po;
         } catch (Exception e) {
             LLog.error(this, "LStroke.clone", e);

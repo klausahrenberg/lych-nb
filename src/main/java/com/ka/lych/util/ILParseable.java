@@ -13,12 +13,12 @@ public interface ILParseable<E extends LParseException> {
 
     final static String STATIC_CREATOR = "of";
 
-    public static ILParseable of(Class<ILParseable> pClass, String value) throws LParseException {
+    public static <T extends ILParseable> T of(Class<T> pClass, String value) throws LParseException {
         try {
             var method = LReflections.getMethod(pClass, STATIC_CREATOR, String.class);
-            return (ILParseable) method.invoke(null, value);
+            return (T) method.invoke(null, value);
         } catch (NoSuchMethodException ex) {
-            ILParseable parseable = (ILParseable) LReflections.newInstance(pClass);
+            T parseable = (T) LReflections.newInstance(pClass);
             parseable.parse(value);
             return parseable;
         } catch (IllegalAccessException iae) {

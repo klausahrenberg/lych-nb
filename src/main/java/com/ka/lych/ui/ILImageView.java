@@ -1,7 +1,7 @@
 package com.ka.lych.ui;
 
 import com.ka.lych.graphics.LRasterImage;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -9,7 +9,7 @@ import com.ka.lych.observable.LObservable;
  */
 public interface ILImageView extends ILControl, ILSupportsObservables<LRasterImage> {
     
-    public LObservable<LRasterImage> observableRasterImage();
+    public LObject<LRasterImage> observableRasterImage();
     
     public LRasterImage getRasterImage();
     

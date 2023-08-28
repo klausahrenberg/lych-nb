@@ -3,7 +3,7 @@ package com.ka.lych.ui;
 import com.ka.lych.event.LActionEvent;
 import com.ka.lych.event.LFileEvent;
 import com.ka.lych.list.LYosos;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.util.ILHandler;
 
 /**
@@ -13,7 +13,7 @@ import com.ka.lych.util.ILHandler;
  */
 public interface ILTableView<T, BC> extends ILControl {
     
-    public LObservable<LYosos<T>> observableYosos();
+    public LObject<LYosos<T>> observableYosos();
     
     public LYosos<T> yosos();
             
@@ -21,7 +21,7 @@ public interface ILTableView<T, BC> extends ILControl {
     
     public void addAcceptedFileExtension(String... extensions);
     
-    public LObservable<T> observableSelectedYoso();
+    public LObject<T> observableSelectedYoso();
     
     public T getSelectedYoso();
     

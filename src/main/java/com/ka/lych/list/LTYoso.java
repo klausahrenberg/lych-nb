@@ -1,7 +1,7 @@
 package com.ka.lych.list;
 
 import com.ka.lych.observable.LInteger;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.util.ILSupportsChildrens;
 import com.ka.lych.util.LReflections;
 
@@ -16,7 +16,7 @@ public class LTYoso<T extends LTYoso> extends LYoso
     private final boolean DEFAULT_HAS_CHILDRENS = false;
     private final LKeyYosos<T> DEFAULT_CHILDRENS = null;
     private final Integer DEFAULT_CHILD_COUNT = null;
-    protected LObservable<LKeyYosos<T>> childrens;    
+    protected LObject<LKeyYosos<T>> childrens;    
     protected LInteger childCount;    
 
     public LTYoso() {
@@ -24,9 +24,9 @@ public class LTYoso<T extends LTYoso> extends LYoso
     }
 
     @Override
-    public LObservable<LKeyYosos<T>> childrens() {
+    public LObject<LKeyYosos<T>> childrens() {
         if (childrens == null) {
-            childrens = new LObservable<>(DEFAULT_CHILDRENS);
+            childrens = new LObject<>(DEFAULT_CHILDRENS);
             childrens.addListener(c -> {
                 c.ifOldValueExists(o -> o.setParent(null));
                 c.ifNewValueExists(n -> n.setParent(this));

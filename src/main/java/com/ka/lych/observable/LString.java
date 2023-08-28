@@ -15,7 +15,7 @@ import java.util.function.Predicate;
  *
  * @author klausahrenberg
  */
-public class LString extends LObservable<String>
+public class LString extends LObservable<String, LString>
         implements CharSequence {
 
     private String localized;
@@ -31,8 +31,9 @@ public class LString extends LObservable<String>
         super(initialValue);
     }
 
-    public static LString clone(LString source) {
-        return (source != null ? new LString(source.get()) : null);
+    @Override
+    public LString clone() throws CloneNotSupportedException {
+        return new LString(this.get());
     }
 
     /**

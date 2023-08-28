@@ -8,12 +8,12 @@ import com.ka.lych.ui.observable.ILHasTitle;
  *
  * @author klausahrenberg
  * @param <T>
+ * @param <BC>
  */
 public interface ILLabel<T, BC> extends ILHasTitle<BC>, ILSupportsObservables<T> {
     
     public LString icon();       
     
-    @SuppressWarnings("unchecked")
     default public BC icon(String icon) {
         icon().set(icon);
         return (BC) this;

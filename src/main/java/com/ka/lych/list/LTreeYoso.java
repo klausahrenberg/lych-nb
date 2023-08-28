@@ -1,7 +1,7 @@
 package com.ka.lych.list;
 
 import com.ka.lych.observable.LBoolean;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -14,7 +14,7 @@ public class LTreeYoso<K, V extends LTreeYoso<K, V>> extends LHashYoso<K>
 
     private final boolean DEFAULT_HAS_CHILDRENS = false;
     private final ILHashYosos<K, V> DEFAULT_CHILDRENS = null;
-    protected LObservable<ILHashYosos<K, V>> childrens;
+    protected LObject<ILHashYosos<K, V>> childrens;
     protected LBoolean hasChildrens;
     protected ILYososChangeListener<V> yososListener = change -> updateHasChildrens();
 
@@ -28,9 +28,9 @@ public class LTreeYoso<K, V extends LTreeYoso<K, V>> extends LHashYoso<K>
 
     @Override
     @SuppressWarnings("unchecked")
-    public LObservable<ILYosos<V>> childrens() {
+    public LObject<ILYosos<V>> childrens() {
         if (childrens == null) {
-            childrens = new LObservable<>(DEFAULT_CHILDRENS);
+            childrens = new LObject<>(DEFAULT_CHILDRENS);
             childrens.addListener(change -> {
                 if (change.oldValue() != null) {
                     change.oldValue().removeListener(yososListener);
@@ -41,7 +41,7 @@ public class LTreeYoso<K, V extends LTreeYoso<K, V>> extends LHashYoso<K>
                 updateHasChildrens();
             });
         }
-        return (LObservable) childrens;
+        return (LObject) childrens;
     }
 
     @Override

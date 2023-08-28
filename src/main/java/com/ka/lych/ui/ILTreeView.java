@@ -4,7 +4,7 @@ import java.util.function.Predicate;
 import com.ka.lych.list.LKeyYosos;
 import com.ka.lych.list.LPick;
 import com.ka.lych.list.LTYoso;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.repo.LKeyValue;
 import java.util.function.Function;
 
@@ -25,6 +25,6 @@ public interface ILTreeView<T extends LTYoso<T>> extends ILControl {
     
     public void setToolBarPick(LPick<LKeyValue, T> toolBarPick);
     
-    public LObservable<T> observableSelectedYoso();
+    public LObject<T> observableSelectedYoso();
     
 }

@@ -21,47 +21,63 @@ public abstract class LCanvasRenderer<C, D>
 
     private final LCanvas DEFAULT_CANVAS = null;
 
-    protected LObservable<LCanvas> canvas;
-    protected LObservable<LBounds> paintBounds;
+    
+    protected LObject<LBounds> paintBounds;
     private LEventHandler<LChangedEvent> onChanged;
     protected boolean needsNewRendering;
     protected int renderPriority;
-    private LObservable<LScaleMode> scaleMode;
+    private LObject<LScaleMode> scaleMode;
     private LDouble scaleFactor;
     protected LShape lastShape;
-    final protected LObservable<LSize> availableSize;
-    protected LObservable<LInsets> insets;
+    final protected LObject<LSize> availableSize;
+    protected LObject<LInsets> insets;
     protected boolean runInThread;
-    protected final LMap<LAbstractPaint, D> paintsCache;
-    private LObservable<LCanvasColorSpace> colorSpace;
+    protected final LMap<LAbstractPaint, D> paintsCache = new LMap<>();
+    private LObject<LCanvasColorSpace> colorSpace;
     private LTask service;
     private boolean adjustingScale;
     private final LLoadingService loadingService;
-
+    
     protected ILHandler<LChangedEvent> canvasChangedEvent = event -> {
         needsNewRendering = true;
         notifyOnChanged(event);
+        LObject.<LCanvas>of(null);
     };
 
-    protected ILChangeListener<Double> canvasRotationListener = oldValue -> {
+    protected ILChangeListener<Double, LDouble> canvasRotationListener = oldValue -> {
         needsNewRendering = true;
         updatePaintBounds();
     };
+    
+    protected LObject<LCanvas> _canvas = LObject.<LCanvas>of(null)
+            .onChange(change -> {
+                cancelRendering();
+                change.ifOldValueExists(c -> {
+                    c.onChanged().remove(canvasChangedEvent);
+                    c.rotation().removeListener(canvasRotationListener);
+                });
+                change.ifNewValueExists(c -> {
+                    c.rotation().addListener(canvasRotationListener);
+                    c.onChanged().add(canvasChangedEvent);
+                });
+                paintsCache.clear();
+                needsNewRendering = true;
+                updatePaintBounds();
+            });
 
     public LCanvasRenderer(LCanvas canvas) {
         adjustingScale = false;
         renderPriority = Thread.NORM_PRIORITY;
-        paintsCache = new LMap<>();
         needsNewRendering = false;
-        insets = new LObservable<>(new LInsets(5, 5, 5, 5));
+        insets = new LObject<>(new LInsets(5, 5, 5, 5));
         insets.addListener(listener -> updatePaintBounds());
         this.runInThread = true;
-        availableSize = new LObservable<>(new LSize(0, 0));
+        availableSize = new LObject<>(new LSize(0, 0));
         availableSize.addListener(oldValue -> updatePaintBounds());
-        paintBounds = new LObservable<>(new LBounds());
+        paintBounds = new LObject<>(new LBounds());
         paintBounds.addListener(ce -> needsNewRendering = true);
         loadingService = new LLoadingService();
-        setCanvas(canvas);
+        canvas(canvas);
     }
 
     @Override
@@ -96,7 +112,7 @@ public abstract class LCanvasRenderer<C, D>
         }
     }
 
-    public LObservable<LBounds> paintBounds() {
+    public LObject<LBounds> paintBounds() {
         return paintBounds;
     }
 
@@ -104,35 +120,13 @@ public abstract class LCanvasRenderer<C, D>
         return paintBounds.get();
     }
 
-    public LObservable<LCanvas> canvas() {
-        if (canvas == null) {
-            canvas = new LObservable<>(DEFAULT_CANVAS);
-            canvas.addListener(change -> {
-                cancelRendering();
-                if (change.oldValue() != null) {
-                    change.oldValue().onChanged().remove(canvasChangedEvent);
-                    //oldValue.observableState().removeListener(canvasStateListener);
-                    change.oldValue().rotation().removeListener(canvasRotationListener);
-                }
-                if (getCanvas() != null) {
-                    getCanvas().rotation().addListener(canvasRotationListener);
-                    getCanvas().onChanged().add(canvasChangedEvent);
-                    //getCanvas().observableState().addListener(canvasStateListener);
-                }
-                paintsCache.clear();
-                needsNewRendering = true;
-                updatePaintBounds();
-            });
-        }
-        return canvas;
+    public LObject<LCanvas> canvas() {
+        return _canvas;
     }
-
-    public LCanvas getCanvas() {
-        return canvas != null ? canvas.get() : DEFAULT_CANVAS;
-    }
-
-    public void setCanvas(LCanvas canvas) {
+    
+    public LCanvasRenderer canvas(LCanvas canvas) {
         canvas().set(canvas);
+        return this;
     }
     
     public int getRenderPriority() {
@@ -151,9 +145,9 @@ public abstract class LCanvasRenderer<C, D>
         return lastShape;
     }
 
-    public LObservable<LScaleMode> scaleMode() {
+    public LObject<LScaleMode> scaleMode() {
         if (scaleMode == null) {
-            scaleMode = new LObservable<>(LScaleMode.FIT_PAGE);
+            scaleMode = new LObject<>(LScaleMode.FIT_PAGE);
             scaleMode.addListener(listener -> updatePaintBounds());
         }
         return scaleMode;
@@ -183,7 +177,7 @@ public abstract class LCanvasRenderer<C, D>
         scaleFactor().set(scaleFactor);
     }
 
-    public LObservable<LSize> availableSize() {
+    public LObject<LSize> availableSize() {
         return availableSize;
     }
 
@@ -202,7 +196,7 @@ public abstract class LCanvasRenderer<C, D>
         getAvailableSize().size(availableWidth, availableHeight);
     }
 
-    public LObservable<LInsets> insets() {
+    public LObject<LInsets> insets() {
         return insets;
     }
 
@@ -215,12 +209,12 @@ public abstract class LCanvasRenderer<C, D>
     }
 
     private boolean updatePaintBounds() {
-        if ((!adjustingScale) && (getCanvas() != null) && (availableSize != null) && (insets != null)) {
+        if ((!adjustingScale) && (canvas().isPresent()) && (availableSize != null) && (insets != null)) {
             double w, h;
             double availableWidth = getAvailableSize().width().get() - (getInsets().getLeft() + getInsets().getRight());
             if ((getScaleMode() == LScaleMode.FIT_WIDTH) || (getScaleMode() == LScaleMode.FIT_PAGE)) {
-                LMatrix matrix = getCanvas().getInitialMatrix(LScaleMode.FACTOR, 1.0, null, false, null);
-                LBounds vB = getCanvas().getViewBoundsTransformed(matrix);
+                LMatrix matrix = canvas().get().getInitialMatrix(LScaleMode.FACTOR, 1.0, null, false, null);
+                LBounds vB = canvas().get().getViewBoundsTransformed(matrix);
                 double availableHeight = getAvailableSize().height().get() - (getInsets().getTop() + getInsets().getBottom());
                 double newScaleFactor = availableWidth / vB.width().get();
                 w = availableWidth;
@@ -236,32 +230,31 @@ public abstract class LCanvasRenderer<C, D>
                 scaleFactor().set(newScaleFactor);
                 adjustingScale = false;
             } else {
-                LMatrix matrix = getCanvas().getInitialMatrix(getScaleMode(), getScaleFactor(), null, false, null);
-                LBounds vB = getCanvas().getViewBoundsTransformed(matrix);
+                LMatrix matrix = canvas().get().getInitialMatrix(getScaleMode(), getScaleFactor(), null, false, null);
+                LBounds vB = canvas().get().getViewBoundsTransformed(matrix);
                 w = vB.width().get();
                 h = vB.height().get();
 
             }
             double x = getInsets().getLeft() + (getScaleMode() == LScaleMode.FACTOR ? 0.0 : (availableWidth - w) / 2.0);
-            getPaintBounds().setBounds(x, getInsets().getTop(), w, h);
+            getPaintBounds().bounds(x, getInsets().getTop(), w, h);
         }
         return needsNewRendering;
     }
 
     public synchronized void update() {
-        if ((getCanvas() != null) && (getCanvas().getState() == LCanvasState.NOT_PARSED)) {            
-            if (!(getCanvas() instanceof ILLoadable)) {
+        if ((canvas().isPresent()) && (canvas().get().getState() == LCanvasState.NOT_PARSED)) {            
+            if (!(canvas().get() instanceof ILLoadable)) {
                 throw new IllegalStateException("Canvas is not parseable (ILParseable not implemented) and state is 'not parsed'");
             }                        
-            loadingService.addLoadable((ILLoadable) getCanvas(), renderPriority);           
+            loadingService.addLoadable((ILLoadable) canvas().get(), renderPriority);           
         }
-         LLog.test(this, "np %s %s %s", (needsNewRendering), (getPaintBounds().width().get() > 0), (getPaintBounds().height().get() > 0));
         if ((needsNewRendering) && (getPaintBounds().width().get() > 0) && (getPaintBounds().height().get() > 0)) {            
             needsNewRendering = false;
             cancelRendering();
             if (runInThread) {
                 if (isHandlingAnimations()) {
-                    var canvasAnim = getCanvas().checkAnimations();                    
+                    var canvasAnim = canvas().get().checkAnimations();                    
                     LFuture.execute(this, 0, canvasAnim.duration(), canvasAnim.infinite());
                 } else {
                     LFuture.execute(this);
@@ -291,9 +284,9 @@ public abstract class LCanvasRenderer<C, D>
     }
 
     @SuppressWarnings("unchecked")
-    public LObservable<LCanvasColorSpace> colorSpace() {
+    public LObject<LCanvasColorSpace> colorSpace() {
         if (colorSpace == null) {
-            colorSpace = new LObservable(LCanvasColorSpace.ORIGINAL);
+            colorSpace = new LObject(LCanvasColorSpace.ORIGINAL);
             colorSpace.addListener(listener -> {
                 paintsCache.clear();
 
@@ -315,8 +308,8 @@ public abstract class LCanvasRenderer<C, D>
      * handled by rendering or not.
      *
      * @return true, if LCanvasRenderer should do the timing and cycling of
-     * animations (rendering will be repetead automaticly false, if animations
-     * are handled by the native canvas itself
+ animations (rendering will be repetead automaticly false, if animations
+ are handled by the native _canvas itself
      */
     protected abstract boolean isHandlingAnimations();
 
@@ -350,11 +343,15 @@ public abstract class LCanvasRenderer<C, D>
 
     public LMatrix getInitialMatrix() {
         boolean translatePaintBoundsLocation = true;
-        return getCanvas().getInitialMatrix(getScaleMode(), getScaleFactor(), getPaintBounds(), translatePaintBoundsLocation, null);
+        return canvas().get().getInitialMatrix(getScaleMode(), getScaleFactor(), getPaintBounds(), translatePaintBoundsLocation, null);
     }
 
     @Override
     public LCanvas run(LTask<LCanvas, LException> task) {
+        if (canvas().isAbsent()) {
+            task.cancel();
+            return null;
+        }
         if (paintBounds == null) {
             throw new IllegalArgumentException("PaintBounds can't be null");
         }
@@ -364,7 +361,7 @@ public abstract class LCanvasRenderer<C, D>
         @SuppressWarnings("unchecked")
         LChangedEvent changedEvent = (getOnChanged() != null ? new LChangedEvent(LCanvasRenderer.this) : null);
         this.service = service;
-        getCanvas().execute(this, (task instanceof LTimerTask ? ((LTimerTask) task).now() : System.currentTimeMillis()));
+        canvas().get().execute(this, (task instanceof LTimerTask ? ((LTimerTask) task).now() : System.currentTimeMillis()));
         if (!isRenderingCancelled()) {
             notifyOnChanged(changedEvent);
         }
@@ -373,7 +370,7 @@ public abstract class LCanvasRenderer<C, D>
         if ((service != null) && (!service.isCancelled())) {
             notifyOnChanged(changedEvent);
         }
-        return getCanvas();
+        return canvas().get();
     }
 
     public boolean isRenderingCancelled() {

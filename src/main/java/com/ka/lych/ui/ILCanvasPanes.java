@@ -3,7 +3,7 @@ package com.ka.lych.ui;
 import com.ka.lych.geometry.LScaleMode;
 import com.ka.lych.list.LYosos;
 import com.ka.lych.observable.LDouble;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -12,7 +12,7 @@ import com.ka.lych.observable.LObservable;
  */
 public interface ILCanvasPanes<T> extends ILControl {
     
-    public LObservable<LScaleMode> scaleMode();
+    public LObject<LScaleMode> scaleMode();
     
     public LScaleMode getScaleMode();
 

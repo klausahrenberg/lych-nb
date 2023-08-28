@@ -1,6 +1,6 @@
 package com.ka.lych.util;
 
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -9,7 +9,7 @@ import com.ka.lych.observable.LObservable;
  */
 public interface ILSelectableItem<T> {
 
-    public LObservable<T> selectedItem();
+    public LObject<T> selectedItem();
     
     public T getSelectedItem();
     

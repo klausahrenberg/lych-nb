@@ -1,6 +1,6 @@
 package com.ka.lych.list;
 
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -10,7 +10,7 @@ import com.ka.lych.observable.LObservable;
 public class LHashYoso<K> extends LYoso
         implements ILHashYoso<K> {
 
-    private LObservable<K> hashKey;
+    private LObject<K> hashKey;
 
     public LHashYoso() {
         this(null);
@@ -21,9 +21,9 @@ public class LHashYoso<K> extends LYoso
     }
 
     @Override
-    public LObservable<K> hashKey() {
+    public LObject<K> hashKey() {
         if (hashKey == null) {
-            hashKey = new LObservable<>();
+            hashKey = new LObject<>();
         }
         return hashKey;
     }

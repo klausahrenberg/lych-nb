@@ -6,11 +6,13 @@ import com.ka.lych.observable.LString;
  *
  * @author klausahrenberg
  */
-public interface ILHasId {                
+public interface ILHasId<BC> {                
     
     public LString id();
        
-    /*default public String getId() {
-        return observableId().get();
-    }*/
+    default public BC id(String id) {
+        id().set(id);
+        return (BC) this;
+    }
+    
 }

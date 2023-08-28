@@ -21,11 +21,11 @@ public class LTextShape extends LShape
     @Json
     protected LString text;
     @Json
-    protected LObservable<EnumSet<LTextStyle>> textStyle;
+    protected LObject<EnumSet<LTextStyle>> textStyle;
     @Json
     protected LString fontFamily;
     @Json
-    protected LObservable<LAlignment> alignment;
+    protected LObject<LAlignment> alignment;
     @Json
     protected LBoolean adjustFontHeight;
     @Json
@@ -68,9 +68,9 @@ public class LTextShape extends LShape
         text().set(text);
     }
 
-    public LObservable<EnumSet<LTextStyle>> textStyle() {
+    public LObject<EnumSet<LTextStyle>> textStyle() {
         if (textStyle == null) {
-            textStyle = new LObservable<>(EnumSet.of(LTextStyle.NORMAL));
+            textStyle = new LObject<>(EnumSet.of(LTextStyle.NORMAL));
         }
         return textStyle;
     }
@@ -83,9 +83,9 @@ public class LTextShape extends LShape
         textStyle().set(textStyle);
     }
 
-    public LObservable<LAlignment> alignment() {
+    public LObject<LAlignment> alignment() {
         if (alignment == null) {
-            alignment = new LObservable<>(LAlignment.CENTER_LEFT);
+            alignment = new LObject<>(LAlignment.CENTER_LEFT);
         }
         return alignment;
     }
@@ -238,20 +238,19 @@ public class LTextShape extends LShape
 
     @Override
     @SuppressWarnings("unchecked")
-    public Object clone() {
+    public LTextShape clone() {
         try {
             LTextShape ts = (LTextShape) super.clone();
-            ts.text = LString.clone(text);
-            ts.textStyle = LObservable.clone(textStyle);
-            ts.fontFamily = LString.clone(fontFamily);
-            ts.alignment = LObservable.clone(alignment);
-            ts.adjustFontHeight = LBoolean.clone(adjustFontHeight);
-            ts.adjustSizeForWidth = LBoolean.clone(adjustSizeForWidth);
-            ts.textEditable = LBoolean.clone(textEditable);
-            //ts.paintText - not copied
-            ts.multiLine = LBoolean.clone(multiLine);
-            ts.wrapText = LBoolean.clone(wrapText);
-            ts.textSize = LDouble.clone(textSize);
+            ts.text().set(text.get());
+            ts.textStyle().set(textStyle.get());
+            ts.fontFamily().set(fontFamily.get());
+            ts.alignment().set(alignment.get());
+            ts.adjustFontHeight().set(adjustFontHeight.get());
+            ts.adjustSizeForWidth().set(adjustSizeForWidth.get());
+            ts.textEditable().set(textEditable.get());
+            ts.multiLine().set(multiLine.get());
+            ts.wrapText().set(wrapText.get());
+            ts.textSize().set(textSize.get());
             return ts;
         } catch (Exception e) {
             throw new InternalError(e);

@@ -1,5 +1,6 @@
 package com.ka.lych.ui.observable;
 
+import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.LObservable;
 
 /**
@@ -8,6 +9,6 @@ import com.ka.lych.observable.LObservable;
  */
 public interface ILHasValue<T> {
     
-    public LObservable<T> value();
+    public LObservable<T, ILObservable> value();
     
 }

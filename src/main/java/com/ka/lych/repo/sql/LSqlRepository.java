@@ -13,7 +13,6 @@ import com.ka.lych.util.*;
 import com.ka.lych.util.LReflections.LField;
 import com.ka.lych.util.LReflections.LFields;
 import com.ka.lych.xml.LXmlUtils;
-import com.ka.lych.repo.ILRepository;
 import com.ka.lych.repo.LColumnItem;
 import com.ka.lych.repo.LQuery;
 import com.ka.lych.repo.LQuery.LSortDirection;
@@ -26,90 +25,62 @@ import com.ka.lych.util.LReflections.LKeyCompleteness;
 import java.util.Locale;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Id;
+import com.ka.lych.annotation.Index;
+import com.ka.lych.repo.LServerRepository;
 import java.util.Objects;
 
 /**
  *
  * @author klausahrenberg
  */
-public class LSqlRepository implements
-        ILRepository, ILSupportsOwner {
+public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
-    private final Object owner;
-    private Connection con = null;
-    private Statement queryStatement = null;
+    final LoSqlDatabaseType DEFAULT_DATABASE_TYPE = LoSqlDatabaseType.DERBY_EMBEDDED;
+    final static String KEYWORD_SQL_QUOTATIONMARK = "'";
+    final static String KEYWORD_COL_COUNT = "numberof";
+    final static String KEYWORD_SQL_WILDCARD = "%";
+    
+    Connection _connection = null;
+    Statement _queryStatement = null;
     @Json
-    protected LObservable<LoSqlDatabaseType> databaseType;
+    LObject<LoSqlDatabaseType> _databaseType = LObject.of(DEFAULT_DATABASE_TYPE);
     @Json
-    private LBoolean localService;    
+    LString _server = LString.empty();
     @Json
-    private LString server;
+    LString _database = LString.empty();
     @Json
-    private LString database;
+    LString _user = LString.empty();
     @Json
-    private LString user;
+    LString _password = LString.empty();
     @Json
-    private LString password;
-    @Json
-    private LBoolean readOnly = new LBoolean(true);
+    LBoolean _readOnly = LBoolean.of(true);
 
-    private final LoSqlDatabaseType DEFAULT_DATABASE_TYPE = LoSqlDatabaseType.DERBY_EMBEDDED;
-    protected final static String KEYWORD_SQL_QUOTATIONMARK = "'";
-    protected final static String KEYWORD_COL_COUNT = "numberof";
-    protected final static String KEYWORD_SQL_WILDCARD = "%";
-    protected LObservable<LDataServiceState> state = new LObservable<>(LDataServiceState.NOT_AVAILABLE);    
-    private final LMap<Class, LList<LColumnItem>> columnsUnlinked = new LMap<>();
-    private final LMap<LField, LMap<String, ? extends Record>> linkedMaps = new LMap<>();
-    private static LEventHandler<LErrorEvent> onError;
+    LObject<LDataServiceState> _state = new LObject<>(LDataServiceState.NOT_AVAILABLE);
+    final LMap<Class, LList<LColumnItem>> _columnsUnlinked = new LMap<>();
+    final LMap<LField, LMap<String, ? extends Record>> _linkedMaps = new LMap<>();
+    static LEventHandler<LErrorEvent> _onError;
 
     @Override
     public LMap<Class, LList<LColumnItem>> columnsUnlinked() {
-        return columnsUnlinked;
+        return _columnsUnlinked;
     }
 
     @Override
     public LMap<LField, LMap<String, ? extends Record>> linkedMaps() {
-        return linkedMaps;
+        return _linkedMaps;
     }
 
-    public LObservable<LoSqlDatabaseType> databaseType() {
-        if (databaseType == null) {
-            databaseType = new LObservable<>(DEFAULT_DATABASE_TYPE);
-            databaseType.addListener(change -> {
-                if (localService != null) {
-                    setLocalService(isLocalServiceDefault());
-                }
-            });
-        }
-        return databaseType;
+    public LObject<LoSqlDatabaseType> databaseType() {
+        return _databaseType;
     }
 
-    public LoSqlDatabaseType getDatabaseType() {
-        return databaseType != null ? databaseType.get() : DEFAULT_DATABASE_TYPE;
-    }
-
-    public void setDatabaseType(LoSqlDatabaseType databaseType) {
+    public LSqlRepository databaseType(LoSqlDatabaseType databaseType) {
         databaseType().set(databaseType);
-    }
-
-    public void setServer(String server) {
-        server().set(server);
-    }
-
-    public void setDatabase(String database) {
-        database().set(database);
-    }
-
-    public void setUser(String user) {
-        user().set(user);
-    }
-
-    public void setPassword(String password) {
-        password().set(password);
+        return this;
     }
 
     private int getDatabaseTypeAsInteger() {
-        switch (getDatabaseType()) {
+        switch (databaseType().get()) {
             case MARIADB:
                 return 0;
             case MSSQL:
@@ -128,67 +99,39 @@ public class LSqlRepository implements
     }
 
     public LString server() {
-        if (server == null) {
-            server = new LString();
-            /*server.addListener(change -> {
-                if (!LString.isEmpty(serviceName)) {
-                    LBase.getSettings().setString(this, serviceName + "." + ILConstants.SERVER, server.get());
-                }
-            });*/
-        }
-        return server;
+        return _server;
     }
-
-    public String getServer() {
-        return server != null ? server.get() : null;
+    
+    public LSqlRepository server(String server) {
+        server().set(server);
+        return this;
     }
 
     public LString database() {
-        if (database == null) {
-            database = new LString();
-            /*database.addListener(change -> {
-                if (!LString.isEmpty(serviceName)) {
-                    LBase.getSettings().setString(this, serviceName + "." + ILConstants.DATABASE, database.get());
-                }
-            });*/
-        }
-        return database;
+        return _database;
     }
-
-    public String getDatabase() {
-        return database != null ? database.get() : null;
+    
+    public LSqlRepository database(String database) {
+        database().set(database);
+        return this;
     }
 
     public LString user() {
-        if (user == null) {
-            user = new LString();
-            /*user.addListener(change -> {
-                if (!LString.isEmpty(serviceName)) {
-                    LBase.getSettings().setString(this, serviceName + "." + ILConstants.USER, user.get());
-                }
-            });*/
-        }
-        return user;
+        return _user;
     }
-
-    public String getUser() {
-        return user != null ? user.get() : null;
+    
+    public LSqlRepository user(String user) {
+        user().set(user);
+        return this;
     }
 
     public LString password() {
-        if (password == null) {
-            password = new LString();
-            /*password.addListener(change -> {
-                if (!LString.isEmpty(serviceName)) {
-                    LBase.getSettings().setString(this, serviceName + "." + ILConstants.PASSWORD, LCrypt.enCryptEx(password.get()));
-                }
-            });*/
-        }
-        return password;
+        return _password;
     }
-
-    public String getPassword() {
-        return password != null ? password.get() : null;
+    
+    public LSqlRepository password(String password) {
+        password().set(password);
+        return this;
     }
 
     //Datentypen
@@ -254,9 +197,8 @@ public class LSqlRepository implements
         "upper",
         "upper"};
 
-    public LSqlRepository(Object owner) {
-        this.owner = owner;
-        state.addListener(change -> {
+    public LSqlRepository() {
+        _state.addListener(change -> {
             if (available()) {
                 try {
                     this.checkTables();
@@ -275,41 +217,36 @@ public class LSqlRepository implements
 
     }
 
-    @Override
-    public Object getOwner() {
-        return owner;
-    }
-
-    protected LObservable<LDataServiceState> connect() throws LDataException {
+    protected LObject<LDataServiceState> connect() throws LDataException {
         try {
             String url;
             Properties props = new Properties();
-            switch (getDatabaseType()) {
+            switch (databaseType().get()) {
                 case MARIADB:
                     LReflections.newInstance(Class.forName("org.mariadb.jdbc.Driver"));
                     //Class.forName("com.mysql.jdbc.Driver").newInstance();
-                    props.put("user", getUser());
-                    props.put("password", getPassword());
-                    int i = getServer().indexOf('\\');
+                    props.put("user", user().get());
+                    props.put("password", password().get());
+                    int i = server().get().indexOf('\\');
                     if (i > -1) {
-                        props.put("instance", getServer().substring(i + 1));
-                        url = "jdbc:mysql://" + getServer().substring(0, i) + "/" + getDatabase();
+                        props.put("instance", server().get().substring(i + 1));
+                        url = "jdbc:mysql://" + server().get().substring(0, i) + "/" + database().get();
                     } else {
-                        url = "jdbc:mysql://" + getServer() + "/" + getDatabase();
+                        url = "jdbc:mysql://" + server().get() + "/" + database().get();
                     }
                     break;
                 case MSSQL:
                     //LReflections.newInstance(Class.forName("net.sourceforge.jtds.jdbc.Driver"));
                     LReflections.newInstance(Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver"));
-                    props.put("user", getUser());
-                    props.put("password", getPassword());
-                    i = getServer().indexOf('\\');
+                    props.put("user", user().get());
+                    props.put("password", password().get());
+                    i = server().get().indexOf('\\');
                     if (i > - 1) {
-                        props.put("instance", getServer().substring(i + 1));
-                        url = "jdbc:sqlserver://" + getServer().substring(0, i) + "/" + getDatabase();
+                        props.put("instance", server().get().substring(i + 1));
+                        url = "jdbc:sqlserver://" + server().get().substring(0, i) + "/" + database().get();
                         //url = "jdbc:jtds:sqlserver://" + getServer().substring(0, i) + "/" + getDatabase();
                     } else {
-                        url = "jdbc:sqlserver://; serverName=" + getServer() + "; databaseName=" + getDatabase();
+                        url = "jdbc:sqlserver://; serverName=" + server().get() + "; databaseName=" + database().get();
                         //url += ";integratedSecurity=true";
                         url += ";encrypt=true;";
                         url += "trustServerCertificate=true";
@@ -320,53 +257,53 @@ public class LSqlRepository implements
                     LReflections.newInstance(Class.forName("sun.jdbc.odbc.JdbcOdbcDriver"));
                     props.put("charSet", "windows-1254");
                     url = "jdbc:odbc:DRIVER={Microsoft Access Driver (*.mdb, *.accdb)};"
-                            + "DBQ=" + getDatabase() + ";"
+                            + "DBQ=" + database().get() + ";"
                             + "DefaultDir=" + ";"
-                            + (getUser() != null ? "UID=" + getUser() + ";" : "")
-                            + (getPassword() != null ? "PASSWORD=" + getPassword() + ";" : "")
+                            + (user().get() != null ? "UID=" + user().get() + ";" : "")
+                            + (password().get() != null ? "PASSWORD=" + password().get() + ";" : "")
                             + "READONLY=true;";
                     break;
                 case POSTGRE:
                     LReflections.newInstance(Class.forName("org.postgresql.Driver"));
-                    props.put("user", getUser());
-                    props.put("password", getPassword());
-                    url = "jdbc:postgresql://" + getServer() + "/" + getDatabase();
-                    //"jdbc:postgresql://hostname:port/dbname","username", "password"
+                    props.put("user", user().get());
+                    props.put("password", password().get());
+                    url = "jdbc:postgresql://" + server().get() + "/" + database().get();
+                    //"jdbc:postgresql://hostname:port/dbname","username", "_password"
                     break;
                 case DERBY_CLIENT:
                     LReflections.newInstance(Class.forName("org.apache.derby.jdbc.ClientDriver"));
                     url = "jdbc:derby:derbyDB;create=true;territory=" + Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry() + ";collation=TERRITORY_BASED:PRIMARY;"
-                            + "DATABASE=" + getDatabase() + ";"
-                            + "SERVER=" + getServer() + ";"
-                            + "UID=" + getUser() + ";"
-                            + "PASSWORD=" + getPassword() + ";";
+                            + "DATABASE=" + database().get() + ";"
+                            + "SERVER=" + server().get() + ";"
+                            + "UID=" + user().get() + ";"
+                            + "PASSWORD=" + password().get() + ";";
                     break;
                 default:
                     //DERBY_EMBEDDED 
                     LReflections.newInstance(Class.forName("org.apache.derby.jdbc.EmbeddedDriver"));
                     url = "jdbc:derby:"
-                            + getDatabase() + ";create=true;territory=" + Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry() + ";collation=TERRITORY_BASED:PRIMARY;"
-                            + (getUser() != null ? "UID=" + getUser() + ";" : "")
-                            + (getPassword() != null ? "PASSWORD=" + getPassword() + ";" : "");
+                            + database().get() + ";create=true;territory=" + Locale.getDefault().getLanguage() + "_" + Locale.getDefault().getCountry() + ";collation=TERRITORY_BASED:PRIMARY;"
+                            + (user().get() != null ? "UID=" + user().get() + ";" : "")
+                            + (password().get() != null ? "PASSWORD=" + password().get() + ";" : "");
             }
             LLog.debug(this, "Connect to: " + url);
-            con = DriverManager.getConnection(url, props);
-            queryStatement = con.createStatement();
+            _connection = DriverManager.getConnection(url, props);
+            _queryStatement = _connection.createStatement();
             if (state().get() == LDataServiceState.REQUESTING) {
-                state.set(LDataServiceState.AVAILABLE);
+                _state.set(LDataServiceState.AVAILABLE);
             } else {
                 setConnected(false);
             }
         } catch (Exception e) {
-            if (con != null) {
+            if (_connection != null) {
                 try {
-                    con.close();
+                    _connection.close();
                 } catch (Exception e2) {
                 }
             }
-            con = null;
+            _connection = null;
             if (state().get() == LDataServiceState.REQUESTING) {
-                state.set(LDataServiceState.NOT_AVAILABLE);
+                _state.set(LDataServiceState.NOT_AVAILABLE);
                 notifyOnError(e);
             }
             throw new LDataException(this, e.getMessage(), e);
@@ -375,16 +312,20 @@ public class LSqlRepository implements
     }
 
     @Override
-    public LObservable<LDataServiceState> state() { return state; }
+    public LObject<LDataServiceState> state() {
+        return _state;
+    }
 
     @Override
-    public LBoolean readOnly() { return readOnly; }
+    public LBoolean readOnly() {
+        return _readOnly;
+    }
 
     private boolean isReadyForConnect() {
-        switch (getDatabaseType()) {
+        switch (databaseType().get()) {
             case MSACCESS:
             case DERBY_EMBEDDED:
-                return (!LString.isEmpty(getDatabase())
+                return (!database().isEmpty()
                         //&& !LString.isEmpty(getUser())
                         && (databaseType() != null));
             default:
@@ -392,31 +333,11 @@ public class LSqlRepository implements
                 //case MYSQL:
                 //case POSTGRE:
                 //case DERBY_CLIENT:
-                return (!LString.isEmpty(getServer())
-                        && !LString.isEmpty(getDatabase())
-                        && !LString.isEmpty(getUser())
-                        && (databaseType() != null));
+                return (!server().isEmpty()
+                        && !database().isEmpty()
+                        && !user().isEmpty()
+                        && (databaseType().get() != null));
         }
-    }
-
-    private boolean isLocalServiceDefault() {
-        return (this.getDatabaseType() != LoSqlDatabaseType.MSACCESS)
-                && (this.getDatabaseType() != LoSqlDatabaseType.DERBY_EMBEDDED);
-    }
-
-    public LBoolean localService() {
-        if (localService == null) {
-            localService = new LBoolean(isLocalServiceDefault());
-        }
-        return localService;
-    }
-
-    public Boolean isLocalService() {
-        return localService != null ? localService.get() : isLocalServiceDefault();
-    }
-
-    public void setLocalService(Boolean localService) {
-        localService().set(localService);
     }
 
     /**
@@ -429,12 +350,12 @@ public class LSqlRepository implements
      */
     @Override
     @SuppressWarnings("unchecked")
-    public LFuture<LObservable<LDataServiceState>, LDataException> setConnected(boolean connected) {
+    public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected) {
         if (connected) {
             //Verbindungsaufbau
             if (state().get() == LDataServiceState.NOT_AVAILABLE) {
                 if (isReadyForConnect()) {
-                    state.set(LDataServiceState.REQUESTING);
+                    _state.set(LDataServiceState.REQUESTING);
                     return LFuture.execute(task -> connect());
                 } else {
                     return LFuture.error(new LDataException(this, "Can't connect because of missing or incomplete connection details"));
@@ -442,26 +363,26 @@ public class LSqlRepository implements
             }
         } else {
             //Verbindungsabbau
-            if (con != null) {
+            if (_connection != null) {
                 try {
-                    queryStatement.close();
+                    _queryStatement.close();
                 } catch (Exception e) {
                 }
                 try {
-                    con.close();
+                    _connection.close();
                 } catch (Exception e) {
                 }
-                if (getDatabaseType() == LoSqlDatabaseType.DERBY_EMBEDDED) {
+                if (databaseType().get() == LoSqlDatabaseType.DERBY_EMBEDDED) {
                     try {
-                        DriverManager.getConnection("jdbc:derby:" + getDatabase() + ";shutdown=true");
+                        DriverManager.getConnection("jdbc:derby:" + database().get() + ";shutdown=true");
                     } catch (Exception e) {
                     }
                 }
 
             }
-            queryStatement = null;
-            con = null;
-            state.set(LDataServiceState.NOT_AVAILABLE);
+            _queryStatement = null;
+            _connection = null;
+            _state.set(LDataServiceState.NOT_AVAILABLE);
         }
         return LFuture.value(state());
     }
@@ -498,8 +419,8 @@ public class LSqlRepository implements
 
     protected LSqlResultSet executeQuery(String sql, int maxRows) throws LDataException {
         try {
-            LLog.debug(this, "SQL query: %s", sql);            
-            LSqlResultSet resultSet = new LSqlResultSet(con, sql, maxRows);
+            LLog.debug(this, "SQL query: %s", sql);
+            LSqlResultSet resultSet = new LSqlResultSet(_connection, sql, maxRows);
             return resultSet;
         } catch (SQLException sqle) {
             throw new LDataException(this, sqle.getMessage(), sqle);
@@ -510,7 +431,7 @@ public class LSqlRepository implements
         if (!isReadOnly()) {
             try {
                 LLog.debug(this, "SQL update: %s", sql);
-                queryStatement.executeUpdate(sql);
+                _queryStatement.executeUpdate(sql);
             } catch (SQLException sqle) {
                 throw new LDataException(this, sqle.getMessage() + " / sql statement: " + sql, sqle);
             }
@@ -523,9 +444,9 @@ public class LSqlRepository implements
         if (!isReadOnly()) {
             try {
                 LLog.debug(this, "SQL insert: %s", sql);
-                queryStatement.executeUpdate(sql, (returnGeneratedKey ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS));
+                _queryStatement.executeUpdate(sql, (returnGeneratedKey ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS));
                 if (returnGeneratedKey) {
-                    ResultSet rs = queryStatement.getGeneratedKeys();
+                    ResultSet rs = _queryStatement.getGeneratedKeys();
                     rs.next();
                     return rs.getInt(1);
                 } else {
@@ -541,7 +462,7 @@ public class LSqlRepository implements
     }
 
     public String toSql(LObservable value) {
-        return (((value != null) && (value.isPresent())) ? (String) LSqlConverter.toSqlValue(value, con) : "NULL");
+        return (((value != null) && (value.isPresent())) ? (String) LSqlConverter.toSqlValue(value, _connection) : "NULL");
     }
 
     protected String getSQLType(LColumnItem dbItem, boolean referenceLink) {
@@ -627,7 +548,7 @@ public class LSqlRepository implements
             //letztes Komma abschneiden
             sql.delete(sql.length() - 2, sql.length());
             sql.append(") ");
-            if (getDatabaseType() == LoSqlDatabaseType.MARIADB) {
+            if (databaseType().get() == LoSqlDatabaseType.MARIADB) {
                 sql.append("ENGINE = InnoDB ");
             }
             //SQL-Anweisung ausfuehren
@@ -635,11 +556,11 @@ public class LSqlRepository implements
             //Index-Spalten            
             for (int i = 0; i < fields.size(); i++) {
                 LField column = fields.get(i);
-                if (LReflections.existsAnnotation(column, Id.class)) {
+                if (LReflections.existsAnnotation(column, Index.class)) {
                     /*if (column.isUniqueIndexColumn()) {
                         sql = "create unique index uidx_" + datas.getTableNameShort() + "_" + column.getName() + " on " + datas.getTableName() + "(" + datas.getTableNameShort() + "_" + column.getName() + ")";
                     } else {*/
-                    String sqls = "create index idx" +ILConstants.UNDL + tableName.toLowerCase() + ILConstants.UNDL + column.name() + " on " + tableName + "(" + column.name() + ")";
+                    String sqls = "create index idx" + ILConstants.UNDL + tableName.toLowerCase() + ILConstants.UNDL + column.name() + " on " + tableName + "(" + column.name() + ")";
                     //}
                     executeUpdate(sqls);
                 }
@@ -687,7 +608,7 @@ public class LSqlRepository implements
 
         sql.append(") ");
 
-        if (getDatabaseType() == LoSqlDatabaseType.MARIADB) {
+        if (databaseType().get() == LoSqlDatabaseType.MARIADB) {
             sql.append("ENGINE = InnoDB ");
         }
         //SQL-Anweisung ausfuehren
@@ -755,7 +676,7 @@ public class LSqlRepository implements
     public <R extends Record> LFuture<Boolean, LDataException> existsData(R rcd) {
         return LFuture.<Boolean, LDataException>execute(task -> {
             var columnItems = getColumnsWithoutLinks(rcd.getClass());
-            String sqlFilter = buildSqlFilter(rcd, columnItems, "");            
+            String sqlFilter = buildSqlFilter(rcd, columnItems, "");
             return this.existsData(getTableName(rcd.getClass(), null), sqlFilter);
         });
     }
@@ -812,8 +733,8 @@ public class LSqlRepository implements
                                         }
                                     } else if (!columnItem.isLateLoader()) {
                                         sql = sql + columnItem.getDataFieldName() + ", ";
-                                    }   
-                                    
+                                    }
+
                                     /*if ((columnItem.getLinkColumns() != null) || (!columnItem.isGeneratedValue())) {
                                     sql = sql + columnItem.getDataFieldName() + ", ";
                                 } else if (generatedColumn == null) {
@@ -827,12 +748,12 @@ public class LSqlRepository implements
                                     if ((!columnItem.isGeneratedValue()) && (!columnItem.isLateLoader())) {
                                         //this crashes and burns
                                         var obs = getSubItem(columnItem, rcd);
-                                        
-                                        //LObjects.requireNonNull(obs, "Illegal state: Observable for field '" + columnItem.getField().name() + "' is null. Record: " + rcd);
+
+                                        //LObjects.requireNonNull(obs, "Illegal _state: Observable for field '" + columnItem.getField().name() + "' is null. Record: " + rcd);
                                         sql = sql + toSql(obs);
                                         sql = sql + ", ";
                                     }
-                                    
+
                                     /*if ((columnItem.getLinkColumns() != null) || (!columnItem.isGeneratedValue())) {
                                     sql = sql + toSql(getSubItem(columnItem, rcd));
                                     sql = sql + ", ";
@@ -868,7 +789,7 @@ public class LSqlRepository implements
                     throw new LDataException(this, "Exception during persisting: " + ex.getMessage(), ex);
                 }
             }
-            return rcd;            
+            return rcd;
         });
     }
 
@@ -900,17 +821,17 @@ public class LSqlRepository implements
                     sb.append("?)");
                 }
                 try {
-                    var ps = con.prepareStatement(sb.toString());
+                    var ps = _connection.prepareStatement(sb.toString());
                     var i = 1;
                     if (!exists) {
                         for (var col : columns) {
                             if (col.isFieldPrimaryKey()) {
-                                ps.setObject(i, LSqlConverter.toSqlValue(getSubItem(col, rcd), con));
+                                ps.setObject(i, LSqlConverter.toSqlValue(getSubItem(col, rcd), _connection));
                                 i++;
                             }
                         }
                     }
-                    var sqlValue = LSqlConverter.toSqlValue(obs, con);
+                    var sqlValue = LSqlConverter.toSqlValue(obs, _connection);
                     ps.setObject(i, sqlValue);
                     ps.execute();
                     if (sqlValue instanceof Blob) {
@@ -961,14 +882,16 @@ public class LSqlRepository implements
 
     private LList<LSqlRelationsItem> relationsDelete(Record parent, Record child, LList<LColumnItem> childColumns) throws LDataException {
         var result = new LList<LSqlRelationsItem>();
-        for (LDataShemeDefinition sd : DATA_SHEME) {
+        for (var entry : DATA_SHEME.entrySet()) {
+            var sd = entry.getKey();
+            var tableName = entry.getValue();
             if ((sd.repository() == this) && (sd.childClass() != null) && ((child.getClass() == sd.childClass()) || (child.getClass() == sd.parentClass()))) {
                 boolean isChild = (child.getClass() == sd.childClass());
                 String filterPrefix = (isChild ? ILConstants.CHILD : ILConstants.PARENT) + ILConstants.UNDL;
                 String yosoPrefix = (isChild ? ILConstants.PARENT : ILConstants.CHILD) + ILConstants.UNDL;
                 var paColumns = (isChild ? getColumnsWithoutLinks(sd.parentClass()) : childColumns);
                 var chColumns = (isChild ? childColumns : getColumnsWithoutLinks(sd.childClass()));
-                StringBuilder sb = getRelationSelectStatement(sd.tableName(), paColumns, chColumns, child, filterPrefix);
+                StringBuilder sb = getRelationSelectStatement(tableName, paColumns, chColumns, child, filterPrefix);
                 if ((isChild) && (sd.parentClass() == parent.getClass())) {
                     sb.append(" and not (");
                     sb.append(buildSqlFilter(parent, paColumns, ILConstants.PARENT + ILConstants.UNDL));
@@ -981,7 +904,7 @@ public class LSqlRepository implements
                             @SuppressWarnings("unchecked")
                             Record data = LRecord.of(isChild ? sd.parentClass() : sd.childClass(), null);
                             //fillDatas(data, sqlResultSet, (isChild ? paColumns : chColumns), true, yosoPrefix);
-                            result.add(new LSqlRelationsItem(sd.tableName(), isChild, (isChild ? paColumns : chColumns), data));
+                            result.add(new LSqlRelationsItem(tableName, isChild, (isChild ? paColumns : chColumns), data));
                         } catch (LParseException lpe) {
                             sqlResultSet.close();
                             throw new LDataException(this, lpe.getMessage(), lpe);
@@ -1100,9 +1023,9 @@ public class LSqlRepository implements
     @Override
     public void startTransaction() throws LDataException {
         try {
-            con.setAutoCommit(false);
+            _connection.setAutoCommit(false);
             //Start transaction
-            con.setSavepoint();
+            _connection.setSavepoint();
         } catch (SQLException sqle) {
             throw new LDataException(this, sqle.getMessage(), sqle);
         }
@@ -1111,8 +1034,8 @@ public class LSqlRepository implements
     @Override
     public void commitTransaction() throws LDataException {
         try {
-            con.commit();
-            con.setAutoCommit(true);
+            _connection.commit();
+            _connection.setAutoCommit(true);
         } catch (SQLException sqle) {
             throw new LDataException(this, sqle.getMessage(), sqle);
         }
@@ -1121,8 +1044,8 @@ public class LSqlRepository implements
     @Override
     public void rollbackTransaction() throws LDataException {
         try {
-            con.rollback();
-            con.setAutoCommit(true);
+            _connection.rollback();
+            _connection.setAutoCommit(true);
         } catch (SQLException sqle) {
             throw new LDataException(this, sqle.getMessage(), sqle);
         }
@@ -1196,7 +1119,7 @@ public class LSqlRepository implements
     private void buildSqlComparison(Class<? extends Record> rcdClass, StringBuilder subs, String prefix, String opString, Object colObject, Object valObject) throws LDataException {
         LColumnItem column = null;
         if (colObject instanceof String) {
-            var columns = this.getColumnsWithoutLinks(rcdClass);            
+            var columns = this.getColumnsWithoutLinks(rcdClass);
             column = columns.getIf(ci -> ci.getDataFieldName().equals((String) colObject));
             if (column == null) {
                 throw new LDataException(this, "Cant find column '" + colObject + "' in record class: " + rcdClass);
@@ -1400,10 +1323,10 @@ public class LSqlRepository implements
             if (((!onlyKey) || (column.isFieldPrimaryKey())) && (!column.isLateLoader())) {
                 Object value = null;
                 if (column.isLinked()) {
-                    if (column.getLinkColumn() != lastLinkedColumn) {                        
-                        value  = _createRecord(column.getLinkColumn().requiredClass().requiredClass(), resultSet, 
-                                              getColumnsWithoutLinks(column.getLinkColumn().requiredClass().requiredClass()), 
-                                              prefix + column.getLinkColumn().name() + ILConstants.UNDL, true);
+                    if (column.getLinkColumn() != lastLinkedColumn) {
+                        value = _createRecord(column.getLinkColumn().requiredClass().requiredClass(), resultSet,
+                                getColumnsWithoutLinks(column.getLinkColumn().requiredClass().requiredClass()),
+                                prefix + column.getLinkColumn().name() + ILConstants.UNDL, true);
                     }
                     if (value != null) {
                         map.put(column.getLinkColumn().name(), value);
@@ -1411,11 +1334,11 @@ public class LSqlRepository implements
                     lastLinkedColumn = column.getLinkColumn();
                 } else {
                     //not linked column
-                    value = resultSet.getObject(prefix + column.getField().name(), column.getField().requiredClass());       
+                    value = resultSet.getObject(prefix + column.getField().name(), column.getField().requiredClass());
                     if (value != null) {
                         map.put(column.getField().name(), value);
                     }
-                }                
+                }
             }
         }
         try {
@@ -1451,7 +1374,7 @@ public class LSqlRepository implements
             });
             var term = Optional.of(cons.size() > 1 ? LTerm.and(cons.toArray()) : cons.get(0));
             StringBuilder sql = new StringBuilder();
-            sql.append(this._buildSqlStatementForRequery(rcdClass, Optional.empty(), term, false));
+            sql.append(_buildSqlStatementForRequery(rcdClass, Optional.empty(), term, false));
             try {
                 LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
                 if (sqlResultSet.next()) {
@@ -1540,7 +1463,7 @@ public class LSqlRepository implements
                         if ((parent.isPresent()) && (rcd instanceof ILHasParent)) {
                             ((ILHasParent) rcd).setParent(parent.get());
                         }
-                        
+
                         result.add(rcd);
                     }
                     sqlResultSet.close();
@@ -1556,10 +1479,10 @@ public class LSqlRepository implements
 
     @SuppressWarnings("unchecked")
     public LEventHandler<LErrorEvent> onErrorProperty() {
-        if (onError == null) {
-            onError = new LEventHandler();
+        if (_onError == null) {
+            _onError = new LEventHandler();
         }
-        return onError;
+        return _onError;
     }
 
     @Override
@@ -1569,16 +1492,20 @@ public class LSqlRepository implements
 
     @SuppressWarnings("unchecked")
     private void notifyOnError(Throwable e) {
-        if (onError != null) {
-            onError.fireEvent(new LErrorEvent(this, e.getMessage(), e, false));
+        if (_onError != null) {
+            _onError.fireEvent(new LErrorEvent(this, e.getMessage(), e, false));
         } else {
-            LLog.error(owner, e.getMessage(), e);
+            LLog.error(this, e.getMessage(), e);
         }
     }
 
     @Override
     public String toString() {
         return LXmlUtils.classToString(this);
+    }
+
+    public static LSqlRepository create() {
+        return new LSqlRepository();
     }
 
 }

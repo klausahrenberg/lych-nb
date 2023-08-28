@@ -9,7 +9,7 @@ import java.time.chrono.ChronoLocalDate;
  *
  * @author klausahrenberg
  */
-public class LDate extends LObservable<LocalDate> {    
+public class LDate extends LObservable<LocalDate, LDate> {    
     
     public final static DateTimeFormatter DEFAULT_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     
@@ -56,6 +56,11 @@ public class LDate extends LObservable<LocalDate> {
     
     public static String toParseableString(LocalDate date) {
         return (date != null ? DEFAULT_DATE_FORMAT.format(date) : null);
+    }
+
+    @Override
+    public LDate clone() throws CloneNotSupportedException {
+        return new LDate(this.get());
     }
     
     public static LDate of(String value) throws LParseException {

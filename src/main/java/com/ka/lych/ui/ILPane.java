@@ -3,9 +3,9 @@ package com.ka.lych.ui;
 /**
  *
  * @author klausahrenberg 
- * @param <C> Component class
+ * @param <BC> Component class
  */
-public interface ILPane<C> extends ILControl, ILChildrensIterable<C> {        
+public interface ILPane<BC> extends ILControl<BC>, ILChildrensIterable<BC> {        
 
     public void buildView();
     

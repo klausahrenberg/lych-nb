@@ -3,7 +3,6 @@ package com.ka.lych.observable;
 import java.net.MalformedURLException;
 import java.net.URL;
 import com.ka.lych.util.ILConstants;
-import com.ka.lych.util.LLog;
 
 /**
  *
@@ -13,7 +12,7 @@ public class LUrl extends LString {
 
     private URL url;
     
-    private final ILChangeListener<String> valueListener = change -> {
+    private final ILChangeListener<String, LString> valueListener = change -> {
         url = null;
     };
 

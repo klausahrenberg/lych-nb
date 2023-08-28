@@ -31,9 +31,9 @@ public class LCircle extends LEllipse {
             double cx = LXmlUtils.xmlStrToDouble(n.getAttributes().getNamedItem("cx").getTextContent());
             double cy = LXmlUtils.xmlStrToDouble(n.getAttributes().getNamedItem("cy").getTextContent());
             double r = LXmlUtils.xmlStrToDouble(n.getAttributes().getNamedItem("r").getTextContent());
-            setBounds(cx - r, cy - r, 2 * r, 2 * r);
+            bounds(cx - r, cy - r, 2 * r, 2 * r);
         } else {
-            setBounds(0, 0, 0, 0);
+            bounds(0, 0, 0, 0);
         }
     }
 

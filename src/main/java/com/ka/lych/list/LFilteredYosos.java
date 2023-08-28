@@ -10,9 +10,9 @@ import java.util.LinkedList;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import com.ka.lych.observable.LBoolean;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.util.LArrays;
-import com.ka.lych.util.LMergeSorter;
 
 /**
  *
@@ -30,8 +30,8 @@ public class LFilteredYosos<T> extends AbstractList<T>
     private int size;
     protected LinkedList<ILYososChangeListener<T>> yososListeners;
     private ILYosos<T> sourceYosos;
-    private LObservable<Predicate<? super T>> predicate;
-    private LObservable<Comparator<? super T>> comparator;
+    private LObject<Predicate<? super T>> predicate;
+    private LObject<Comparator<? super T>> comparator;
     protected LBoolean descendingOrder;
 
     public LFilteredYosos(ILYosos<T> sourceYosos, Predicate<? super T> predicate) {
@@ -210,9 +210,9 @@ public class LFilteredYosos<T> extends AbstractList<T>
         return oldYoso;
     }
 
-    public LObservable<Predicate<? super T>> predicate() {
+    public LObject<Predicate<? super T>> predicate() {
         if (predicate == null) {
-            predicate = new LObservable<>(DEFAULT_PREDICATE);
+            predicate = new LObject<>(DEFAULT_PREDICATE);
             predicate.addListener(change -> refilter());
         }
         return predicate;
@@ -226,9 +226,9 @@ public class LFilteredYosos<T> extends AbstractList<T>
         predicate().set(predicate);
     }
 
-    public LObservable<Comparator<? super T>> comparator() {
+    public LObject<Comparator<? super T>> comparator() {
         if (comparator == null) {
-            comparator = new LObservable<>(DEFAULT_COMPARATOR);
+            comparator = new LObject<>(DEFAULT_COMPARATOR);
             comparator.addListener(change -> sort());
         }
         return comparator;

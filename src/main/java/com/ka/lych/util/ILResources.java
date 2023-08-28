@@ -1,7 +1,7 @@
 package com.ka.lych.util;
 
+import com.ka.lych.observable.LObject;
 import java.util.Locale;
-import com.ka.lych.observable.LObservable;
 import java.util.List;
 
 /**
@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface ILResources {
 
-    public LObservable<Locale> observableLocale();
+    public LObject<Locale> observableLocale();
     
     public Locale getLocale();
     

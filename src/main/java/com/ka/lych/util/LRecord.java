@@ -3,11 +3,13 @@ package com.ka.lych.util;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.ILChangeListener;
+import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LDate;
 import com.ka.lych.observable.LDatetime;
 import com.ka.lych.observable.LDouble;
 import com.ka.lych.observable.LInteger;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
 import com.ka.lych.observable.LText;
@@ -164,7 +166,7 @@ public abstract class LRecord {
                     value = Path.of((String) value);                
                 }
             }
-            result = new LObservable(value);
+            result = new LObject(value);
         }
         if (result != null) {
             return result;
@@ -233,7 +235,7 @@ public abstract class LRecord {
     }
 
     @SuppressWarnings("unchecked")
-    private static final ILChangeListener<Object> recordIdListener = change -> {        
+    private static final ILChangeListener<Object, ILObservable> recordIdListener = change -> {        
         Record rcd = null;// (Record) change.getSource().getBean();
         var fields = LRecord.getFields(rcd.getClass());
         var oldIdObjects = getOldIdObjects(rcd);
@@ -249,7 +251,7 @@ public abstract class LRecord {
                     //clone not linked fields
                     if (complete) {
                         try {
-                            LObservable cloneObs = LObservable.clone(obs);
+                            LObservable cloneObs = (LObservable) obs.clone();
                             if (obs == change.getSource()) {
                                 cloneObs.set(change.oldValue());
                             }

@@ -1,8 +1,8 @@
 package com.ka.lych.util;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 
 /**
  *
@@ -10,8 +10,8 @@ import java.io.OutputStream;
  */
 public interface ILBlobable {
     
-    public void read(InputStream is) throws IOException;
+    public void read(ObjectInputStream is) throws IOException;
 
-    public void write(OutputStream os) throws IOException;
+    public void write(ObjectOutputStream os) throws IOException;
     
 }

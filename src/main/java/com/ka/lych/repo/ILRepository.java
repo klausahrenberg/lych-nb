@@ -20,20 +20,28 @@ import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Lazy;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
+import com.ka.lych.observable.LObject;
 
 /**
  *
  * @author klausahrenberg
+ * @param <BC>
  */
-public interface ILRepository {
+public interface ILRepository<BC extends ILRepository> {
 
     public static final String SUFFIX_RELATION_TABLE = "Relation";
 
-    //public final LMap<Class, LList<LColumnItem>> COLUMNS_UNLINKED = new LMap<>();
-    public record LDataShemeDefinition(ILRepository repository, Class parentClass, Class childClass, String tableName) {
+    record LRepoParentChild(ILRepository repository, Class parentClass, Class childClass) {
 
     }
-    public static LList<LDataShemeDefinition> DATA_SHEME = LList.empty();
+    
+    static LMap<LRepoParentChild, String> DATA_SHEME = new LMap<>();
+
+    record LRecordClassRootName(ILRepository repository, Class rcdClass, String rootName) {
+
+    }
+    
+    LMap<LRecordClassRootName, Record> ROOTS = new LMap<>();
 
     public LMap<Class, LList<LColumnItem>> columnsUnlinked();
 
@@ -64,29 +72,37 @@ public interface ILRepository {
     public default void registerRelation(Class parentClass, Class childClass, String tableName) {
         if (LString.isEmpty(tableName)) {
             tableName = (childClass == null ? parentClass.getSimpleName() : parentClass.getSimpleName() + childClass.getSimpleName() + SUFFIX_RELATION_TABLE);
-
         }
-        DATA_SHEME.add(new LDataShemeDefinition(this, parentClass, childClass, tableName));
+        DATA_SHEME.put(new LRepoParentChild(this, parentClass, childClass), tableName);
+    }
+    
+    public default void registerRoot(Record rcd, String rootName) {
+        ROOTS.put(new LRecordClassRootName(this, rcd.getClass(), rootName), rcd);
     }
 
     @SuppressWarnings("unchecked")
     public default void checkTables() throws LDataException {
+        LLog.debug(this, "Check db tables...");
         if (!isReadOnly()) {
-            for (LDataShemeDefinition sd : DATA_SHEME) {
-                if (sd.repository() == this) {
-                    String tableName = getTableName(sd.parentClass, sd.childClass);
+            LLog.debug(this, "Check %s items", DATA_SHEME.size());
+            for (var entry : DATA_SHEME.entrySet()) {
+                LLog.debug(this, "Check %s", entry);
+                var rpc = entry.getKey();
+                var tableName = entry.getValue();
+                if (rpc.repository() == this) {
                     if (!existsTable(tableName)) {
-                        if (sd.childClass == null) {
+                        if (rpc.childClass() == null) {
                             LLog.debug(this, "Create table '%s'...", tableName);
-                            createTable(sd.parentClass);
+                            createTable(rpc.parentClass());
                         } else {
                             LLog.debug(this, "Create relation '%s'...", tableName);
-                            createRelation(sd.parentClass, sd.childClass);
+                            createRelation(rpc.parentClass(), rpc.childClass());
                         }
                     }
                 }
             }
         }
+        LLog.debug(this, "Tables checked.");
     }
 
     public default String getTableName(Class parentClass) throws LDataException {
@@ -94,17 +110,21 @@ public interface ILRepository {
     }
 
     public default String getTableName(Class parentClass, Class childClass) throws LDataException {
-        for (LDataShemeDefinition sd : DATA_SHEME) {
-            if ((sd.repository() == this) && (sd.parentClass() == parentClass) && (sd.childClass() == childClass)) {
-                return sd.tableName();
-            }
+        var result = DATA_SHEME.get(new LRepoParentChild(this, parentClass, childClass));
+        if (LString.isEmpty(result)) {
+            throw new LDataException(this, "Can't find tableName for class '" + parentClass.getName() + "'" + (childClass != null ? "(" + childClass.getName() + "'" : ""));
         }
-        throw new LDataException(this, "Can't find tableName for class '" + parentClass.getName() + "'" + (childClass != null ? "(" + childClass.getName() + "'" : ""));
+        return result;
     }
 
-    public LObservable<LDataServiceState> state();    
+    public LObject<LDataServiceState> state();    
 
     public LBoolean readOnly();
+    
+    public default BC readOnly(boolean readOnly) {
+        readOnly().set(readOnly);
+        return (BC) this;
+    }
 
     public default boolean isReadOnly() {
         return (readOnly().isAbsent() || (readOnly().get() == Boolean.TRUE));
@@ -120,7 +140,7 @@ public interface ILRepository {
         }
     }
 
-    public LFuture<LObservable<LDataServiceState>, LDataException> setConnected(boolean connected);
+    public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected);
 
     public boolean existsTable(String tableName);
 
@@ -133,6 +153,8 @@ public interface ILRepository {
     public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Optional<? extends Record> parent, Optional<LTerm> filter);
 
     public <R extends Record> LFuture<List<R>, LDataException> fetch(Class<R> dataClass, Optional<? extends Record> parent, Optional<LQuery> query);
+
+    public <R extends Record> LFuture<R, LDataException> fetchRoot(Class<R> dataClass, Optional<String> rootName);
 
     public Object fetchValue(Record record, LObservable observable) throws LDataException;
 

@@ -90,7 +90,7 @@ public record LPath(Path path, LString displayName) {
                 it_path.forEach(path -> result.add(LPath.of(path)));
                 //User-dirs
                 Path userDirs = Path.of(homePath.toString() + FileSystems.getDefault().getSeparator() + ".config/user-dirs.dirs");
-                if (LPath_old.exists(userDirs)) {
+                if (LPath.exists(userDirs)) {
                     BufferedReader br = new BufferedReader(new FileReader(userDirs.toString()));
                     String strLine;
                     while ((strLine = br.readLine()) != null) {
@@ -129,7 +129,7 @@ public record LPath(Path path, LString displayName) {
                 result = Path.of(homeDir.toString() + strLine.substring(5));
             }
         }
-        return ((result != null) && (LPath_old.exists(result)) ? result : null);
+        return ((result != null) && (LPath.exists(result)) ? result : null);
     }
 
     public static LList<LPath> fetch(LPath path, Optional<Filter<? super Path>> filter) throws IOException {
@@ -143,6 +143,14 @@ public record LPath(Path path, LString displayName) {
             stream.forEach(p -> result.add(LPath.of(p)));
             return result;
         }
+    }
+    
+    public boolean exists() {
+        return LPath.exists(this.path());
+    }
+    
+    public static boolean exists(Path path) {
+        return Files.exists(path); //, LinkOption.NOFOLLOW_LINKS);
     }
     
     public static class LPathGlobFilter

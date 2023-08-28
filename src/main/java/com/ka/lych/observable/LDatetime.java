@@ -9,7 +9,7 @@ import com.ka.lych.util.LParseException;
  *
  * @author klausahrenberg
  */
-public class LDatetime extends LObservable<LocalDateTime> {          
+public class LDatetime extends LObservable<LocalDateTime, LDatetime> {          
     
     public LDatetime() {
     }
@@ -41,6 +41,11 @@ public class LDatetime extends LObservable<LocalDateTime> {
         var result = new LDatetime();
         result.parse(value);
         return result;
+    }
+
+    @Override
+    public LDatetime clone() throws CloneNotSupportedException {
+        return new LDatetime(this.get());
     }
     
 }

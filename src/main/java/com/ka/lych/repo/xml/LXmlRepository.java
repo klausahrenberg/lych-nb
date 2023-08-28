@@ -18,25 +18,22 @@ import com.ka.lych.util.LFuture;
 import com.ka.lych.xml.LXmlUtils;
 import org.w3c.dom.*;
 import org.xml.sax.*;
-import com.ka.lych.repo.ILRepository;
 import com.ka.lych.repo.LQuery;
 import com.ka.lych.util.LTerm;
 import java.util.Optional;
-import com.ka.lych.annotation.Id;
-import com.ka.lych.annotation.Json;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LBoolean;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.repo.LColumnItem;
-import java.util.Collection;
+import com.ka.lych.repo.LServerRepository;
 import java.util.List;
 
 /**
  *
  * @author klausahrenberg
  */
-public class LXmlRepository implements
-        ILRepository {
+public class LXmlRepository extends LServerRepository<LXmlRepository> {
 
     public static final String KEYWORD_XML_ROOT = "datas";
     public static final String KEYWORD_XML_HEADER = "header";
@@ -219,7 +216,7 @@ public class LXmlRepository implements
 
     @Override        
     @SuppressWarnings("unchecked")
-    public LFuture<LObservable<LDataServiceState>, LDataException> setConnected(boolean connected) {
+    public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected) {
         return LFuture.value(state());
     }
 
@@ -287,7 +284,7 @@ public class LXmlRepository implements
     }
 
     @Override
-    public LObservable<LDataServiceState> state() {
+    public LObject<LDataServiceState> state() {
         throw new UnsupportedOperationException("stateProperty: Not supported yet.");
     }
 

@@ -1,7 +1,6 @@
 package com.ka.lych.observable;
 
 import java.text.DecimalFormat;
-import com.ka.lych.event.LObservableChangeEvent;
 import com.ka.lych.geometry.LGeomUtils;
 import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.LXmlUtils;
@@ -10,13 +9,13 @@ import com.ka.lych.xml.LXmlUtils;
  *
  * @author klausahrenberg
  */
-public class LInteger extends LObservable<Integer> {
+public class LInteger extends LObservable<Integer, LInteger> {
 
     protected Integer lowerLimit, upperLimit;    
     private DecimalFormat decimalFormat;
     private String pattern;
 
-    private ILValidator<Integer> numberAcceptor = (LObservableChangeEvent<Integer> change) -> {
+    private ILValidator<Integer, LInteger> numberAcceptor = (Lchange) -> {
         return (!LGeomUtils.isWithinLimits(get(), lowerLimit, upperLimit) ?
                 new LValueException(this, "Given value is out of limits: value=" + get() + "; lowerLimit=" + lowerLimit + "; upperLimit=" + upperLimit) :
                 null);
@@ -108,13 +107,10 @@ public class LInteger extends LObservable<Integer> {
             }
         }
     }
-    
-    public static LInteger clone(LInteger source) {
-        LInteger result = null;
-        if (source != null) {
-            result = new LInteger(source.get(), source.getLowerLimit(), source.getUpperLimit());            
-        }
-        return result;
+
+    @Override
+    public LInteger clone() throws CloneNotSupportedException {
+        return new LInteger(this.get(), this.getLowerLimit(), this.getUpperLimit());
     }
     
     public void inc() {

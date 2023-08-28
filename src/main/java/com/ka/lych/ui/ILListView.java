@@ -4,7 +4,7 @@ import com.ka.lych.event.ELActionTrigger;
 import com.ka.lych.event.LActionEvent;
 import com.ka.lych.event.LFileEvent;
 import com.ka.lych.list.ILYosos;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.util.ILHandler;
 
 /**
@@ -22,9 +22,9 @@ public interface ILListView<T> extends ILControl {
     
     public void addAcceptedFileExtension(String... extensions);
     
-    public LObservable<T> observableSelectedYoso();
+    public LObject<T> observableSelectedYoso();
     
-    public LObservable<ELActionTrigger> observableActionTrigger();
+    public LObject<ELActionTrigger> observableActionTrigger();
     
     public ELActionTrigger getActionTrigger();
     

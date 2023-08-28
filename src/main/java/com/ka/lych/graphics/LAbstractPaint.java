@@ -7,37 +7,37 @@ import com.ka.lych.util.ILCloneable;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LReflections;
-import com.ka.lych.xml.*;
 
 /**
  *
  * @author klausahrenberg
+ * @param <BC>
  */
 public abstract class LAbstractPaint<BC>
         implements ILCanvasCommand, ILCloneable, ILConstants {
 
-    static EnumSet<LPaintStyle> DEFAULT_STYLE = EnumSet.of(LPaintStyle.FILL);
     @Json
-    EnumSet<LPaintStyle> _style;
+    EnumSet<LStyle> _style = EnumSet.noneOf(LStyle.class);
 
     public LAbstractPaint() {
     }
 
-    public EnumSet<LPaintStyle> style() {
-        return (_style != null ? _style : DEFAULT_STYLE);
+    public EnumSet<LStyle> style() {
+        return _style;
     }
     
-    public BC style(EnumSet<LPaintStyle> style) {
+    public BC style(EnumSet<LStyle> style) {
         _style = style;
         return (BC) this;
     }
 
-    public boolean contains(LPaintStyle style) {
+    public boolean contains(LStyle style) {
         return style().contains(style);
     }
 
-    public void add(LPaintStyle style) {
+    public BC style(LStyle style) {
         style().add(style);
+        return (BC) this;
     }
 
     @Override
@@ -60,7 +60,7 @@ public abstract class LAbstractPaint<BC>
 
     @Override
     public String toString() {
-        return LXmlUtils.classToString(this);
+        return this.getClass().getName() + " [" + _style + "]";
     }
     
     @Override

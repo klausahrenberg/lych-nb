@@ -20,6 +20,7 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import com.ka.lych.event.LEvent;
 import com.ka.lych.geometry.ILBounds;
+import com.ka.lych.geometry.ILSize;
 import com.ka.lych.geometry.LBounds;
 import com.ka.lych.geometry.LSize;
 import com.ka.lych.list.ILHashYoso;
@@ -191,9 +192,14 @@ public class LXmlUtils {
             return defaultValue;
         }
     }
+    
+    public static String sizeToXmlStr(ILSize s) {
+        return (s != null ? Double.toString(s.width().get()) + " " + Double.toString(s.height().get())
+                : null);
+    }
 
     public static String boundsToXmlStr(ILBounds r) {
-        return (r != null ? Double.toString(r.getX()) + " " + Double.toString(r.getY()) + " "
+        return (r != null ? Double.toString(r.x().get()) + " " + Double.toString(r.y().get()) + " "
                 + Double.toString(r.width().get()) + " " + Double.toString(r.height().get())
                 : null);
     }
@@ -222,7 +228,7 @@ public class LXmlUtils {
         if (result == null) {
             result = new LBounds(co[0], co[1], co[2], co[3]);
         } else {
-            result.setBounds(co[0], co[1], co[2], co[3]);
+            result.bounds(co[0], co[1], co[2], co[3]);
         }
         return result;
     }
@@ -237,11 +243,11 @@ public class LXmlUtils {
         return count;
     }
 
-    public static double[] xmlStrToDoubleArray(StringBuilder value, int minArrayLength) {
+    public static double[] xmlStrToDoubleArray(StringBuilder value, int minArrayLength)  throws LParseException {
         return xmlStrToDoubleArray(value, minArrayLength, 0, 0);
     }
 
-    public static double[] xmlStrToDoubleArray(StringBuilder value, int minArrayLength, double dx, double dy) {
+    public static double[] xmlStrToDoubleArray(StringBuilder value, int minArrayLength, double dx, double dy) throws LParseException {
         //Possible starts of number are: ' ', '-', '.'
         double[] result = new double[minArrayLength];
         boolean dotFound = false;
@@ -270,13 +276,12 @@ public class LXmlUtils {
                     result[found] = result[found] + (found % 2 == 0 ? dx : dy);
                     found++;
                 } catch (NumberFormatException nfe) {
-                    //ignore
-                    LLog.error(LXmlUtils.class, "vs failed " + vs + " / " + nfe.getMessage());
+                    throw new LParseException(LXmlUtils.class, "vs failed " + vs + " / " + nfe.getMessage(), nfe);
                 }
                 //found++;
                 //found++;
             } else {
-                throw new IllegalStateException("Number of double values to less. Needed " + minArrayLength + ", counted only " + found + ". string: '" + value + "'");
+                throw new LParseException(LXmlUtils.class, "Number of double values to less. Needed " + minArrayLength + ", counted only " + found + ". string: '" + value + "'");
             }
             //skip spaces
             while ((index < value.length()) && ((value.charAt(index) == ' ') || (value.charAt(index) == ','))) {
@@ -286,7 +291,7 @@ public class LXmlUtils {
             dotFound = false;
         } while ((found < minArrayLength) && (!LString.isEmpty(vs)));
         if (found < minArrayLength) {
-            throw new IllegalStateException("Number of double values to less. Needed " + minArrayLength + ", counted only " + found + ". string: '" + value + "'");
+            throw new LParseException(LXmlUtils.class, "Number of double values to less. Needed " + minArrayLength + ", counted only " + found + ". string: '" + value + "'");
         }
         value.delete(0, index);
         return result;
@@ -919,7 +924,7 @@ public class LXmlUtils {
         if (xmlParseInfo == null) {
             throw new IllegalArgumentException("xmlParseInfo can't be null");
         }
-        if (n.getTextContent().startsWith(ILConstants.KEYWORD_EVENTHANDLER)) {
+        /*if (n.getTextContent().startsWith(ILConstants.KEYWORD_EVENTHANDLER)) {
             //look for a event handler method in controller class
             final LMethod eventMethod = LReflections.getMethod(n.getTextContent().substring(1).trim(), 1, xmlParseInfo.controllerMethods());
             if (eventMethod != null) {
@@ -935,7 +940,7 @@ public class LXmlUtils {
                         + n.getTextContent().substring(1) + "' in controller class '"
                         + xmlParseInfo.controller().getClass().getName() + "'");
             }
-        } else if (requiredClass != null) {
+        } else*/ if (requiredClass != null) {
             if (String.class.isAssignableFrom(requiredClass.requiredClass())) {
                 //String
                 String textContent = n.getTextContent();
@@ -1113,14 +1118,14 @@ public class LXmlUtils {
         }
     }
 
-    public static Object xmlStrToEnum(String value, Class enumClass) {
+    public static <T> T xmlStrToEnum(String value, Class<T> enumClass) {
         if (enumClass.isEnum()) {
             //Enum type
             if (!LString.isEmpty(value)) {
                 Object[] enumConsts = enumClass.getEnumConstants();
                 for (Object enumConst : enumConsts) {
                     if (enumConst.toString().equalsIgnoreCase(value)) {
-                        return enumConst;
+                        return (T) enumConst;
                     }
                 }
             }

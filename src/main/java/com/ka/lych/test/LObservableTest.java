@@ -1,7 +1,11 @@
 package com.ka.lych.test;
 
+import com.ka.lych.annotation.Id;
+import com.ka.lych.list.LMap;
 import com.ka.lych.list.LYoso;
 import com.ka.lych.observable.LString;
+import com.ka.lych.util.LParseException;
+import com.ka.lych.util.LRecord;
 
 /**
  *
@@ -9,13 +13,16 @@ import com.ka.lych.observable.LString;
  */
 public class LObservableTest {
 
-    public static void main(String[] args) {
-        var test = new TT();
-        test.setCaption("CaptionTest");
-        System.out.println(test.observable("caption"));
-        //test.observable("caption").set("newCaption");
-        System.out.println(test.observable("hashKey"));
+    public static void main(String[] args) throws LParseException {
+        var test = LRecord.of(TTT.class, LMap.of(LMap.entry("caption", "Hallo Welt")));
+        
+        System.out.println(LRecord.observable(test, "caption"));
     }
+    
+    public static record TTT(
+            @Id
+            LString caption
+            ){} 
     
     public static class TT extends LYoso {
 

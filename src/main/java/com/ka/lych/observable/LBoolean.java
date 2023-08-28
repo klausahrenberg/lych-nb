@@ -12,7 +12,7 @@ import java.util.Objects;
  *
  * @author klausahrenberg
  */
-public class LBoolean extends LObservable<Boolean> {
+public class LBoolean extends LObservable<Boolean, LBoolean> {
 
     public LBoolean() {
     }
@@ -21,8 +21,9 @@ public class LBoolean extends LObservable<Boolean> {
         super(initialValue);
     }
 
-    public static LBoolean clone(LBoolean source) {
-        return ((source != null) && (source.get() != null) ? new LBoolean(source.get()) : null);
+    @Override
+    public LBoolean clone() throws CloneNotSupportedException {
+        return new LBoolean(this.get());
     }
 
     @Override
@@ -58,6 +59,10 @@ public class LBoolean extends LObservable<Boolean> {
         var result = new LBoolean();
         result.parse(value);
         return result;
+    }
+    
+    public static LBoolean of(boolean value) {
+        return new LBoolean(value);
     }
     
     public static boolean isTrue(Boolean value) {

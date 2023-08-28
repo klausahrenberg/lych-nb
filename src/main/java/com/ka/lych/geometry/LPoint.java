@@ -3,6 +3,7 @@ package com.ka.lych.geometry;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.observable.ILChangeListener;
 import com.ka.lych.observable.ILObservable;
+import com.ka.lych.observable.ILValidator;
 import com.ka.lych.util.ILCloneable;
 import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.ILXmlSupport;
@@ -10,117 +11,50 @@ import com.ka.lych.xml.LXmlUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import com.ka.lych.observable.ILValidator;
+import com.ka.lych.observable.LDouble;
+import com.ka.lych.util.ILRegistration;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
-import com.ka.lych.util.ILRegistration;
 
 /**
  *
  * @author klausahrenberg
  */
 public class LPoint
-        implements ILPoint, ILCloneable, Comparable<LPoint>,ILObservable<LPoint>, ILXmlSupport {
+        implements ILPoint<LPoint>, ILCloneable, Comparable<LPoint>, ILObservable<LPoint, LPoint>, ILXmlSupport {
 
     @Json
-    private double x;
+    LDouble _x = new LDouble(0.0);
     @Json
-    private double y;
-    protected double precision;
-    protected boolean notifyAllowed;
-    protected ILChangeListener<LPoint> changeListener;
+    LDouble _y = new LDouble(0.0);
+    double _precision = LGeomUtils.DEFAULT_DOUBLE_PRECISION;
+    boolean _notifyAllowed = true;
+    ILChangeListener<LPoint, LPoint> _changeListener;
 
     public LPoint() {
         this(0, 0);
     }
 
     public LPoint(double x, double y) {
-        this.x = x;
-        this.y = y;
-        this.notifyAllowed = true;
-        precision = LGeomUtils.DEFAULT_DOUBLE_PRECISION;
-    }
-
-    @Override
-    public ILRegistration addListener(ILChangeListener<LPoint> changeListener) {
-        if (this.changeListener != null) {
-            throw new IllegalStateException("Listener is already available");
-        }
-        this.changeListener = changeListener;
-        return () -> removeListener(changeListener);
-    }
-
-    @Override
-    public void removeListener(ILChangeListener<LPoint> changeListener) {
-        if (this.changeListener != this.changeListener) {
-            throw new IllegalStateException("Current defined listener is another one");
-        }
-        this.changeListener = null;
+        x(x).y(y);
+        _x.addListener(c -> _notifyChangeListener());
+        _y.addListener(c -> _notifyChangeListener());
     }
     
-
+    protected void _notifyChangeListener() {
+        if (_changeListener != null) {
+            _changeListener.changed(null);
+        }
+    }
+  
     @Override
-    public double getX() {
-        return x;
+    public LDouble x() {
+        return _x;
     }
     
-    public int getXIntValue() {
-        return (int) Math.round(getX());
-    }
-
     @Override
-    public void setX(double x) {
-        if ((notifyAllowed) && (changeListener != null) && (LGeomUtils.isNotEqual(x, this.x, precision))) {
-            double oldValue = this.x;
-            this.x = x;
-            synchronized(changeListener) {
-                changeListener.changed(null);
-            }    
-        } else {
-            this.x = x;
-        }
-    }
-
-    @Override
-    public double getY() {
-        return y;
-    }
-
-    public int getYIntValue() {
-        return (int) Math.round(getY());
-    }
-
-    @Override
-    public void setY(double y) {
-        if ((notifyAllowed) && (changeListener != null) && (LGeomUtils.isNotEqual(y, this.y, precision))) {
-            double oldValue = this.y;
-            this.y = y;
-            synchronized(changeListener) {
-                changeListener.changed(null);
-            }    
-        } else {
-            this.y = y;
-        }
-    }
-
-    public void setXY(double x, double y) {        
-        this.setPoint(x, y);
-    }
-
-    public void setPoint(double x, double y) {
-        if ((notifyAllowed) && (changeListener != null)
-                && ((LGeomUtils.isNotEqual(x, this.x, precision))
-                || (LGeomUtils.isNotEqual(y, this.y, precision)))) {
-            double oldValue = this.x;
-            this.x = x;
-            this.y = y;
-            synchronized(changeListener) {
-                changeListener.changed(null);
-            }    
-        } else {
-            this.x = x;
-            this.y = y;
-        }
+    public LDouble y() {
+        return _y;
     }
 
     @Override
@@ -129,7 +63,7 @@ public class LPoint
             LXmlUtils.parseXml(this, n, xmlParseInfo);
         } else {
             double[] coord = LXmlUtils.xmlStrToDoubleArray(new StringBuilder(n.getTextContent()), 2);
-            this.setPoint(coord[0], coord[1]);
+            this.point(coord[0], coord[1]);
         }
     }
 
@@ -139,12 +73,12 @@ public class LPoint
     }
     
     @Override
-    public Object clone() {
+    public LPoint clone() {
         try {
             LPoint p = (LPoint) LReflections.newInstance(getClass());
-            p.x = x;
-            p.y = y;
-            p.precision = precision;
+            p.x(_x.get());
+            p.y(_y.get());
+            p._precision = _precision;
             return p;
         } catch (Exception ex) {
             throw new InternalError(ex);
@@ -156,27 +90,44 @@ public class LPoint
         if (os == null) {
             return 1;
         }
-        if ((LGeomUtils.isEqual(x, os.x, precision))
-                && (LGeomUtils.isEqual(y, os.y, precision))) {
+        if ((LGeomUtils.isEqual(_x.get(), os._x.get(), _precision))
+                && (LGeomUtils.isEqual(_y.get(), os._y.get(), _precision))) {
             return 0;
         } else {
-            return (int) Math.ceil((x * y) - (os.x * os.y));
+            return (int) Math.ceil((_x.get() * _y.get()) - (os._x.get() * os._y.get()));
         }
     }
 
     @Override
     public String toString() {
-        return this.getClass().getName() + " [" + x + ", " + y + "]";
+        return this.getClass().getName() + " [" + _x + ", " + _y + "]";
+    }
+    
+    @Override
+    public ILRegistration addListener(ILChangeListener<LPoint, LPoint> changeListener) {
+        if (_changeListener != null) {
+            throw new IllegalStateException("Listener is already available");
+        }
+        _changeListener = changeListener;
+        return () -> removeListener(_changeListener);
     }
 
     @Override
-    public ILRegistration addAcceptor(ILValidator<LPoint> valueAcceptor) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void removeListener(ILChangeListener<LPoint, LPoint> changeListener) {
+        if (_changeListener != changeListener) {
+            throw new IllegalStateException("Current defined listener is another one");
+        }
+        _changeListener = null;
     }
 
     @Override
-    public void removeAcceptor(ILValidator<LPoint> valueAcceptor) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public ILRegistration addAcceptor(ILValidator<LPoint, LPoint> valueAcceptor) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void removeAcceptor(ILValidator<LPoint, LPoint> valueAcceptor) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
 }

@@ -9,10 +9,7 @@ import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Generated;
 import com.ka.lych.observable.LDate;
 import com.ka.lych.observable.LInteger;
-import com.ka.lych.observable.LObservable;
-import com.ka.lych.observable.LText;
-import com.ka.lych.repo.LQuery;
-import com.ka.lych.repo.web.LWebRepository.LOdwRequest;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -67,7 +64,7 @@ public class LJsonKPPapTest {
             @Json(10)
             LString number,
             @Json
-            LObservable<KProject> project,
+            LObject<KProject> project,
             @Json
             LDate date) {
 

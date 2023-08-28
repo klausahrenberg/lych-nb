@@ -6,12 +6,7 @@ package com.ka.lych.util;
  */
 public class LReadOnlyException extends Exception {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = -1197712207092567127L;
-
-	public LReadOnlyException(String message, Throwable cause) {
+    public LReadOnlyException(String message, Throwable cause) {
         super(message, cause);
     }
 

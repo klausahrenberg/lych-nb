@@ -10,14 +10,14 @@ import com.ka.lych.xml.LXmlUtils;
  *
  * @author klausahrenberg
  */
-public class LDouble extends LObservable<Double> {
+public class LDouble extends LObservable<Double, LDouble> {
 
     protected Double lowerLimit, upperLimit;
     protected double precision;    
     private DecimalFormat decimalFormat;
     private String pattern;
     
-    private ILValidator<Double> numberAcceptor = (LObservableChangeEvent<Double> change) -> {
+    private ILValidator<Double, LDouble> numberAcceptor = (LObservableChangeEvent<Double, LDouble> change) -> {
         return (!LGeomUtils.isWithinLimits(get(), lowerLimit, upperLimit, precision * 0.001) ?
                 new LValueException(this, "Given value is out of limits: value=" + get() + "; lowerLimit=" + lowerLimit + "; upperLimit=" + upperLimit) :
                 null);
@@ -119,14 +119,15 @@ public class LDouble extends LObservable<Double> {
         }
     }
 
-    public static LDouble clone(LDouble source) {
+    @Override
+    public LDouble clone() throws CloneNotSupportedException {
         LDouble result = null;
-        if (source != null) {
-            if (source.isBoundInAnyWay()) {
+        if (this.isPresent()) {
+            if (this.isBoundInAnyWay()) {
                 throw new IllegalStateException("Bounded observable can't be cloned.");
             }
-            result = new LDouble(source.get(), source.getLowerLimit(), source.getUpperLimit());
-            result.setPrecision(source.getPrecision());
+            result = new LDouble(this.get(), this.getLowerLimit(), this.getUpperLimit());
+            result.setPrecision(this.getPrecision());
         }
         return result;
     }

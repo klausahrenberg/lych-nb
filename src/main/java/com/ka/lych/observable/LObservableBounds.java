@@ -8,7 +8,7 @@ import com.ka.lych.xml.LXmlUtils;
  *
  * @author klausahrenberg
  */
-public class LObservableBounds extends LObservable<ILBounds> {
+public class LObservableBounds extends LObservable<ILBounds, LObservableBounds> {
 
     public LObservableBounds() {
     }
@@ -25,6 +25,11 @@ public class LObservableBounds extends LObservable<ILBounds> {
     @Override
     public String toParseableString() {
         return LXmlUtils.boundsToXmlStr(this.get());
+    }
+
+    @Override
+    public LObservableBounds clone() throws CloneNotSupportedException {
+        return new LObservableBounds(this.get());
     }
     
     

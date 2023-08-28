@@ -9,11 +9,11 @@ import com.ka.lych.geometry.ILBounds;
 public class LDrawUtils {
     
     public static double getX(ILBounds bounds, double percent) {
-        return percent * bounds.width().get() + bounds.getX();
+        return percent * bounds.width().get() + bounds.x().get();
     }
     
     public static double getY(ILBounds bounds, double percent) {
-        return percent * bounds.height().get() + bounds.getY();
+        return percent * bounds.height().get() + bounds.y().get();
     }
     
     public static double getWidth(ILBounds bounds, double percent) {

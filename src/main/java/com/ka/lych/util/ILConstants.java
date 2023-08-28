@@ -54,10 +54,11 @@ public interface ILConstants {
     public final static String KEYWORD_EVENTHANDLER = "#";
     public final static String KEYWORD_RESOURCE_STRING = "$";    
     public final static String KEYWORD_RESOURCE_URL = "@";
-    public final static char KEYWORD_HEX = 'x';
+    public final static char KEYWORD_HEX = '#';
     public final static String KEYWORD_COMPONENT = "component";
     public final static String KEYWORD_HTML_TAG = "<html>";
     public final static String KEYWORD_STATE_SEPARATOR = "|";
+    public static final String KEYWORD_FILE_SVG_SUFFIX = "svg";
     public static final String KEYWORD_FILE_XML_SUFFIX = "xml";
     public static final String KEYWORD_FILE_JSON_SUFFIX = "json";
 

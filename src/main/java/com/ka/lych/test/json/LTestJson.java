@@ -1,7 +1,5 @@
 package com.ka.lych.test.json;
 
-import com.ka.lych.annotation.Generated;
-import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
@@ -11,8 +9,7 @@ import com.ka.lych.util.LJsonParser;
 import com.ka.lych.util.LLog;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Id;
-import com.ka.lych.observable.LDate;
-import com.ka.lych.observable.LInteger;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -41,8 +38,8 @@ public class LTestJson {
             @Id(256) LString href,
             @Json(128) LString id,
             @Json(256) LString title,
-            @Json LObservable<LList<String>> attype,
-            @Json LObservable<LMap<String, TProperty>> properties) {
+            @Json LObject<LList<String>> attype,
+            @Json LObject<LMap<String, TProperty>> properties) {
 
         public String getId() {
             return id.get();
@@ -56,7 +53,7 @@ public class LTestJson {
             @Json(256) LString title,
             @Json(128) LString type,
             @Json(128) LString attype,
-            @Json LObservable<LList<String>> enums) {
+            @Json LObject<LList<String>> enums) {
 
     }
 

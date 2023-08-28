@@ -8,7 +8,6 @@ import com.ka.lych.util.LLog;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LInteger;
-import com.ka.lych.observable.LObservable;
 import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LRecord;
 import java.util.Optional;
@@ -16,6 +15,7 @@ import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Lazy;
 import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -30,7 +30,7 @@ public class LRecordTest extends LBase {
     public void start() {
         version = "0.01";
         LLog.LOG_LEVEL = LLog.LLogLevel.DEBUGGING;
-        repository = new LSqlRepository(this);
+        repository = new LSqlRepository();
         repository.databaseType().set(LoSqlDatabaseType.DERBY_EMBEDDED);
         repository.database().set("test_db");
         repository.registerTable(KContact.class, null);
@@ -101,8 +101,8 @@ public class LRecordTest extends LBase {
     public record KPpap(
             @Id(32) LString id,
             @Id(16) LString revision,
-            @Id LObservable<KContact> supplier,
-            @Json LObservable<KContact> customer) {
+            @Id LObject<KContact> supplier,
+            @Json LObject<KContact> customer) {
 
     }
 

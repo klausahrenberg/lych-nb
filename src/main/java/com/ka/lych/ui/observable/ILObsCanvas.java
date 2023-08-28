@@ -1,7 +1,7 @@
 package com.ka.lych.ui.observable;
 
 import com.ka.lych.graphics.LCanvas;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -9,6 +9,6 @@ import com.ka.lych.observable.LObservable;
  */
 public interface ILObsCanvas {
     
-    public LObservable<LCanvas> canvas();
+    public LObject<LCanvas> canvas();
     
 }

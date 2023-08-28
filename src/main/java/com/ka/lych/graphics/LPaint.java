@@ -21,7 +21,7 @@ public class LPaint extends LAbstractPaint<LPaint> {
         color(color);
     }
     
-    public LPaint(LPaintStyle style, LColor color) {
+    public LPaint(LStyle style, LColor color) {
         style(EnumSet.of(style));
         color(color);
     }
@@ -55,6 +55,15 @@ public class LPaint extends LAbstractPaint<LPaint> {
     @Override
     public int hashCode() {       
         return Objects.hash(style(), color());
+    }
+    
+    @Override
+    public String toString() {
+        return this.getClass().getName() + " [" + _style + ", " + _color + "]";
+    }
+    
+    public static LPaint create() {
+        return new LPaint();
     }
 
 }

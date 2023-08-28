@@ -24,6 +24,7 @@ import com.ka.lych.list.LYososIterator;
 import com.ka.lych.observable.*;
 import com.ka.lych.util.*;
 import com.ka.lych.util.LReflections.LMethod;
+import com.ka.lych.xml.LSvgUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -40,7 +41,7 @@ public class LCanvas extends LShape<LCanvas>
         implements ILXmlSupport, ILCloneable {
 
     @Json
-    protected LObservable<LBounds> viewBounds;
+    protected LObject<LBounds> _viewBounds;
     @Json
     protected LDouble rotation;
     @Json
@@ -52,13 +53,13 @@ public class LCanvas extends LShape<LCanvas>
     @Json
     protected LBoolean preserveRatio;
     @Json
-    protected LObservable<LColor> background;
+    protected LObject<LColor> background;
     @Json
     private LYosos<LCanvas> marks;
     @Json
-    protected LObservable<LCanvasState> state;
+    protected LObject<LCanvasState> state;
     @Json
-    protected LObservable<LYosos<ILCanvasCommand>> commands;
+    protected LObject<LYosos<ILCanvasCommand>> commands;
 
     protected ILCanvasFontRenderer fontRenderer;
     
@@ -72,10 +73,10 @@ public class LCanvas extends LShape<LCanvas>
     }
 
     public LCanvas(double viewBoundsWidth, double viewBoundsHeight) {
-        viewBounds = new LObservable<>(new LBounds(0, 0, viewBoundsWidth, viewBoundsHeight));
+        _viewBounds = new LObject<>(new LBounds(0, 0, viewBoundsWidth, viewBoundsHeight));
     }
 
-    private final ILChangeListener<Double> rotationListener = change -> {
+    private final ILChangeListener<Double, LDouble> rotationListener = change -> {
         if (marks != null) {
             for (LCanvas mark : marks) {
                 mark.setRotation(mark.getRotation() + this.getRotation() - change.oldValue().doubleValue());
@@ -89,13 +90,13 @@ public class LCanvas extends LShape<LCanvas>
      * @param scaleFactor
      * @param paintBounds - bounds where the canvas will painted inside
      * @param translatePaintBoundsLocation - if true, the initialMatrix will be
-     * translated by x, y location of paintBounds
+ translated by _x, _y location of paintBounds
      * @param defaultMatrix
      * @return
      */
     public LMatrix getInitialMatrix(LScaleMode scaleMode, double scaleFactor, LBounds paintBounds, boolean translatePaintBoundsLocation, LMatrix defaultMatrix) {
         LMatrix m = (defaultMatrix == null ? new LMatrix() : defaultMatrix);
-        //Create a test matrix to get the x,y offset coordinates
+        //Create a test matrix to get the _x,_y offset coordinates
         LMatrix cm = (LMatrix) m.clone();
         if ((paintBounds != null) || (isScaleRotated())) {
             cm.rotate(Math.toRadians(getRotation()));
@@ -104,14 +105,14 @@ public class LCanvas extends LShape<LCanvas>
             cm.scale(scaleFactor, scaleFactor);
         }
         LBounds s = getViewBoundsTransformed(cm);
-        //1. Correct the x,y position depending on the result of scaled and rotated matrix
-        double translateX = -s.getX();
-        double translateY = -s.getY();
+        //1. Correct the _x,_y position depending on the result of scaled and rotated matrix
+        double translateX = -s.x().get();
+        double translateY = -s.y().get();
         if (paintBounds != null) {
-            //2. If paintbounds there, correct the x,y position
+            //2. If paintbounds there, correct the _x,_y position
             if (translatePaintBoundsLocation) {
-                translateX += paintBounds.getX();
-                translateY += paintBounds.getY();
+                translateX += paintBounds.x().get();
+                translateY += paintBounds.y().get();
             }
             //3. if the paintbounds don't fit to the resulting space from test matrix, center the canvas inside the paintbounds
             switch (scaleMode) {
@@ -128,7 +129,7 @@ public class LCanvas extends LShape<LCanvas>
                 case FACTOR:
             }
         }
-        //m.translate(-s.getX() - translateX, -s.getY() - translateY);
+        //m.translate(-s._x() - translateX, -s._y() - translateY);
         m.translate(translateX, translateY);
         //And the rotate and scale
         if ((paintBounds != null) || (isScaleRotated())) {
@@ -141,70 +142,70 @@ public class LCanvas extends LShape<LCanvas>
     }
 
     public LBounds getViewBoundsTransformed(LMatrix matrix) {
-        return getRectangleTransformed(matrix, getViewBounds());
+        return getRectangleTransformed(matrix, viewBounds().get());
     }
 
     public LBounds getShapeTransformed(LMatrix matrix, LShape shape) {
         if (!shape.isRotatable()) {
-            matrix.rotate(Math.toRadians(-this.getRotation()), shape.getX() + shape.width().get() / 2, shape.getY() + shape.height().get() / 2);
+            matrix.rotate(Math.toRadians(-this.getRotation()), shape.x().get() + shape.width().get() / 2, shape.y().get() + shape.height().get() / 2);
         }
         LBounds b = getRectangleTransformed(matrix, shape);
         if (!shape.isRotatable()) {
-            matrix.rotate(Math.toRadians(this.getRotation()), shape.getX() + shape.width().get() / 2, shape.getY() + shape.height().get() / 2);
+            matrix.rotate(Math.toRadians(this.getRotation()), shape.x().get() + shape.width().get() / 2, shape.y().get() + shape.height().get() / 2);
         }
         return b;
     }
 
     private LBounds getRectangleTransformed(LMatrix matrix, ILBounds rect) {
-        LPoint p = matrix.transform(rect.getX(), rect.getY(), null);
-        double x1 = p.getX(), x2 = p.getX();
-        double y1 = p.getY(), y2 = p.getY();
-        p = matrix.transform(rect.getX() + rect.width().get(), rect.getY(), null);
-        x1 = (p.getX() < x1 ? p.getX() : x1);
-        y1 = (p.getY() < y1 ? p.getY() : y1);
-        x2 = (p.getX() > x2 ? p.getX() : x2);
-        y2 = (p.getY() > y2 ? p.getY() : y2);
-        p = matrix.transform(rect.getX() + rect.width().get(), rect.getY() + rect.height().get(), null);
-        x1 = (p.getX() < x1 ? p.getX() : x1);
-        y1 = (p.getY() < y1 ? p.getY() : y1);
-        x2 = (p.getX() > x2 ? p.getX() : x2);
-        y2 = (p.getY() > y2 ? p.getY() : y2);
-        p = matrix.transform(rect.getX(), rect.getY() + rect.height().get(), null);
-        x1 = (p.getX() < x1 ? p.getX() : x1);
-        y1 = (p.getY() < y1 ? p.getY() : y1);
-        x2 = (p.getX() > x2 ? p.getX() : x2);
-        y2 = (p.getY() > y2 ? p.getY() : y2);
+        LPoint p = matrix.transform(rect.x().get(), rect.y().get(), null);
+        double x1 = p.x().get(), x2 = p.x().get();
+        double y1 = p.y().get(), y2 = p.y().get();
+        p = matrix.transform(rect.x().get() + rect.width().get(), rect.y().get(), null);
+        x1 = (p.x().get() < x1 ? p.x().get() : x1);
+        y1 = (p.y().get() < y1 ? p.y().get() : y1);
+        x2 = (p.x().get() > x2 ? p.x().get() : x2);
+        y2 = (p.y().get() > y2 ? p.y().get() : y2);
+        p = matrix.transform(rect.x().get() + rect.width().get(), rect.y().get() + rect.height().get(), null);
+        x1 = (p.x().get() < x1 ? p.x().get() : x1);
+        y1 = (p.y().get() < y1 ? p.y().get() : y1);
+        x2 = (p.x().get() > x2 ? p.x().get() : x2);
+        y2 = (p.y().get() > y2 ? p.y().get() : y2);
+        p = matrix.transform(rect.x().get(), rect.y().get() + rect.height().get(), null);
+        x1 = (p.x().get() < x1 ? p.x().get() : x1);
+        y1 = (p.y().get() < y1 ? p.y().get() : y1);
+        x2 = (p.x().get() > x2 ? p.x().get() : x2);
+        y2 = (p.y().get() > y2 ? p.y().get() : y2);
         return new LBounds(x1, y1, x2 - x1, y2 - y1);
     }
 
     public LBounds getRectangleInverseTransformed(LMatrix matrix, ILBounds rect) throws LNoninvertibleMatrixException {
-        return getRectangleInverseTransformed(matrix, rect.getX(), rect.getY(), rect.width().get(), rect.height().get());
+        return getRectangleInverseTransformed(matrix, rect.x().get(), rect.y().get(), rect.width().get(), rect.height().get());
     }
 
     public LBounds getRectangleInverseTransformed(LMatrix matrix, double x, double y, double width, double height) throws LNoninvertibleMatrixException {
         LPoint p = matrix.inverseTransform(x, y, null);
-        double x1 = p.getX(), x2 = p.getX();
-        double y1 = p.getY(), y2 = p.getY();
+        double x1 = p.x().get(), x2 = p.x().get();
+        double y1 = p.y().get(), y2 = p.y().get();
         p = matrix.inverseTransform(x + width, y, null);
-        x1 = (p.getX() < x1 ? p.getX() : x1);
-        y1 = (p.getY() < y1 ? p.getY() : y1);
-        x2 = (p.getX() > x2 ? p.getX() : x2);
-        y2 = (p.getY() > y2 ? p.getY() : y2);
+        x1 = (p.x().get() < x1 ? p.x().get() : x1);
+        y1 = (p.y().get() < y1 ? p.y().get() : y1);
+        x2 = (p.x().get() > x2 ? p.x().get() : x2);
+        y2 = (p.y().get() > y2 ? p.y().get() : y2);
         p = matrix.inverseTransform(x + width, y + height, null);
-        x1 = (p.getX() < x1 ? p.getX() : x1);
-        y1 = (p.getY() < y1 ? p.getY() : y1);
-        x2 = (p.getX() > x2 ? p.getX() : x2);
-        y2 = (p.getY() > y2 ? p.getY() : y2);
+        x1 = (p.x().get() < x1 ? p.x().get() : x1);
+        y1 = (p.y().get() < y1 ? p.y().get() : y1);
+        x2 = (p.x().get() > x2 ? p.x().get() : x2);
+        y2 = (p.y().get() > y2 ? p.y().get() : y2);
         p = matrix.inverseTransform(x, y + height, null);
-        x1 = (p.getX() < x1 ? p.getX() : x1);
-        y1 = (p.getY() < y1 ? p.getY() : y1);
-        x2 = (p.getX() > x2 ? p.getX() : x2);
-        y2 = (p.getY() > y2 ? p.getY() : y2);
+        x1 = (p.x().get() < x1 ? p.x().get() : x1);
+        y1 = (p.y().get() < y1 ? p.y().get() : y1);
+        x2 = (p.x().get() > x2 ? p.x().get() : x2);
+        y2 = (p.y().get() > y2 ? p.y().get() : y2);
         return new LBounds(x1, y1, x2 - x1, y2 - y1);
     }
 
     public LPoint getPointTransformed(LMatrix matrix, ILPoint point) {
-        return getPointTransformed(matrix, point.getX(), point.getY());
+        return getPointTransformed(matrix, point.x().get(), point.y().get());
     }
 
     public LPoint getPointTransformed(LMatrix matrix, double x, double y) {
@@ -215,18 +216,12 @@ public class LCanvas extends LShape<LCanvas>
         return matrix.inverseTransform(x, y, null);
     }
 
-    public LObservable<LBounds> viewBounds() {
-        return viewBounds;
+    public LObject<LBounds> viewBounds() {
+        return _viewBounds;
     }
 
-    public LBounds getViewBounds() {
-        return viewBounds.get();
-    }
-
-    public void setViewBounds(LBounds viewBounds) {
-        if (viewBounds == null) {
-            throw new IllegalArgumentException("LCanvas.setViewBounds: viewBounds can't be null.");
-        }
+    public void viewBounds(LBounds viewBounds) {
+        LObjects.requireNonNull(viewBounds, "LCanvas.setViewBounds: viewBounds can't be null.");
         viewBounds().set(viewBounds);
     }
 
@@ -240,7 +235,7 @@ public class LCanvas extends LShape<LCanvas>
 
     public LYosos<ILCanvasCommand> getCommands() {
         if (commands == null) {
-            commands = new LObservable<>(new LYosos<>());
+            commands = new LObject<>(new LYosos<>());
         }
         return commands.get();
     }
@@ -279,9 +274,9 @@ public class LCanvas extends LShape<LCanvas>
         return (rotation != null ? rotation.get() : 0.0);
     }
 
-    public final LObservable<LColor> background() {
+    public final LObject<LColor> background() {
         if (background == null) {
-            background = new LObservable<>();
+            background = new LObject<>();
         }
         return background;
     }
@@ -364,9 +359,9 @@ public class LCanvas extends LShape<LCanvas>
     }
 
     @SuppressWarnings("unchecked")
-    public LObservable<LCanvasState> state() {
+    public LObject<LCanvasState> state() {
         if (state == null) {
-            state = new LObservable<>(LCanvasState.PARSED);
+            state = new LObject<>(LCanvasState.PARSED);
             state.addListener(event -> this.notifyOnChanged(new LChangedEvent(this)));
         }
         return state;
@@ -424,13 +419,17 @@ public class LCanvas extends LShape<LCanvas>
     @Override
     public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
         this.clearCanvas();
-        LXmlUtils.parseXml(this, n, xmlParseInfo, null);
+        if (LString.equalsIgnoreCase(n.getNodeName(), "svg")) {
+            LSvgUtils.parseXml(this, n, xmlParseInfo);
+        } else {
+            LXmlUtils.parseXml(this, n, xmlParseInfo, null);
+        }
     }
 
     @Override
     public void toXml(Document doc, Element node) {
         throw new UnsupportedOperationException("Not supported yet.");
-        /*LXmlUtils.setAttribute(node, "viewBounds", LXmlUtils.boundsToXmlStr(viewBounds.get()));
+        /*LXmlUtils.setAttribute(node, "_viewBounds", LXmlUtils.boundsToXmlStr(_viewBounds.get()));
         //LXmlUtils.setAttribute(node, "contentBounds", LXmlUtils.boundsToXmlStr(contentBounds));
         //rotateAllowed
         LXmlUtils.setAttribute(node, "rotateAllowed", Boolean.toString(rotateAllowed));
@@ -539,20 +538,20 @@ public class LCanvas extends LShape<LCanvas>
 
     @Override
     @SuppressWarnings("unchecked")
-    public Object clone() {
+    public LCanvas clone() {
         try {
             LCanvas clone = (LCanvas) super.clone();
-            clone.x = LDouble.clone(x);
-            clone.y = LDouble.clone(y);
-            clone._width = LDouble.clone(_width);
-            clone._height = LDouble.clone(_height);
-            clone.viewBounds = LObservable.clone(viewBounds);
-            clone.commands = LObservable.clone(commands);
-            clone.rotation = LDouble.clone(rotation);
+            clone.x(_x.get());
+            clone.y(_y.get());
+            clone.width(_width.get());
+            clone.height(_height.get());
+            clone.viewBounds().set(_viewBounds.get());
+            clone.commands = commands.clone();
+            clone.rotation = rotation.clone();
             clone.rotationSnap = rotationSnap;
             clone.rotationEnabled = rotationEnabled;
-            clone.scaleRotated = LBoolean.clone(scaleRotated);
-            clone.background = LObservable.clone(background);
+            clone.scaleRotated = scaleRotated.clone();
+            clone.background = background.clone();
             return clone;
         } catch (Exception e) {
             throw new InternalError(e);

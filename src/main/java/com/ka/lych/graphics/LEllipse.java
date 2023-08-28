@@ -40,18 +40,18 @@ public class LEllipse extends LShape {
             //1. LineTo start point
             double[] ctrls = ctrlpts[3];
             pointTypes[countPoints++] = SEG_MOVETO;
-            doubleCoords[numCoords++] = getX() + ctrls[4] * width().get();
-            doubleCoords[numCoords++] = getY() + ctrls[5] * height().get();
+            doubleCoords[numCoords++] = x().get() + ctrls[4] * width().get();
+            doubleCoords[numCoords++] = y().get() + ctrls[5] * height().get();
             //2..4. Curve
             for (int index = 1; index <= 4; index++) {
                 ctrls = ctrlpts[index - 1];
                 pointTypes[countPoints++] = SEG_CUBICTO;
-                doubleCoords[numCoords++] = getX() + ctrls[0] * width().get();
-                doubleCoords[numCoords++] = getY() + ctrls[1] * height().get();
-                doubleCoords[numCoords++] = getX() + ctrls[2] * width().get();
-                doubleCoords[numCoords++] = getY() + ctrls[3] * height().get();
-                doubleCoords[numCoords++] = getX() + ctrls[4] * width().get();
-                doubleCoords[numCoords++] = getY() + ctrls[5] * height().get();
+                doubleCoords[numCoords++] = x().get() + ctrls[0] * width().get();
+                doubleCoords[numCoords++] = y().get() + ctrls[1] * height().get();
+                doubleCoords[numCoords++] = x().get() + ctrls[2] * width().get();
+                doubleCoords[numCoords++] = y().get() + ctrls[3] * height().get();
+                doubleCoords[numCoords++] = x().get() + ctrls[4] * width().get();
+                doubleCoords[numCoords++] = y().get() + ctrls[5] * height().get();
             }
             //5. closePath
             pointTypes[countPoints++] = SEG_CLOSE;
@@ -67,9 +67,9 @@ public class LEllipse extends LShape {
             double cy = LXmlUtils.xmlStrToDouble(n.getAttributes().getNamedItem("cy").getTextContent());
             double rx = LXmlUtils.xmlStrToDouble(n.getAttributes().getNamedItem("rx").getTextContent());
             double ry = LXmlUtils.xmlStrToDouble(n.getAttributes().getNamedItem("ry").getTextContent());
-            setBounds(cx - rx, cy - ry, 2 * rx, 2 * ry);
+            bounds(cx - rx, cy - ry, 2 * rx, 2 * ry);
         } else {
-            setBounds(0, 0, 0, 0);
+            bounds(0, 0, 0, 0);
         }
     }
 

@@ -1,6 +1,5 @@
 package com.ka.lych.test;
 
-import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.LJsoperties;
 import com.ka.lych.util.LLog;
@@ -9,6 +8,7 @@ import java.util.ArrayList;
 import com.ka.lych.list.LList;
 import com.ka.lych.util.LJson;
 import com.ka.lych.annotation.Json;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -29,15 +29,15 @@ public class LTestJsoperties {
     @Json
     private ArrayList<Integer> intArray; 
     @Json
-    private LObservable<ArrayList<Integer>> obsIntArray; 
+    private LObject<ArrayList<Integer>> obsIntArray; 
     @Json
-    private LObservable<ArrayList<Double>> obsDoubleArray; 
+    private LObject<ArrayList<Double>> obsDoubleArray; 
     @Json
-    private LObservable<ArrayList<Boolean>> obsBooleanArray; 
+    private LObject<ArrayList<Boolean>> obsBooleanArray; 
     @Json
     private ArrayList<String> stringArray; 
     @Json
-    private LObservable<ArrayList<String>> obsStringArray;    
+    private LObject<ArrayList<String>> obsStringArray;    
     @Json
     private ArrayList<LUserGroups> userGroups;
     @Json
@@ -92,9 +92,9 @@ public class LTestJsoperties {
         testObservable().set(testObservable);
     }
 
-    public LObservable<ArrayList<Integer>> obsIntArray() {
+    public LObject<ArrayList<Integer>> obsIntArray() {
         if (obsIntArray == null) {
-            obsIntArray = new LObservable<>(DEFAULT_OBS_INT_ARRAY);
+            obsIntArray = new LObject<>(DEFAULT_OBS_INT_ARRAY);
         }
         return obsIntArray;
     }
@@ -103,9 +103,9 @@ public class LTestJsoperties {
         return obsIntArray != null ? obsIntArray.get() : DEFAULT_OBS_INT_ARRAY;
     }
     
-    public LObservable<ArrayList<Double>> obsDoubleArray() {
+    public LObject<ArrayList<Double>> obsDoubleArray() {
         if (obsDoubleArray == null) {
-            obsDoubleArray = new LObservable<>(DEFAULT_OBS_DOUBLE_ARRAY);
+            obsDoubleArray = new LObject<>(DEFAULT_OBS_DOUBLE_ARRAY);
         }
         return obsDoubleArray;
     }
@@ -114,9 +114,9 @@ public class LTestJsoperties {
         return obsDoubleArray != null ? obsDoubleArray.get() : DEFAULT_OBS_DOUBLE_ARRAY;
     }
     
-    public LObservable<ArrayList<Boolean>> obsBooleanArray() {
+    public LObject<ArrayList<Boolean>> obsBooleanArray() {
         if (obsBooleanArray == null) {
-            obsBooleanArray = new LObservable<>(DEFAULT_OBS_BOOLEAN_ARRAY);
+            obsBooleanArray = new LObject<>(DEFAULT_OBS_BOOLEAN_ARRAY);
         }
         return obsBooleanArray;
     }
@@ -129,9 +129,9 @@ public class LTestJsoperties {
         obsIntArray().set(obsIntArray);
     }
 
-    public LObservable<ArrayList<String>> obsStringArray() {
+    public LObject<ArrayList<String>> obsStringArray() {
         if (obsStringArray == null) {
-            obsStringArray = new LObservable<>(DEFAULT_OBS_STRING_ARRAY);
+            obsStringArray = new LObject<>(DEFAULT_OBS_STRING_ARRAY);
         }
         return obsStringArray;
     }

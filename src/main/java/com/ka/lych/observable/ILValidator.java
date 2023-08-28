@@ -8,8 +8,8 @@ import com.ka.lych.event.LObservableChangeEvent;
  * @param <T>
  */
 @FunctionalInterface
-public interface ILValidator<T> {
+public interface ILValidator<T, BC extends ILObservable> {
     
-    public LValueException accept(LObservableChangeEvent<T> change); 
+    public LValueException accept(LObservableChangeEvent<T, BC> change); 
     
 }

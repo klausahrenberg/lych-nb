@@ -1,7 +1,7 @@
 package com.ka.lych.util;
 
 import com.ka.lych.list.ILYosos;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -11,7 +11,7 @@ import com.ka.lych.observable.LObservable;
  */
 public interface ILSupportsChildrens<T, C extends ILYosos<T>> {
     
-    public LObservable<C> childrens();
+    public LObject<C> childrens();
     
     public C getChildrens();    
     

@@ -30,7 +30,7 @@ public class LRectangle extends LShape {
     }
 
     public LRectangle(ILBounds bounds) {
-        this(bounds.getX(), bounds.getY(), bounds.width().get(), bounds.height().get());
+        this(bounds.x().get(), bounds.y().get(), bounds.width().get(), bounds.height().get());
     }    
     
     public LRectangle(double x, double y, double width, double height) {
@@ -39,10 +39,10 @@ public class LRectangle extends LShape {
 
     public LRectangle(double x, double y, double width, double height, double rx, double ry) {
         //super(5, 8);
-        //setBounds(x, y, width, height);   
+        //setBounds(_x, _y, width, height);   
         super(9, 24);
         setRadiuses(rx, ry);        
-        setBounds(x, y, width, height);
+        bounds(x, y, width, height);
     }
 
     protected final void setRadiuses(double rx, double ry) {
@@ -66,14 +66,14 @@ public class LRectangle extends LShape {
         if ((LGeomUtils.isNotEqual(width().get(), 0.0)) && (LGeomUtils.isNotEqual(height().get(), 0.0))) {
             double[] xpoints = new double[4];
             double[] ypoints = new double[4];
-            xpoints[0] = getX();
-            ypoints[0] = getY();
-            xpoints[1] = getX() + width().get();
-            ypoints[1] = getY();
-            xpoints[2] = getX() + width().get();
-            ypoints[2] = getY() + height().get();
-            xpoints[3] = getX();
-            ypoints[3] = getY() + height().get();
+            xpoints[0] = x().get();
+            ypoints[0] = y().get();
+            xpoints[1] = x().get() + width().get();
+            ypoints[1] = y().get();
+            xpoints[2] = x().get() + width().get();
+            ypoints[2] = y().get() + height().get();
+            xpoints[3] = x().get();
+            ypoints[3] = y().get() + height().get();
             this.createPath(xpoints, ypoints, radiuses, true);
         }
     }
@@ -87,7 +87,7 @@ public class LRectangle extends LShape {
         } else if (!LString.isEmpty(n.getTextContent())) {            
             LXmlUtils.xmlStrToBounds(n.getTextContent(), this);
         } else {
-            setBounds(0, 0, 0, 0);
+            bounds(0, 0, 0, 0);
         }
     }
 

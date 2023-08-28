@@ -26,7 +26,7 @@ public class LKeyYosos<T extends LYoso> extends LYosos<T> {
     private LYoso parent;
     protected LTerm filter;
 
-    private final ILValidator<Object> yosoKeyValidator = change -> {        
+    private final ILValidator<Object, ILObservable> yosoKeyValidator = change -> {        
         //tbi
         String key = "";//createKey((T) change.getSource().getBean());
         printKeys();
@@ -35,7 +35,7 @@ public class LKeyYosos<T extends LYoso> extends LYosos<T> {
                 : null);
     };
 
-    private final ILChangeListener<Object> yosoKeyListener = change -> {
+    private final ILChangeListener<Object, ILObservable> yosoKeyListener = change -> {
         throw new UnsupportedOperationException("Not supported. tbi");
         /*T yoso = (T) change.getSource().getBean();
         //Update oldKeyObjects in yoso, if necessary

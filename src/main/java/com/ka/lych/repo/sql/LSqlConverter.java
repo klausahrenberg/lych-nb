@@ -12,6 +12,7 @@ import com.ka.lych.util.LReflections.LRequiredClass;
 import com.ka.lych.xml.LXmlUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -197,26 +198,27 @@ public abstract class LSqlConverter {
                 }
             } else if ((Blob.class.isAssignableFrom(source.getClass())) && (ILBlobable.class.isAssignableFrom(requiredClass.requiredClass()))) {
                 try {
-                    int blobLength = (int) ((Blob) source).length();
-                    byte[] blobAsBytes = ((Blob) source).getBytes(1, blobLength);
-                    ByteArrayInputStream in = new ByteArrayInputStream(blobAsBytes);
-                    //ObjectInputStream is = new ObjectInputStream(in);      
-                    LLog.test(LSqlConverter.class, "create blobable %s", requiredClass.requiredClass());
+                    var blob = (Blob) source;
+                    int blobLength = (int) blob.length();                    
+                    //byte[] blobAsBytes = blob.getBytes(1, blobLength);
+                    //ByteArrayInputStream in = new ByteArrayInputStream(blobAsBytes);
+                    ObjectInputStream is = new ObjectInputStream(blob.getBinaryStream());      
+                    LLog.test(LSqlConverter.class, "create blobable %s / %s", requiredClass.requiredClass(), blobLength);
                     ILBlobable b = (ILBlobable) LReflections.newInstance(requiredClass.requiredClass());
-                    b.read(in);
+                    b.read(is);
                     result = b;
                 } catch (Exception sqle) {
                     LLog.error(LSqlConverter.class, sqle.getMessage(), sqle);
                 }
             } else if ((source.getClass().isArray()) && (ILBlobable.class.isAssignableFrom(requiredClass.requiredClass()))) {                 
-                try {
+                /*try {
                     var bais = new ByteArrayInputStream((byte[]) source); 
                     ILBlobable b = (ILBlobable) LReflections.newInstance(requiredClass.requiredClass());
                     b.read(bais);
                     result = b;
                 } catch (Exception sqle) {
                     LLog.error(LSqlConverter.class, sqle.getMessage(), sqle);
-                }                
+                } */               
             } else if ((LocalDateTime.class.isAssignableFrom(source.getClass())) && (LocalDate.class.isAssignableFrom(requiredClass.requiredClass()))) {
                 result = ((LocalDateTime) source).toLocalDate();
             } else if (!requiredClass.requiredClass().isAssignableFrom(source.getClass())) {                

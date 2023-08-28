@@ -1,6 +1,6 @@
 package com.ka.lych.ui;
 
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -9,7 +9,7 @@ import com.ka.lych.observable.LObservable;
  */
 public interface ILSupportsContextMenu<T> {
     
-    public LObservable<ILContextMenu<T>> observableContextMenu();
+    public LObject<ILContextMenu<T>> observableContextMenu();
     
     public void setContextMenu(ILContextMenu<T> contextMenu);
     

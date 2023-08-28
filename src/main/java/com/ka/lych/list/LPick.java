@@ -1,6 +1,6 @@
 package com.ka.lych.list;
 
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.util.LLog;
 import java.util.function.Function;
 
@@ -20,11 +20,11 @@ public class LPick<T extends LYoso, V extends LTYoso<V>> extends LKeyYosos<V> {
     private final Function<Object[], T> DEFAULT_REMOVER = null;
     private final LTYoso<V> DEFAULT_SOURCE = null;
     private final LKeyYosos<T> DEFAULT_SELECTOR = null;
-    protected LObservable<LTYoso<V>> source;
-    protected LObservable<LKeyYosos<T>> selector;
-    protected LObservable<Function<T, Object[]>> converter;
-    protected LObservable<Function<Object[], T>> adder;
-    protected LObservable<Function<Object[], T>> remover;
+    protected LObject<LTYoso<V>> source;
+    protected LObject<LKeyYosos<T>> selector;
+    protected LObject<Function<T, Object[]>> converter;
+    protected LObject<Function<Object[], T>> adder;
+    protected LObject<Function<Object[], T>> remover;
     private boolean updating;
 
     public LPick() {
@@ -41,9 +41,9 @@ public class LPick<T extends LYoso, V extends LTYoso<V>> extends LKeyYosos<V> {
     }
 
     @SuppressWarnings("unchecked")
-    public LObservable<LTYoso<V>> source() {
+    public LObject<LTYoso<V>> source() {
         if (source == null) {
-            source = new LObservable(DEFAULT_SOURCE);
+            source = new LObject(DEFAULT_SOURCE);
             source.addListener(change -> update());
         }
         return source;
@@ -58,9 +58,9 @@ public class LPick<T extends LYoso, V extends LTYoso<V>> extends LKeyYosos<V> {
     }
 
     @SuppressWarnings("unchecked")
-    public LObservable<LKeyYosos<T>> selector() {
+    public LObject<LKeyYosos<T>> selector() {
         if (selector == null) {
-            selector = new LObservable(DEFAULT_SELECTOR);
+            selector = new LObject(DEFAULT_SELECTOR);
             selector.addListener(change -> update());
         }
         return selector;
@@ -75,9 +75,9 @@ public class LPick<T extends LYoso, V extends LTYoso<V>> extends LKeyYosos<V> {
     }
 
     @SuppressWarnings("unchecked")
-    public LObservable<Function<T, Object[]>> converter() {
+    public LObject<Function<T, Object[]>> converter() {
         if (converter == null) {
-            converter = new LObservable(DEFAULT_CONVERTER);
+            converter = new LObject(DEFAULT_CONVERTER);
             converter.addListener(change -> update());
         }
         return converter;
@@ -92,9 +92,9 @@ public class LPick<T extends LYoso, V extends LTYoso<V>> extends LKeyYosos<V> {
     }
 
     @SuppressWarnings("unchecked")
-    public LObservable<Function<Object[], T>> adder() {
+    public LObject<Function<Object[], T>> adder() {
         if (adder == null) {
-            adder = new LObservable(DEFAULT_ADDER);
+            adder = new LObject(DEFAULT_ADDER);
             adder.addListener(change -> update());
         }
         return adder;
@@ -109,9 +109,9 @@ public class LPick<T extends LYoso, V extends LTYoso<V>> extends LKeyYosos<V> {
     }
 
     @SuppressWarnings("unchecked")
-    public LObservable<Function<Object[], T>> remover() {
+    public LObject<Function<Object[], T>> remover() {
         if (remover == null) {
-            remover = new LObservable(DEFAULT_REMOVER);
+            remover = new LObject(DEFAULT_REMOVER);
             //remover.addListener(change -> update());
         }
         return remover;

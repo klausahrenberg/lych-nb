@@ -39,6 +39,7 @@ public class LColor
     public final static LColor MAGENTA = new LColor(255, 0, 255);
     public final static LColor CYAN = new LColor(0, 255, 255);
     public final static LColor TRANSPARENT = new LColor(0, 0, 0, 0);
+    public final static LColor NONE = TRANSPARENT;
 
     static LMap<String, LColor> _PREDEFINED_COLORS;
 

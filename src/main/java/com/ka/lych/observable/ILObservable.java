@@ -6,15 +6,18 @@ import com.ka.lych.util.ILRegistration;
  *
  * @author klausahrenberg
  * @param <T>
+ * @param <BC>
  */
-public interface ILObservable<T> {
+public interface ILObservable<T, BC extends ILObservable> {
     
-    public ILRegistration addListener(ILChangeListener<T> changeListener);
+    public ILRegistration addListener(ILChangeListener<T, BC> changeListener);
 
-    public void removeListener(ILChangeListener<T> changeListener);        
+    public void removeListener(ILChangeListener<T, BC> changeListener);        
     
-    public ILRegistration addAcceptor(ILValidator<T> valueAcceptor);
+    public ILRegistration addAcceptor(ILValidator<T, BC> valueAcceptor);
 
-    public void removeAcceptor(ILValidator<T> valueAcceptor);      
+    public void removeAcceptor(ILValidator<T, BC> valueAcceptor);      
+    
+    public BC clone() throws CloneNotSupportedException;
     
 }

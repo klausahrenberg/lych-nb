@@ -28,9 +28,9 @@ public class LRadialGradient extends LAbstractPaint<LRadialGradient> {
     @Json
     protected LDouble cy, r, fx, fy;
     @Json
-    protected LObservable<LSpreadMethod> spreadMethod;
+    protected LObject<LSpreadMethod> spreadMethod;
     @Json
-    protected LObservable<LYosos<LStop>> stops;
+    protected LObject<LYosos<LStop>> stops;
 
     public LRadialGradient() {
     }
@@ -110,9 +110,9 @@ public class LRadialGradient extends LAbstractPaint<LRadialGradient> {
         fy().set(y2);
     }
 
-    public LObservable<LSpreadMethod> spreadMethod() {
+    public LObject<LSpreadMethod> spreadMethod() {
         if (spreadMethod == null) {
-            spreadMethod = new LObservable<>(LSpreadMethod.PAD);
+            spreadMethod = new LObject<>(LSpreadMethod.PAD);
         }
         return spreadMethod;
     }
@@ -125,9 +125,9 @@ public class LRadialGradient extends LAbstractPaint<LRadialGradient> {
         spreadMethod().set(spreadMethod);
     }
 
-    public LObservable<LYosos<LStop>> stops() {
+    public LObject<LYosos<LStop>> stops() {
         if (stops == null) {
-            stops = new LObservable<>(new LYosos<>());
+            stops = new LObject<>(new LYosos<>());
         }
         return stops;
     }
@@ -167,13 +167,12 @@ public class LRadialGradient extends LAbstractPaint<LRadialGradient> {
     public Object clone() {
         try {
             LRadialGradient p = (LRadialGradient) super.clone();
-            LDouble.clone(cx);
-            LDouble.clone(cy);
-            LDouble.clone(fx);
-            LDouble.clone(fy);
-            LDouble.clone(r);
-            LObservable.clone(spreadMethod);
-            LObservable.clone(stops);
+            p.cx = this.cx.clone();
+            p.cy = this.cy.clone();
+            p.fx = this.fx.clone();
+            p.r = this.r.clone();
+            p.spreadMethod = this.spreadMethod.clone();
+            p.stops = this.stops.clone();
             return p;
         } catch (Exception e) {
             LLog.error(this, "clone failed", e);

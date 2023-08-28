@@ -1,5 +1,5 @@
 module lych {
-    requires java.desktop;
+    
     requires java.prefs;
     requires java.sql;
     requires java.base;    

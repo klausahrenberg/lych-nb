@@ -7,15 +7,13 @@ import com.ka.lych.list.LMap;
 import com.ka.lych.list.LTYoso;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.ILHandler;
-import com.ka.lych.util.ILSupportsOwner;
 import com.ka.lych.annotation.Id;
 
 /**
  *
  * @author klausahrenberg
  */
-public class LObservables extends LTYoso<LObservables> 
-        implements ILSupportsOwner {
+public class LObservables extends LTYoso<LObservables> {
 
     private final String DEFAULT_KEY = null;
         
@@ -23,7 +21,6 @@ public class LObservables extends LTYoso<LObservables>
     private LString key;
     private LMap<String, LObservable> observables;
     private boolean hidden;
-    private Object owner;
     
     @SuppressWarnings("unchecked")
     public LObservables(Object owner, String key) {
@@ -42,7 +39,6 @@ public class LObservables extends LTYoso<LObservables>
     public LObservables(Object owner, String key, ILHandler<LEvent> onAction) {
         super();
         setKey(key);
-        this.owner = owner;
         this.hidden = true;
         if (onAction != null) {
             setOnAction(onAction);
@@ -108,11 +104,6 @@ public class LObservables extends LTYoso<LObservables>
 
     public boolean isHidden() {
         return hidden;
-    }
-
-    @Override
-    public Object getOwner() {
-        return this.owner;
     }
     
     public boolean isTextAvailable() {

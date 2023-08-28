@@ -4,7 +4,7 @@ import com.ka.lych.annotation.Json;
 import java.util.Objects;
 import com.ka.lych.list.LYosos;
 import com.ka.lych.observable.LDouble;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 import com.ka.lych.util.LLog;
 
 /**
@@ -30,9 +30,9 @@ public class LLinearGradient extends LAbstractPaint<LLinearGradient> {
     @Json
     protected LDouble y1, x2, y2;
     @Json
-    protected LObservable<LSpreadMethod> spreadMethod;
+    protected LObject<LSpreadMethod> spreadMethod;
     @Json
-    protected LObservable<LYosos<LStop>> stops;
+    protected LObject<LYosos<LStop>> stops;
     
     public LLinearGradient() {       
     }            
@@ -106,9 +106,9 @@ public class LLinearGradient extends LAbstractPaint<LLinearGradient> {
         y2().set(y2);
     }
     
-    public LObservable<LSpreadMethod> spreadMethod() {
+    public LObject<LSpreadMethod> spreadMethod() {
         if (spreadMethod == null) {
-            spreadMethod = new LObservable<>(LSpreadMethod.PAD);            
+            spreadMethod = new LObject<>(LSpreadMethod.PAD);            
         }
         return spreadMethod;
     }
@@ -121,9 +121,9 @@ public class LLinearGradient extends LAbstractPaint<LLinearGradient> {
         spreadMethod().set(spreadMethod);
     }
     
-    public LObservable<LYosos<LStop>> stops() {
+    public LObject<LYosos<LStop>> stops() {
         if (stops == null) {
-            stops = new LObservable<>(new LYosos<>());            
+            stops = new LObject<>(new LYosos<>());            
         }
         return stops;
     }
@@ -140,12 +140,12 @@ public class LLinearGradient extends LAbstractPaint<LLinearGradient> {
     public Object clone() {
         try {
             LLinearGradient p = (LLinearGradient) super.clone();
-            LDouble.clone(x1);
-            LDouble.clone(y1);
-            LDouble.clone(x2);
-            LDouble.clone(y2);
-            LObservable.clone(spreadMethod);
-            LObservable.clone(stops);
+            p.x1 = x1.clone();
+            p.y1 = y1.clone();
+            p.x2 = x2.clone();
+            p.y2 = y2.clone();
+            p.spreadMethod = this.spreadMethod.clone();
+            p.stops = this.stops.clone();
             return p;
         } catch (Exception e) {
             LLog.error(this, "clone failed", e);

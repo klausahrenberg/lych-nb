@@ -3,8 +3,9 @@ package com.ka.lych.ui;
 import java.util.Iterator;
 import com.ka.lych.list.LMap;
 import com.ka.lych.list.LYoso;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.ILObservables;
+import com.ka.lych.observable.LObservable;
 
 /**
  *
@@ -24,7 +25,7 @@ public interface ILSupportsObservables<T> extends ILControl {
 
     public default T getValue() {
         @SuppressWarnings("unchecked")
-        LObservable<T> obs = (getObservables() != null ? getObservables().observable(id().orElseThrow()) : null);        
+        LObservable<T, ILObservable> obs = (getObservables() != null ? getObservables().observable(id().orElseThrow()) : null);        
         return obs != null ? obs.get() : null;
     }
 

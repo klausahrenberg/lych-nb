@@ -1,12 +1,11 @@
 package com.ka.lych.util;
 
-import java.text.MessageFormat;
 import java.util.*;
 import com.ka.lych.LBase;
-import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -16,7 +15,7 @@ public class LResources
         implements ILResources {
 
     protected final List<Locale> supportedLocales;
-    private LObservable<Locale> locale;
+    private LObject<Locale> locale;
     private ResourceBundle bundle;
 
     /**
@@ -63,9 +62,9 @@ public class LResources
     }    
 
     @Override
-    public LObservable<Locale> observableLocale() {
+    public LObject<Locale> observableLocale() {
         if (locale == null) {
-            locale = new LObservable<>(Locale.getDefault());
+            locale = new LObject<>(Locale.getDefault());
             locale.addListener(change -> bundle = null);
         }
         return locale;

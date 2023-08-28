@@ -3,7 +3,6 @@ package com.ka.lych.observable;
 import java.util.EnumSet;
 import java.util.Objects;
 import com.ka.lych.event.LObservableChangeEvent;
-import com.ka.lych.util.ILCloneable;
 import com.ka.lych.util.ILLocalizable;
 import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.LXmlUtils;
@@ -25,14 +24,15 @@ import java.util.function.Supplier;
  *
  * @author klausahrenberg
  * @param <T>
+ * @param <BC>
  */
-public class LObservable<T> 
-        implements ILObservable<T>, ILLoadable, ILParseable, ILLocalizable {
+public abstract class LObservable<T, BC extends ILObservable> 
+        implements ILObservable<T, BC>, ILLoadable, ILParseable, ILLocalizable {
 
     T _value;
-    LList<ILChangeListener<T>> _listeners;
-    LList<ILValidator<T>> _acceptors;
-    LList<LObservable<Object>> _boundedObservables;    
+    LList<ILChangeListener<T, BC>> _listeners;
+    LList<ILValidator<T, BC>> _acceptors;
+    LList<LObservable<Object, ILObservable>> _boundedObservables;    
     Function<Object, T> _boundedConverter;
     boolean _changed;
     boolean _notifyAllowed;
@@ -41,7 +41,7 @@ public class LObservable<T>
     LLoadingState _loadingState;
 
     @SuppressWarnings("unchecked")
-    final ILChangeListener<Object> _boundedObservableListener = change -> { 
+    final ILChangeListener<Object, ILObservable> _boundedObservableListener = change -> { 
         if (this.isSingleBound()) {
             _fireChangedEvent(new LObservableChangeEvent<>(this, null, (change != null && change.oldValue() != null ? (T) (_boundedConverter != null ? _boundedConverter.apply(change.oldValue()) : change.oldValue()) : null)));
         } else {
@@ -82,22 +82,22 @@ public class LObservable<T>
         return (!isPresent());
     }
     
-    public LObservable<T> ifAbsent(Consumer<? super T> consumer) {
+    public BC ifAbsent(Consumer<? super T> consumer) {
         if (isAbsent()) {
             consumer.accept(get());
         }
-        return this;
+        return (BC) this;
     }
     
     public boolean isPresent() {
         return (isSingleBound() ? getSingleBoundedObservable().isPresent() : _value != null);        
     }
     
-    public LObservable<T> ifPresent(Consumer<? super T> consumer) {
+    public BC ifPresent(Consumer<? super T> consumer) {
         if (isPresent()) {
             consumer.accept(get());
         }
-        return this;
+        return (BC) this;
     }
     
     public T orElse(T other) {
@@ -163,7 +163,7 @@ public class LObservable<T>
             if (!Objects.equals(get(), value)) {                
                 T oldValue = _value;
                 _value = value;
-                LObservableChangeEvent<T> changeEvent = new LObservableChangeEvent<>(this, trigger, oldValue);
+                LObservableChangeEvent<T, BC> changeEvent = new LObservableChangeEvent(this, trigger, oldValue);
                 if (_acceptors != null) {
                     _acceptors.forEachIf(validator -> (_lastException == null), validator -> _lastException = validator.accept(changeEvent));
                 }
@@ -171,8 +171,11 @@ public class LObservable<T>
                     if (_valueListener != null) {
                         _valueListener.remove();
                     }
-                    if ((_value != null) && (_value instanceof ILObservable)) {                        
-                        _valueListener = ((ILObservable<T>) _value).addListener(change -> _fireChangedEvent(new LObservableChangeEvent<>(this, null, (change != null ? change.oldValue() : null))));
+                    if ((_value != null) && (_value instanceof ILObservable)) {
+                       
+                        _valueListener = ((BC) _value).addListener(change -> {
+                            _fireChangedEvent(new LObservableChangeEvent<>(this , null, (change != null ? (T) change.oldValue() : null)));
+                        });
                     }                    
                     _fireChangedEvent(changeEvent);                    
                 } else {
@@ -214,7 +217,7 @@ public class LObservable<T>
         return (!isSingleBound() ? _lastException : getSingleBoundedObservable().getLastException());
     }
 
-    protected void _fireChangedEvent(LObservableChangeEvent<T> changeEvent) {        
+    protected void _fireChangedEvent(LObservableChangeEvent<T, BC> changeEvent) {        
         if (_notifyAllowed) { 
             if (_listeners != null) {
                 _listeners.forEach(changeListener -> changeListener.changed(changeEvent));
@@ -222,9 +225,14 @@ public class LObservable<T>
             _changed = false;
         }
     }
+    
+    public synchronized BC onChange(ILChangeListener<T, BC> changeListener) {
+        this.addListener(changeListener);
+        return (BC) this;
+    } 
 
     @Override
-    public synchronized ILRegistration addListener(ILChangeListener<T> changeListener) {
+    public synchronized ILRegistration addListener(ILChangeListener<T, BC> changeListener) {
         if (_listeners == null) {
             _listeners = LList.empty();
         }
@@ -233,7 +241,7 @@ public class LObservable<T>
     }
 
     @Override
-    public synchronized void removeListener(ILChangeListener<T> changeListener) {
+    public synchronized void removeListener(ILChangeListener<T, BC> changeListener) {
         if (_listeners != null) {
             _listeners.remove(changeListener);
             if (_listeners.isEmpty()) {
@@ -243,7 +251,7 @@ public class LObservable<T>
     }
 
     @Override
-    public synchronized ILRegistration addAcceptor(ILValidator<T> changeAcceptor) {
+    public synchronized ILRegistration addAcceptor(ILValidator<T, BC> changeAcceptor) {
         if (_acceptors == null) {
             _acceptors = LList.empty();
         }
@@ -252,7 +260,7 @@ public class LObservable<T>
     }
 
     @Override
-    public synchronized void removeAcceptor(ILValidator<T> changeAcceptor) {
+    public synchronized void removeAcceptor(ILValidator<T, BC> changeAcceptor) {
         if (_acceptors != null) {
             _acceptors.remove(changeAcceptor);
             if (_acceptors.isEmpty()) {
@@ -295,12 +303,10 @@ public class LObservable<T>
         return (get() != null ? (get() instanceof ILLocalizable ? ((ILLocalizable) get()).toLocalizedString() : get().toString()) : null);
     }
 
-    @SuppressWarnings("unchecked")
+    /*@SuppressWarnings("unchecked")
     public static LObservable clone(LObservable source) throws CloneNotSupportedException {
         if (source != null) {
-            /*if (source.isBoundInAnyWay()) {
-                throw new IllegalStateException("Bounded observable can't be cloned.");
-            }*/
+           
             Object clonedObject = null;             
             if ((source.get() != null) && (source.get() instanceof Enum<?>)) {
                 clonedObject = source.get();
@@ -316,10 +322,10 @@ public class LObservable<T>
                 }
                 clonedObject = ((ILCloneable) source.get()).clone();
             }
-            return new LObservable(clonedObject);
+            return new LObject(clonedObject);
         }
         return null;
-    }
+    }*/
 
     @Override
     public int hashCode() {
@@ -354,11 +360,11 @@ public class LObservable<T>
     }
 
     @SuppressWarnings("unchecked")
-    public void bind(LObservable<T> observable) {
-        bind(null, (LObservable<Object>) observable);
+    public void bind(LObservable<T, BC> observable) {
+        bind(null, (LObservable) observable);
     }
     
-    public <B> void bind(Function<B, T> converter, LObservable<B> observable) {
+    public <B> void bind(Function<B, T> converter, LObservable<B, ILObservable> observable) {
         var observables = new LObservable[1];
         observables[0] = observable;
         this.bind(converter, observables);
@@ -386,8 +392,8 @@ public class LObservable<T>
                 if (observables[i] == null) {
                     throw new IllegalArgumentException("Can't add null observable: arrayIndex " + i);
                 }
-                _boundedObservables.add((LObservable<Object>) observables[i]);            
-                ((LObservable<Object>) observables[i]).addListener(_boundedObservableListener);
+                _boundedObservables.add((LObservable<Object, ILObservable>) observables[i]);            
+                ((LObservable<Object, ILObservable>) observables[i]).addListener(_boundedObservableListener);
             }
             if (this.isSingleBound()) {
                 //at single bound notify listeners
@@ -420,11 +426,11 @@ public class LObservable<T>
         return ((_boundedObservables != null) && (_boundedObservables.size() == 1));
     }
 
-    protected LList<LObservable<Object>> getBoundedObservables() {
+    protected LList<LObservable<Object, ILObservable>> getBoundedObservables() {
         return _boundedObservables;
     }
 
-    protected LObservable<Object> getSingleBoundedObservable() {
+    protected LObservable<Object, ILObservable> getSingleBoundedObservable() {
         return _boundedObservables.get(0);
     }        
 
@@ -458,8 +464,11 @@ public class LObservable<T>
         }*/
     }
     
+    @Override
+    public abstract BC clone() throws CloneNotSupportedException;
+    
     @SuppressWarnings("unchecked")
-    public static LObservable of(Object value) {
+    public static LObservable create(Object value) {
         if (value != null) {
             var valueClass = value.getClass();
             if (String.class.isAssignableFrom(valueClass)) {
@@ -475,10 +484,10 @@ public class LObservable<T>
             } else if (LocalDateTime.class.isAssignableFrom(valueClass)) {
                 return new LDatetime((LocalDateTime) value);
             } else {
-                return new LObservable(value);
+                return new LObject(value);
             }
         } else {
-            return new LObservable(null);
+            return new LObject(null);
         }
     }
 

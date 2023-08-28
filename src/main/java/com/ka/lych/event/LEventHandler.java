@@ -2,6 +2,7 @@ package com.ka.lych.event;
 
 import com.ka.lych.list.LYosos;
 import com.ka.lych.observable.ILChangeListener;
+import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.util.ILHandler;
 import java.util.function.Function;
@@ -11,12 +12,12 @@ import java.util.function.Function;
  * @author klausahrenberg
  * @param <T>
  */
-public class LEventHandler<T extends LEvent> extends LObservable<ILHandler<T>> {
+public class LEventHandler<T extends LEvent> extends LObservable<ILHandler<T>, LEventHandler> {
 
     private boolean supportMultipleListeners;
     private LYosos<ILHandler<T>> additionalListeners;
 
-    private final ILChangeListener<ILHandler<T>> valueListener = change -> {
+    private final ILChangeListener<ILHandler<T>, LEventHandler> valueListener = change -> {
         if ((change.newValue() != get()) && (supportMultipleListeners)) {
             if (change.newValue() == null) {                
                 throw new IllegalArgumentException("Event properties with multiple listeners can't set to null. Use function remove(EventHandler<T>) instead.");
@@ -43,7 +44,7 @@ public class LEventHandler<T extends LEvent> extends LObservable<ILHandler<T>> {
                 additionalListeners = new LYosos<>();
             }
             additionalListeners.add(newValue);
-            _fireChangedEvent(new LObservableChangeEvent<>(this, null, null));
+            _fireChangedEvent(new LObservableChangeEvent(this, null, null));
         } else {
             throw new IllegalStateException("Multiple listeners are not allowed.");
         }
@@ -73,7 +74,7 @@ public class LEventHandler<T extends LEvent> extends LObservable<ILHandler<T>> {
     }
 
     @Override
-    public <B> void bind(Function<B, ILHandler<T>> converter, LObservable<B> observable) {         
+    public <B> void bind(Function<B, ILHandler<T>> converter, LObservable<B, ILObservable> observable) {
         if (observable == null) {
             throw new NullPointerException("Cannot bind to null");
         }
@@ -84,6 +85,11 @@ public class LEventHandler<T extends LEvent> extends LObservable<ILHandler<T>> {
             throw new IllegalArgumentException("Can only bind to " + LEventHandler.class.getName());
         }   
         super.bind(converter, observable);   
+    }
+
+    @Override
+    public LEventHandler clone() throws CloneNotSupportedException {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
 }

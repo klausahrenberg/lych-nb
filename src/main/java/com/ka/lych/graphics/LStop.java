@@ -3,7 +3,7 @@ package com.ka.lych.graphics;
 import com.ka.lych.annotation.Json;
 import java.util.Objects;
 import com.ka.lych.observable.LDouble;
-import com.ka.lych.observable.LObservable;
+import com.ka.lych.observable.LObject;
 
 /**
  *
@@ -14,7 +14,7 @@ public class LStop {
     @Json
     protected LDouble offset;
     @Json
-    protected LObservable<LColor> color;
+    protected LObject<LColor> color;
     
     public LStop() {
         
@@ -40,9 +40,9 @@ public class LStop {
         offset().set(offset);
     }
     
-    public final LObservable<LColor> color() {
+    public final LObject<LColor> color() {
         if (color == null) {
-            color = new LObservable<>();
+            color = new LObject<>();
         }
         return color;
     }

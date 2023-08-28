@@ -1,11 +1,10 @@
 package com.ka.lych.graphics;
 
 import com.ka.lych.util.ILBlobable;
+import com.ka.lych.util.LLog;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 
 /**
  *
@@ -14,11 +13,11 @@ import java.io.OutputStream;
 public class LRasterImage extends LShape 
         implements ILBlobable {
 
-    protected int rawWidth;
-    protected int rawHeight;
-    private LPaint imageMask;
-    protected byte[] rawImage;
-    protected Object nativeImage;
+    int _rawWidth;
+    int _rawHeight;
+    LPaint _imageMask;
+    byte[] _rawImage;
+    Object _nativeImage;
 
     public LRasterImage() {
         this(0, 0);
@@ -26,90 +25,65 @@ public class LRasterImage extends LShape
     
     public LRasterImage(int width, int height) {
         super(0, 0, width, height);
-        this.rawWidth = width;
-        this.rawHeight = height;
-        this.imageMask = null;
-        /*this.moveTo(0, 0);
-        this.lineTo(width, 0);
-        this.lineTo(width, height);
-        this.lineTo(0, height);
-        this.closePath();*/
+        _rawWidth = width;
+        _rawHeight = height;
+        _imageMask = null;
     }
 
     @Override
-    public void read(InputStream is) throws IOException {
-        var ois = new ObjectInputStream(is);
-        rawWidth = ois.readInt();
-        rawHeight = ois.readInt();
-        width(rawWidth);
-        height(rawHeight);
-        rawImage = new byte[rawWidth * rawHeight * 4];
-        ois.readFully(rawImage, 0, rawImage.length);
+    public void read(ObjectInputStream ois) throws IOException {
+        _rawWidth = ois.readInt();
+        _rawHeight = ois.readInt();
+        width(_rawWidth);
+        height(_rawHeight);
+        _rawImage = new byte[_rawWidth * _rawHeight * 4];
+        ois.readFully(_rawImage, 0, _rawImage.length);
     }
 
     @Override
-    public void write(OutputStream os) throws IOException {     
-        var oos = new ObjectOutputStream(os);
-        oos.writeInt(rawWidth);
-        oos.writeInt(rawHeight);
-        oos.write(rawImage, 0, rawImage.length);
+    public void write(ObjectOutputStream oos) throws IOException {     
+        oos.writeInt(_rawWidth);
+        oos.writeInt(_rawHeight);
+        oos.write(_rawImage, 0, _rawImage.length);
+    }
+    
+    public int rawWidth() {
+        return _rawWidth;
     }
 
-    /*@Override
-    protected void createPath() {
-        countPoints = numCoords = 0;
-        if ((LGeomUtils.isNotEqual(getWidth(), 0.0)) && (LGeomUtils.isNotEqual(getHeight(), 0.0))) {            
-            double[] xpoints = new double[4];
-            double[] ypoints = new double[4];
-            xpoints[0] = getX();
-            ypoints[0] = getY();
-            xpoints[1] = getX() + getWidth();
-            ypoints[1] = getY();
-            xpoints[2] = getX() + getWidth();
-            ypoints[2] = getY() + getHeight();
-            xpoints[3] = getX();
-            ypoints[3] = getY() + getHeight();
-            this.createPath(xpoints, ypoints, null, true);
-        }
-    }*/
-    public int getRawWidth() {
-        return rawWidth;
-    }
-
-    public int getRawHeight() {
-        return rawHeight;
+    public int rawHeight() {
+        return _rawHeight;
     }
 
     public boolean isImageMask() {
-        return (imageMask != null);
+        return (_imageMask != null);
     }
 
-    public LPaint getImageMask() {
-        return imageMask;
+    public LPaint imageMask() {
+        return _imageMask;
     }
 
-    public void setImageMask(LPaint imageMask) {
-        this.imageMask = imageMask;
+    public LRasterImage imageMask(LPaint imageMask) {
+        _imageMask = imageMask;
+        return this;
     }
 
-    public Object getNativeImage() {
-        return nativeImage;
+    public Object nativeImage() {
+        return _nativeImage;
     }
 
-    public void setNativeImage(Object nativeImage) {
-        this.nativeImage = nativeImage;
-        if (this.nativeImage != null) {
-            //delete image data
-            //this.rawImage = null;
-        }
+    public LRasterImage nativeImage(Object nativeImage) {
+        _nativeImage = nativeImage;  
+        return this;
     }
 
-    public byte[] getRawImage() {
-        return rawImage;
+    public byte[] rawImage() {
+        return _rawImage;
     }
 
-    public void setRawImage(byte[] rawImage) {
-        this.rawImage = rawImage;
+    public LRasterImage rawImage(byte[] rawImage) {
+        _rawImage = rawImage;
+        return this;
     }
 
     @Override
@@ -119,8 +93,8 @@ public class LRasterImage extends LShape
 
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + " [x=" + getX() + "; y=" + getY() + "; width=" + width().get() + "; height=" + height().get()
-                + "; rawWidth=" + getRawWidth() + "; rawHeight=" + getRawHeight() + "]";
+        return this.getClass().getSimpleName() + " [x=" + x().get() + "; y=" + y().get() + "; width=" + width().get() + "; height=" + height().get()
+                + "; rawWidth=" + rawWidth() + "; rawHeight=" + rawHeight() + "]";
     }
     
 }
