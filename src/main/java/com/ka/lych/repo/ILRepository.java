@@ -21,6 +21,7 @@ import com.ka.lych.annotation.Lazy;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
+import java.util.LinkedHashMap;
 
 /**
  *
@@ -35,7 +36,10 @@ public interface ILRepository<BC extends ILRepository> {
 
     }
     
-    static LMap<LRepoParentChild, String> DATA_SHEME = new LMap<>();
+    /**
+     * Must be LinkedHashMap for iteration in right insertion order at checkTables()
+     */
+    static LinkedHashMap<LRepoParentChild, String> DATA_SHEME = new LinkedHashMap<>();
 
     record LRecordClassRootName(ILRepository repository, Class rcdClass, String rootName) {
 
