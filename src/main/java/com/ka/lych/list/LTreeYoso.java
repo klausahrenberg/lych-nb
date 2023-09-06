@@ -16,7 +16,7 @@ public class LTreeYoso<K, V extends LTreeYoso<K, V>> extends LHashYoso<K>
     private final ILHashYosos<K, V> DEFAULT_CHILDRENS = null;
     protected LObject<ILHashYosos<K, V>> childrens;
     protected LBoolean hasChildrens;
-    protected ILYososChangeListener<V> yososListener = change -> updateHasChildrens();
+    protected ILListChangeListener<V> yososListener = change -> updateHasChildrens();
 
     public LTreeYoso() {
         this(null);

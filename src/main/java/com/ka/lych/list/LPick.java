@@ -30,11 +30,11 @@ public class LPick<T extends LYoso, V extends LTYoso<V>> extends LKeyYosos<V> {
     public LPick() {
         updating = false;
         this.addListener(change -> {
-            switch (change.getChangeType()) {
+            switch (change.type()) {
                 case ADDED ->
-                    this.addToPick(change.getYoso());
+                    this.addToPick(change.item());
                 case REMOVED ->
-                    this.removeFromPick(change.getYoso());
+                    this.removeFromPick(change.item());
                 //case CHANGED                 
             }
         });

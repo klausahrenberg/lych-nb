@@ -13,33 +13,34 @@ import com.ka.lych.annotation.Id;
 public class LTestHashYosos {
 
     public static void main(String[] args) {
-
         
         LKeyYosos<LTestYoso> hItems = new LKeyYosos<>();
         hItems.addListener(change -> {
-            
-            switch (change.getChangeType()) {
-                case CHANGED -> LLog.debug(LTestHashYosos.class, "changed at index " + change.getYosoIndex() + ": " + change.getYoso());                    
-                case ADDED -> LLog.debug(LTestHashYosos.class, "added at index " + change.getYosoIndex() + ": " + change.getYoso());
-                case REMOVED -> LLog.debug(LTestHashYosos.class, "removed from index " + change.getYosoIndex() + ": " + change.getYoso());                    
+
+            switch (change.type()) {
+                case CHANGED ->
+                    LLog.debug(LTestHashYosos.class, "changed at index " + change.index() + ": " + change.item());
+                case ADDED ->
+                    LLog.debug(LTestHashYosos.class, "added at index " + change.index() + ": " + change.item());
+                case REMOVED ->
+                    LLog.debug(LTestHashYosos.class, "removed from index " + change.index() + ": " + change.item());
             }
             //LLog.debug(LTestYosos.class, hItems.toString(true));
         });
-        
+
         hItems.add(new LTestYoso("Birne"));
         hItems.add(new LTestYoso("Apfel"));
-               
+
         //LLog.test(LTestYoso.class, "try to change: " + hItems.get(1).setHashKey("Apfel"));            
-        
     }
 
     public static class LTestYoso extends LYoso {
 
         private final String DEFAULT_HASH_KEY = null;
 
-        @Id 
+        @Id
         private LString hashKey;
-        
+
         public LTestYoso(String hashKey) {
             setHashKey(hashKey);
         }

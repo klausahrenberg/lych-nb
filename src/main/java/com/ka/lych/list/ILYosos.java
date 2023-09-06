@@ -1,5 +1,6 @@
 package com.ka.lych.list;
 
+import com.ka.lych.util.ILRegistration;
 import java.util.Iterator;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -11,9 +12,9 @@ import java.util.function.Predicate;
  */
 public interface ILYosos<T> extends Iterable<T> {
 
-    public void addListener(ILYososChangeListener<T> yososListener);
+    public ILRegistration addListener(ILListChangeListener<T> yososListener);
 
-    public void removeListener(ILYososChangeListener<T> yososListener);
+    public void removeListener(ILListChangeListener<T> yososListener);
 
     @Override
     public void forEach(Consumer<? super T> action);

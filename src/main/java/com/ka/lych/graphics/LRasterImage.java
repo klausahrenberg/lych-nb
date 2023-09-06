@@ -1,7 +1,6 @@
 package com.ka.lych.graphics;
 
 import com.ka.lych.util.ILBlobable;
-import com.ka.lych.util.LLog;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

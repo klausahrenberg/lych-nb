@@ -12,6 +12,7 @@ import java.util.function.Predicate;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.observable.LObservable;
+import com.ka.lych.util.ILRegistration;
 import com.ka.lych.util.LArrays;
 
 /**
@@ -28,7 +29,7 @@ public class LFilteredYosos<T> extends AbstractList<T>
     protected boolean notifyAllowed = true;
     private int[] filtered;
     private int size;
-    protected LinkedList<ILYososChangeListener<T>> yososListeners;
+    protected LinkedList<ILListChangeListener<T>> yososListeners;
     private ILYosos<T> sourceYosos;
     private LObject<Predicate<? super T>> predicate;
     private LObject<Comparator<? super T>> comparator;
@@ -40,15 +41,15 @@ public class LFilteredYosos<T> extends AbstractList<T>
         }
         this.sourceYosos = sourceYosos;
         this.sourceYosos.addListener(change -> {
-            T yoso = change.getYoso();
+            T yoso = change.item();
             if (this.isNotFiltered(yoso)) {
-                switch (change.getChangeType()) {
+                switch (change.type()) {
                     case ADDED ->
-                        this.add(findInsertIndex(yoso, -1), yoso, change.getYosoIndex());
+                        this.add(findInsertIndex(yoso, -1), yoso, change.index());
                     case REMOVED ->
-                        this.remove(indexOf(change.getYosoIndex()), yoso, change.getYosoIndex());
+                        this.remove(indexOf(change.index()), yoso, change.index());
                     case CHANGED ->
-                        this.notifyChange(indexOf(change.getYosoIndex()), yoso);
+                        this.notifyChange(indexOf(change.index()), yoso, null);
                 }
             }
         });
@@ -61,15 +62,16 @@ public class LFilteredYosos<T> extends AbstractList<T>
     }
 
     @Override
-    public void addListener(ILYososChangeListener<T> yososListener) {
+    public ILRegistration addListener(ILListChangeListener<T> yososListener) {
         if (yososListeners == null) {
             yososListeners = new LinkedList<>();
         }
         yososListeners.add(yososListener);
+        return () -> removeListener(yososListener);
     }
 
     @Override
-    public void removeListener(ILYososChangeListener<T> yososListener) {
+    public void removeListener(ILListChangeListener<T> yososListener) {
         if (yososListeners != null) {
             yososListeners.remove(yososListener);
         }
@@ -205,7 +207,7 @@ public class LFilteredYosos<T> extends AbstractList<T>
         T oldYoso = sourceYosos.get(filtered[index]);
         if (oldYoso != yoso) {
             filtered[index] = sourceYosos.indexOf(yoso);
-            this.notifySet(index, yoso);
+            this.notifyChange(index, yoso, oldYoso);
         }
         return oldYoso;
     }
@@ -268,25 +270,21 @@ public class LFilteredYosos<T> extends AbstractList<T>
         }
     }
 
-    protected synchronized void notifyChange(int index, T yoso) {
+    protected synchronized void notifyChange(int index, T yoso, T oldYoso) {
         if ((notifyAllowed) && (yososListeners != null)) {
-            yososListeners.forEach(listener -> listener.onChanged(new ILYososChangeListener.LChange<>(ILYososChangeListener.LChangeType.CHANGED, this, yoso, index)));
+            yososListeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.CHANGED, this, yoso, oldYoso, index)));
         }
-    }
-
-    protected synchronized void notifySet(int index, T yoso) {
-        this.notifyChange(index, yoso);
     }
 
     protected synchronized void notifyAdd(int index, T yoso) {
         if ((notifyAllowed) && (yososListeners != null)) {
-            yososListeners.forEach(listener -> listener.onChanged(new ILYososChangeListener.LChange<>(ILYososChangeListener.LChangeType.ADDED, this, yoso, index)));
+            yososListeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.ADDED, this, yoso, null, index)));
         }
     }
 
     protected synchronized void notifyRemove(int index, T yoso) {
         if ((notifyAllowed) && (yososListeners != null)) {
-            yososListeners.forEach(listener -> listener.onChanged(new ILYososChangeListener.LChange<>(ILYososChangeListener.LChangeType.REMOVED, this, yoso, index)));
+            yososListeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.REMOVED, this, null, yoso, index)));
         }
     }
 

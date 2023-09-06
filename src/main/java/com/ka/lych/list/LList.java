@@ -1,5 +1,6 @@
 package com.ka.lych.list;
 
+import com.ka.lych.util.ILRegistration;
 import com.ka.lych.util.LArrays;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,6 +17,8 @@ import java.util.function.Predicate;
  * @param <T>
  */
 public class LList<T> extends ArrayList<T> {
+    
+    protected LList<ILListChangeListener<T>> _listeners;
 
     public LList() {
     }
@@ -30,6 +33,20 @@ public class LList<T> extends ArrayList<T> {
 
     public LList(Collection<? extends T> values) {
         super(values);
+    }
+    
+    public ILRegistration addListener(ILListChangeListener<T> listener) {
+        if (_listeners == null) {
+            _listeners = new LList<>();
+        }
+        _listeners.add(listener);
+        return () -> removeListener(listener);
+    }
+
+    public void removeListener(ILListChangeListener<T> listener) {
+        if (_listeners != null) {
+            _listeners.remove(listener);
+        }
     }
 
     public T getIf(Predicate<? super T> filter) {        
@@ -98,5 +115,84 @@ public class LList<T> extends ArrayList<T> {
         }
         return null;
     }    
+    
+    //Observable code
+    
+    @Override
+    public boolean add(T item) {
+        this.add(size(), item);
+        return true;
+    }
+
+    @Override
+    public void add(int index, T item) {
+        super.add(index, item);
+        _notifyAdd(index, item);
+    }
+
+    @Override
+    public boolean addAll(Collection<? extends T> c) {
+        return this.addAll(size(), c);
+    }
+
+    @Override
+    public boolean addAll(int index, Collection<? extends T> c) {
+        Object[] a = c.toArray();
+        for (int i = 0; i < a.length; i++) {
+            T item = (T) a[i];
+            add(index + i, item);
+        }
+        return true;
+    }
+
+    @Override
+    public void clear() {
+        for (int i = size() - 1; i >= 0; i--) {
+            remove(i);
+        }
+    }
+
+    @Override
+    public T remove(int index) {
+        T item = super.remove(index);
+        this._notifyRemove(index, item);
+        return item;
+    }
+
+    @Override
+    public boolean remove(Object item) {
+        int i = this.indexOf(item);
+        if (i > -1) {
+            this.remove(i);
+        }
+        return (i > -1);
+    }
+
+    @Override
+    public T set(int index, T item) {
+        T replaced = super.set(index, item);
+        if (replaced != item) {
+            this._notifyChanged(index, item, replaced);
+        }
+        return replaced;
+    }
+    
+    protected synchronized void _notifyAdd(int index, T item) {       
+        if (_listeners != null) {             
+            _listeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.ADDED, this, item, null, index)));
+        }
+    }
+    
+    protected synchronized void _notifyRemove(int index, T item) {
+        if (_listeners != null) {             
+            _listeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.REMOVED, this, null, item, index)));
+        }
+    }
+
+    protected synchronized void _notifyChanged(int index, T item, T oldItem) {
+        if (_listeners != null) {             
+            _listeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.CHANGED, this, item, oldItem, index)));
+        }
+    }
     
 }
