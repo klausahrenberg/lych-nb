@@ -55,27 +55,7 @@ public abstract class LReflections {
     }
 
     public static LObservable observable(Object o, LField field) {
-        LObservable result = null;
-        if (field != null) {
-            try {
-                result = (LObservable) field.get(o);
-            } catch (SecurityException | IllegalArgumentException | IllegalAccessException ex) {
-                throw new IllegalStateException(ex.getMessage(), ex);
-            }
-            if (result == null) {
-                //Property could be null because it's not instanciated in the constructor.
-                //In this cas try to get the property with the method "observable<propertyName>()"
-                //which should instanciate the property                
-                String methodName = field.name();
-                try {
-                    LMethod m = LReflections.getMethod(o.getClass(), methodName);
-                    result = (LObservable) m.invoke(o);
-                } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException nsme) {
-                    throw new IllegalStateException("Can't call method '" + methodName + "()' for object: " + o, nsme);
-                }
-            }
-        }
-        return result;
+        return (field != null ? field.observable(o) : null);
     }
 
     @SuppressWarnings("unchecked")
@@ -430,7 +410,7 @@ public abstract class LReflections {
      * @return
      */
     @SuppressWarnings("unchecked")
-    protected static LFields getFieldsOfInstance(Object o, Class requiredFieldClass, Class... annotations) {
+    public static LFields getFieldsOfInstance(Object o, Class requiredFieldClass, Class... annotations) {
         Objects.requireNonNull(o);
         return getFields(o.getClass(), requiredFieldClass, annotations);
     }
@@ -726,6 +706,34 @@ public abstract class LReflections {
         public Object get(Object instance) throws IllegalAccessException {
             _field.setAccessible(true);
             return _field.get(instance);
+        }
+        
+        public Object value(Object instance) {
+            Object result;
+            try {
+                result = get(instance);                
+            } catch (SecurityException | IllegalArgumentException | IllegalAccessException ex) {
+                throw new IllegalStateException(ex.getMessage(), ex);
+            }
+            if (result == null) {
+                //Property could be null because it's not instanciated in the constructor.
+                //In this cas try to get the property with the method "observable<propertyName>()"
+                //which should instanciate the property                 
+                try {
+                    LMethod m = LReflections.getMethod(instance.getClass(), name());
+                    result = (LObservable) m.invoke(instance);
+                } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException nsme) {
+                    throw new IllegalStateException("Can't call method '" + name() + "()' for object: " + instance, nsme);
+                }
+            }
+            return result;
+        }
+        
+        public LObservable observable(Object instance) {
+            if (!isObservable()) {
+                throw new IllegalStateException("Field '" + name() + "()' is no observable " + type());
+            }
+            return (LObservable) value(instance);
         }
 
         public void set(Object instance, Object value) throws IllegalAccessException {

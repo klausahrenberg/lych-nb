@@ -1,6 +1,7 @@
 package com.ka.lych.util;
 
 import com.ka.lych.observable.LString;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -35,6 +36,10 @@ public abstract class LObjects {
             throw new IllegalArgumentException(LString.isEmpty(message) ? "Required class is " + requiredClass + ". Object is not of this type: " + obj.getClass() : message);
         }
         return obj;
+    }
+    
+    public static int hash(Object... values) {
+        return Arrays.hashCode(values);
     }
     
 }
