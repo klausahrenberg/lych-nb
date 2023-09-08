@@ -3,6 +3,7 @@ package com.ka.lych.list;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.ILConstants;
+import com.ka.lych.util.LFuture;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LObjects;
 import com.ka.lych.util.LReflections;
@@ -34,11 +35,12 @@ public class LJournal<V>
         _list = list;
         _hashIndex = hashIndex;
         _list.addListener(change -> {
-            switch (change.type()) {
-                case CHANGED -> {}
+            return switch (change.type()) {
+                case CHANGED -> LFuture.value(null);
                 case ADDED -> _add(change.item());
-                case REMOVED -> {}
-            }
+                case REMOVED -> LFuture.value(null);
+                default -> LFuture.value(null);
+            };
         });
         _list.forEach(item -> _add(item));
     }
@@ -125,7 +127,7 @@ public class LJournal<V>
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     
-    protected void _add(V item) {
+    protected LFuture<Void, LDoubleHashKeyException> _add(V item) {
         if (_fields == null) {
             _fields = LReflections.getFieldsOfInstance(item, null, _hashIndex);
             LLog.test(this, "hash fields are: %s", _fields.toString());
@@ -133,13 +135,14 @@ public class LJournal<V>
         var key = _key(item);
         var slot = _slot(key);
         LLog.test(this, "slot is %s / key is '%s' / item: %s", slot, key, item);
-        if (this.containsKey(key)) {
-            //throw new LDoubleHashKeyException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")");
-        }
-        
-        LJournalItem<V> ji = new LJournalItem<>(key, item);
-        ji.next(_slots[slot]);
-        _slots[slot] = ji;
+        if (!this.containsKey(key)) {
+            LJournalItem<V> ji = new LJournalItem<>(key, item);
+            ji.next(_slots[slot]);
+            _slots[slot] = ji;
+            return LFuture.value(null);
+        } else {    
+            return LFuture.error(new LDoubleHashKeyException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")"));
+        }                
     }
 
     protected void _removeHashKey(V item) {

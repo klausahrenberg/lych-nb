@@ -1,5 +1,7 @@
 package com.ka.lych.list;
 
+import com.ka.lych.util.LException;
+import com.ka.lych.util.LFuture;
 import java.util.Collection;
 
 /**
@@ -9,7 +11,7 @@ import java.util.Collection;
  */
 public interface ILListChangeListener<T> {
 
-    public abstract void onChanged(LListChange<T> change);
+    public abstract LFuture<Void, ? extends LException> onChanged(LListChange<T> change);
 
     public enum LChangeType {
         ADDED, REMOVED, CHANGED
