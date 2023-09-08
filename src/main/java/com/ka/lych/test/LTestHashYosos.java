@@ -13,10 +13,9 @@ import com.ka.lych.annotation.Id;
 public class LTestHashYosos {
 
     public static void main(String[] args) {
-        
+
         LKeyYosos<LTestYoso> hItems = new LKeyYosos<>();
         hItems.addListener(change -> {
-
             switch (change.type()) {
                 case CHANGED ->
                     LLog.debug(LTestHashYosos.class, "changed at index " + change.index() + ": " + change.item());

@@ -3,7 +3,7 @@ package com.ka.lych.list;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.ILConstants;
-import com.ka.lych.util.LFuture;
+import com.ka.lych.util.ILConsumer;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LObjects;
 import com.ka.lych.util.LReflections;
@@ -11,17 +11,16 @@ import com.ka.lych.util.LReflections.LFields;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 
 /**
  *
  * @author klausahrenberg
  */
-public class LJournal<V> 
+public class LJournal<V>
         implements Map<String, V> {
-    
+
     private static final int NUMBER_OF_SLOTS = 128;
-    
+
     protected final LList<V> _list;
     protected final Class _hashIndex;
     protected LFields _fields;
@@ -30,19 +29,21 @@ public class LJournal<V>
     public LJournal(LList<V> list) {
         this(list, Id.class);
     }
-    
+
     public LJournal(LList<V> list, Class hashIndex) {
+        LObjects.requireNonNull(list);
+        LObjects.requireNonNull(hashIndex);
         _list = list;
         _hashIndex = hashIndex;
         _list.addListener(change -> {
-            return switch (change.type()) {
-                case CHANGED -> LFuture.value(null);
+            switch (change.type()) {
+                case CHANGED -> {}
                 case ADDED -> _add(change.item());
-                case REMOVED -> LFuture.value(null);
-                default -> LFuture.value(null);
+                case REMOVED -> {}
+                default -> {}
             };
         });
-        _list.forEach(item -> _add(item));
+        _list.forEach(ILConsumer.accept(item -> _add(item)));
     }
 
     @Override
@@ -59,7 +60,7 @@ public class LJournal<V>
     public boolean containsKey(Object key) {
         LObjects.requireNonNull(key, "Key can't be null");
         LObjects.requireClass(key, String.class, "Key must be a String: " + key.getClass());
-        var slot = _slot((String) key);        
+        var slot = _slot((String) key);
         LJournalItem<V> ji = _slots[slot];
         while (ji != null) {
             if ((ji.getValue() != null) && (ji.getKey().equals(key))) {
@@ -68,11 +69,11 @@ public class LJournal<V>
                 ji = ji.next();
             }
         }
-        return false;        
+        return false;
     }
 
     @Override
-    public boolean containsValue(Object item) {        
+    public boolean containsValue(Object item) {
         return containsKey(_key((V) item));
     }
 
@@ -80,7 +81,7 @@ public class LJournal<V>
     public V get(Object key) {
         LObjects.requireNonNull(key, "Key can't be null");
         LObjects.requireClass(key, String.class, "Key must be a String: " + key.getClass());
-        var slot = _slot((String) key);        
+        var slot = _slot((String) key);
         LJournalItem<V> ji = _slots[slot];
         while (ji != null) {
             if ((ji.getValue() != null) && (ji.getKey().equals(key))) {
@@ -89,7 +90,7 @@ public class LJournal<V>
                 ji = ji.next();
             }
         }
-        return null;        
+        return null;
     }
 
     @Override
@@ -126,29 +127,34 @@ public class LJournal<V>
     public Set<Entry<String, V>> entrySet() {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
-    
-    protected LFuture<Void, LDoubleHashKeyException> _add(V item) {
-        if (_fields == null) {
-            _fields = LReflections.getFieldsOfInstance(item, null, _hashIndex);
-            LLog.test(this, "hash fields are: %s", _fields.toString());
-        }
-        var key = _key(item);
-        var slot = _slot(key);
-        LLog.test(this, "slot is %s / key is '%s' / item: %s", slot, key, item);
-        if (!this.containsKey(key)) {
-            LJournalItem<V> ji = new LJournalItem<>(key, item);
-            ji.next(_slots[slot]);
-            _slots[slot] = ji;
-            return LFuture.value(null);
-        } else {    
-            return LFuture.error(new LDoubleHashKeyException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")"));
-        }                
+
+    protected void _add(V item) throws LDoubleHashKeyException {
+        
+            if (_fields == null) {
+                _fields = LReflections.getFieldsOfInstance(item, null, _hashIndex);
+                LLog.test(this, "hash fields are: %s", _fields.toString());
+            }
+            LLog.test(this, "add %s", item);
+            var key = _key(item);
+            var slot = _slot(key);
+            LLog.test(this, "slot is %s / key is '%s' / item: %s", slot, key, item);
+            if (!this.containsKey(key)) {
+                LJournalItem<V> ji = new LJournalItem<>(key, item);
+                ji.next(_slots[slot]);
+                _slots[slot] = ji;
+                LLog.test(this, "add ok");                
+            } else {
+                LLog.test(this, "add failed");
+                throw new LDoubleHashKeyException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")");
+            }
+
+        
     }
 
     protected void _removeHashKey(V item) {
-        
+
     }
-    
+
     protected String _key(V item) {
         LObjects.requireNonNull(_fields, "Fields can't be null.");
         if (_fields.size() == 0) {
@@ -158,17 +164,17 @@ public class LJournal<V>
         for (int i = 0; i < _fields.size(); i++) {
             values[i] = _fields.get(i).value(item);
             LLog.test(this, "hashKey is %s of key: %s", values[i].hashCode(), values[i]);
-        }                
-        return LString.concatWithSpacer(ILConstants.DOT, ILConstants.NULL_VALUE, values);        
+        }
+        return LString.concatWithSpacer(ILConstants.DOT, ILConstants.NULL_VALUE, values);
     }
-    
+
     protected int _slot(String key) {
         return LObjects.hash(key) % NUMBER_OF_SLOTS;
-    }    
-    
-    protected static class LJournalItem<V> 
+    }
+
+    protected static class LJournalItem<V>
             implements Entry<String, V> {
-        
+
         LJournalItem<V> _next;
         String _key;
         V _value;
@@ -194,16 +200,15 @@ public class LJournal<V>
             _value = value;
             return oldValue;
         }
-        
+
         public LJournalItem<V> next() {
             return _next;
         }
-        
+
         public void next(LJournalItem<V> next) {
             _next = next;
         }
 
     }
-    
-    
+
 }

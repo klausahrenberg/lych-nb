@@ -167,15 +167,17 @@ public class LWebRepository implements
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<? extends Record> parent) {
-        try {
-            var request = LJson.of(new LOdwRequestRecord(rcd.getClass().getSimpleName(), rcd)).toString();            
-            @SuppressWarnings("deprecation")
-            var map = LJsonParser.of(LMap.class).url(new URL(_url + "/persist"), request).parse();            
-            LReflections.update(rcd, map);
-            return LFuture.value(rcd);
-        } catch (LParseException | MalformedURLException ex) {
-            return LFuture.error(new LDataException(this, ex.getLocalizedMessage(), ex));
-        }
+        return LFuture.<T, LDataException>execute(task -> {
+            try {
+                var request = LJson.of(new LOdwRequestRecord(rcd.getClass().getSimpleName(), rcd)).toString();            
+                @SuppressWarnings("deprecation")
+                var map = LJsonParser.of(LMap.class).url(new URL(_url + "/persist"), request).parse();            
+                LReflections.update(rcd, map);
+                return rcd;
+            } catch (LParseException | MalformedURLException ex) {
+                throw new LDataException(this, ex.getLocalizedMessage(), ex);
+            }
+        });
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.ka.lych.list;
 
+import com.ka.lych.list.LListChange.LChangeType;
 import java.util.Collection;
 import java.util.EmptyStackException;
 import java.util.Iterator;
@@ -9,6 +10,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 import com.ka.lych.util.ILCloneable;
+import com.ka.lych.util.ILConsumer;
 import com.ka.lych.util.ILRegistration;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LReflections;
@@ -23,7 +25,7 @@ import java.util.ListIterator;
 public class LYosos<T> extends LList<T>
         implements ILYosos<T>, ILCloneable {
 
-    protected LinkedList<ILListChangeListener<T>> yososListeners;
+    protected LinkedList<ILConsumer<LListChange<T>, Exception>> yososListeners;
     protected boolean notifyAllowed = true;
     protected int updating = 0;
     protected boolean removeNotUpdatedYosos;
@@ -46,7 +48,7 @@ public class LYosos<T> extends LList<T>
     }
 
     @Override
-    public ILRegistration addListener(ILListChangeListener<T> yososListener) {
+    public ILRegistration addListener(ILConsumer<LListChange<T>, Exception> yososListener) {
         if (yososListeners == null) {
             yososListeners = new LinkedList<>();
         }
@@ -55,7 +57,7 @@ public class LYosos<T> extends LList<T>
     }
 
     @Override
-    public void removeListener(ILListChangeListener<T> yososListener) {
+    public void removeListener(ILConsumer<LListChange<T>, Exception> yososListener) {
         if (yososListeners != null) {
             yososListeners.remove(yososListener);
         }
@@ -138,25 +140,29 @@ public class LYosos<T> extends LList<T>
 
     protected synchronized void notifyChange(T yoso) {
         if ((notifyAllowed) && (yososListeners != null)) {
-            yososListeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.CHANGED, this, yoso, null, indexOf(yoso))));
+            var lc = new LListChange<T>(LChangeType.CHANGED, this, yoso, null, indexOf(yoso));
+            yososListeners.forEach(listener -> listener.accept(lc));
         }
     }
 
     protected synchronized void notifySet(int index, T yoso, T oldYoso) {
         if ((notifyAllowed) && (yososListeners != null)) {
-            yososListeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.CHANGED, this, yoso, oldYoso, index)));
+            var lc = new LListChange<T>(LChangeType.CHANGED, this, yoso, oldYoso, index);
+            yososListeners.forEach(listener -> listener.accept(lc));
         }
     }
 
     protected synchronized void notifyAdd(int index, T yoso) {       
         if ((notifyAllowed) && (yososListeners != null)) {             
-            yososListeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.ADDED, this, yoso, null, index)));
+            var lc = new LListChange<T>(LChangeType.ADDED, this, yoso, null, index);
+            yososListeners.forEach(listener -> listener.accept(lc));
         }
     }
 
     protected synchronized void notifyRemove(int index, T yoso) {
         if ((notifyAllowed) && (yososListeners != null)) {
-            yososListeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.REMOVED, this, null, yoso, index)));
+            var lc = new LListChange<T>(LChangeType.REMOVED, this, null, yoso, index);
+            yososListeners.forEach(listener -> listener.accept(lc));
         }
     }
 

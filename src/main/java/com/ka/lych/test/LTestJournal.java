@@ -33,8 +33,8 @@ public class LTestJournal {
         //apple.id().set("Pflaumäe");
         //LLog.test(LTestJournal.class, "apple '%s' to pflaume with hashCode %s", apple.id(), apple.hashCode());
         
-        var apple2 = _list.get(1);
-        LLog.test(LTestJournal.class, "apple2 '%s' with hashCode %s", apple2.id(), apple2.hashCode()); 
+        //var apple2 = _list.get(1);
+        //LLog.test(LTestJournal.class, "apple2 '%s' with hashCode %s", apple2.id(), apple2.hashCode()); 
         
         
         LJournal<LTestRecord> _journal = new LJournal<>(_list);

@@ -1,6 +1,7 @@
 package com.ka.lych.list;
 
 import com.ka.lych.observable.LObject;
+import com.ka.lych.util.LFuture;
 import com.ka.lych.util.LLog;
 import java.util.function.Function;
 
@@ -36,7 +37,7 @@ public class LPick<T extends LYoso, V extends LTYoso<V>> extends LKeyYosos<V> {
                 case REMOVED ->
                     this.removeFromPick(change.item());
                 //case CHANGED                 
-            }
+                }
         });
     }
 

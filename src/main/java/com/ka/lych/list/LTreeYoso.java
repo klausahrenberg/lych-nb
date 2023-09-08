@@ -2,6 +2,8 @@ package com.ka.lych.list;
 
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
+import com.ka.lych.util.ILConsumer;
+import com.ka.lych.util.LFuture;
 
 /**
  *
@@ -16,7 +18,7 @@ public class LTreeYoso<K, V extends LTreeYoso<K, V>> extends LHashYoso<K>
     private final ILHashYosos<K, V> DEFAULT_CHILDRENS = null;
     protected LObject<ILHashYosos<K, V>> childrens;
     protected LBoolean hasChildrens;
-    protected ILListChangeListener<V> yososListener = change -> updateHasChildrens();
+    protected ILConsumer<LListChange<V>, Exception> yososListener = change -> updateHasChildrens();            
 
     public LTreeYoso() {
         this(null);

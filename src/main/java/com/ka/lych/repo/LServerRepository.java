@@ -13,8 +13,7 @@ public abstract class LServerRepository<BC extends LServerRepository>
 
     @Override
     public <R extends Record> LFuture<R, LDataException> fetchRoot(Class<R> dataClass, Optional<String> rootName) {
-        var root = ROOTS.get(new LRecordClassRootName(this, dataClass, (rootName.isPresent() ? rootName.get() : null)));
-        return LFuture.value(root);
+        return LFuture.<R, LDataException>execute(task -> (R) ROOTS.get(new LRecordClassRootName(this, dataClass, (rootName.isPresent() ? rootName.get() : null))));        
     }
 
 }

@@ -34,8 +34,13 @@ public abstract class LFuture<R, T extends Throwable>
         this.value = (exception == null ? value : null);
         latch.countDown();
         if (!cancelled) {
-            if (hasError()) {                
-                this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR, eh -> eh.handler().accept(this.error));
+            if (hasError()) {   
+                LLog.test(this, "handler %s", this.handlers.size());
+                if (this.handlers.getIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR) != null) {                   
+                    this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR, eh -> eh.handler().accept(this.error));
+                } else {
+                    throw new RuntimeException(this.error);
+                }
             } else {                
                 this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.VALUE, eh -> eh.handler().accept(this.value));
             }
@@ -141,7 +146,7 @@ public abstract class LFuture<R, T extends Throwable>
         return this.value;
     }
 
-    @SuppressWarnings("unchecked")
+    /*@SuppressWarnings("unchecked")
     public static <R, T extends Throwable> LFuture<R, T> error(T error) {
         LFuture waiter = new LFuture(null) {
             @Override
@@ -161,7 +166,7 @@ public abstract class LFuture<R, T extends Throwable>
         };
         waiter.finish(null, value, false);
         return waiter;
-    }
+    }*/
 
     protected static LList<LTask> runningTasks;
 

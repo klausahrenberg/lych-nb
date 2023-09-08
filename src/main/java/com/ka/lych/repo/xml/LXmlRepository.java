@@ -217,7 +217,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
     @Override        
     @SuppressWarnings("unchecked")
     public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected) {
-        return LFuture.value(state());
+        return LFuture.execute(t -> state());
     }
 
     @Override
@@ -266,16 +266,20 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<? extends Record> parent) {
-        modified = true;
-        return LFuture.value(rcd);
+    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<? extends Record> parent) {        
+        return LFuture.execute(t -> {
+            modified = true;
+            return rcd;
+        });
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public <T extends Record> LFuture<T, LDataException> remove(T rcd, Optional<? extends Record> parent) {
-        modified = true;
-        return LFuture.value(rcd);
+        return LFuture.execute(t -> {
+            modified = true;
+            return rcd;
+        });
     }
 
     @Override

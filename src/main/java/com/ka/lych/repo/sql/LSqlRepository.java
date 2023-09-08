@@ -351,40 +351,42 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     @Override
     @SuppressWarnings("unchecked")
     public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected) {
-        if (connected) {
+        return LFuture.<LObject<LDataServiceState>, LDataException>execute(task -> {
+            if (connected) {
             //Verbindungsaufbau
-            if (state().get() == LDataServiceState.NOT_AVAILABLE) {
-                if (isReadyForConnect()) {
-                    _state.set(LDataServiceState.REQUESTING);
-                    return LFuture.execute(task -> connect());
-                } else {
-                    return LFuture.error(new LDataException(this, "Can't connect because of missing or incomplete connection details"));
-                }
-            }
-        } else {
-            //Verbindungsabbau
-            if (_connection != null) {
-                try {
-                    _queryStatement.close();
-                } catch (Exception e) {
-                }
-                try {
-                    _connection.close();
-                } catch (Exception e) {
-                }
-                if (databaseType().get() == LoSqlDatabaseType.DERBY_EMBEDDED) {
-                    try {
-                        DriverManager.getConnection("jdbc:derby:" + database().get() + ";shutdown=true");
-                    } catch (Exception e) {
+                if (state().get() == LDataServiceState.NOT_AVAILABLE) {
+                    if (isReadyForConnect()) {
+                        _state.set(LDataServiceState.REQUESTING);
+                        connect();
+                    } else {
+                        throw new LDataException(this, "Can't connect because of missing or incomplete connection details");
                     }
                 }
-
+            } else {
+                //Verbindungsabbau
+                if (_connection != null) {
+                    try {
+                        _queryStatement.close();
+                    } catch (Exception e) {
+                    }
+                    try {
+                        _connection.close();
+                    } catch (Exception e) {
+                    }
+                    if (databaseType().get() == LoSqlDatabaseType.DERBY_EMBEDDED) {
+                        try {
+                            DriverManager.getConnection("jdbc:derby:" + database().get() + ";shutdown=true");
+                        } catch (Exception e) {
+                        }
+                    }
+                
+                }
+                _queryStatement = null;
+                _connection = null;
+                _state.set(LDataServiceState.NOT_AVAILABLE);
             }
-            _queryStatement = null;
-            _connection = null;
-            _state.set(LDataServiceState.NOT_AVAILABLE);
-        }
-        return LFuture.value(state());
+            return state();
+        });        
     }
 
     @Override
@@ -683,13 +685,10 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<? extends Record> parent) {
-        //public LFuture<Void> persist(Record rcd, Optional<? extends Record> parent) {
-        if (rcd == null) {
-            return LFuture.value(null);
-        }
+    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<? extends Record> parent) {        
         return LFuture.<R, LDataException>execute(task -> {
             try {
+                LObjects.requireNonNull(rcd);
                 var fields = LRecord.getFields(rcd.getClass());
                 LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(rcd);
                 if (primaryKeyComplete != LKeyCompleteness.KEY_NOT_COMPLETE) {

@@ -1,5 +1,7 @@
 package com.ka.lych.list;
 
+import com.ka.lych.list.LListChange.LChangeType;
+import com.ka.lych.util.ILConsumer;
 import com.ka.lych.util.ILRegistration;
 import com.ka.lych.util.LArrays;
 import java.util.ArrayList;
@@ -18,7 +20,7 @@ import java.util.function.Predicate;
  */
 public class LList<T> extends ArrayList<T> {
     
-    protected LList<ILListChangeListener<T>> _listeners;
+    protected LList<ILConsumer<LListChange<T>, Exception>> _listeners;
 
     public LList() {
     }
@@ -35,7 +37,7 @@ public class LList<T> extends ArrayList<T> {
         super(values);
     }
     
-    public ILRegistration addListener(ILListChangeListener<T> listener) {
+    public ILRegistration addListener(ILConsumer<LListChange<T>, Exception> listener) {
         if (_listeners == null) {
             _listeners = new LList<>();
         }
@@ -43,7 +45,7 @@ public class LList<T> extends ArrayList<T> {
         return () -> removeListener(listener);
     }
 
-    public void removeListener(ILListChangeListener<T> listener) {
+    public void removeListener(ILConsumer<LListChange<T>, Exception> listener) {
         if (_listeners != null) {
             _listeners.remove(listener);
         }
@@ -53,8 +55,13 @@ public class LList<T> extends ArrayList<T> {
         return LList.getIf(this, filter);        
     }
 
+    /**
+     *
+     * @param filter
+     * @param action
+     */
     public void forEachIf(Predicate<? super T> filter, Consumer<? super T> action) {
-        Iterator<T> it_t = iterator();
+        Iterator<T> it_t = iterator();        
         while (it_t.hasNext()) {
             T yoso = it_t.next();
             if ((yoso != null) && ((filter == null) || (filter.test(yoso)))) {
@@ -178,20 +185,23 @@ public class LList<T> extends ArrayList<T> {
     }
     
     protected synchronized void _notifyAdd(int index, T item) {       
-        if (_listeners != null) {             
-            _listeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.ADDED, this, item, null, index)));
+        if (_listeners != null) {      
+            var cl = new LListChange<T>(LChangeType.ADDED, this, item, null, index);
+            _listeners.forEach(listener -> listener.accept(cl));
         }
     }
     
     protected synchronized void _notifyRemove(int index, T item) {
         if (_listeners != null) {             
-            _listeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.REMOVED, this, null, item, index)));
+            var cl = new LListChange<T>(LChangeType.REMOVED, this, null, item, index);
+            _listeners.forEach(listener -> listener.accept(cl));
         }
     }
 
     protected synchronized void _notifyChanged(int index, T item, T oldItem) {
         if (_listeners != null) {             
-            _listeners.forEach(listener -> listener.onChanged(new ILListChangeListener.LListChange<>(ILListChangeListener.LChangeType.CHANGED, this, item, oldItem, index)));
+            var cl = new LListChange<T>(LChangeType.CHANGED, this, item, oldItem, index);
+            _listeners.forEach(listener -> listener.accept(cl));
         }
     }
     
