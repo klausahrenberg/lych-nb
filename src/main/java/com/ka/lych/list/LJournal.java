@@ -4,6 +4,7 @@ import com.ka.lych.annotation.Id;
 import com.ka.lych.exceptions.LItemNotExistsException;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.ILConstants;
+import com.ka.lych.util.ILConsumer;
 import com.ka.lych.util.LException;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LObjects;
@@ -12,6 +13,7 @@ import com.ka.lych.util.LReflections.LFields;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 
 /**
  *
@@ -124,8 +126,9 @@ public class LJournal<V>
     }
 
     @Override
-    public V remove(Object item) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public V remove(Object item) {             
+        LException.<V>throwing(i -> _remove((V) i)).accept((V) item);
+        return (V) item;
     }
 
     @Override
@@ -165,7 +168,7 @@ public class LJournal<V>
         LLog.test(this, "added (%s items): %s", this.size(), item);        
     }
     
-    public void _remove(V item) throws LItemNotExistsException {
+    public V _remove(V item) throws LItemNotExistsException {        
         if (_fields != null) {            
             var key = _key(item);
             var slot = _slot(key);
@@ -178,7 +181,7 @@ public class LJournal<V>
                         hi = hi.next();
                     } else {
                         if (hi.getValue() != item) {
-                            throw new LItemNotExistsException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")");                            
+                            throw new LItemNotExistsException(this, "Journal item of key '" + (key != null ? "'" + key + "'" : "null") + "' is not the same: " + hi.getValue());                            
                         }
                         if (last == null) {
                             _slots[slot] = hi.next();
@@ -191,9 +194,10 @@ public class LJournal<V>
                     }
                 }
             } else {
-                throw new LItemNotExistsException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")");
+                throw new LItemNotExistsException(this, "Journal contains no key: '" + (key != null ? "'" + key + "'" : "null") + "'");
             }
-        }        
+        }       
+        return item;
     }
 
     protected void _removeHashKey(V item) {
