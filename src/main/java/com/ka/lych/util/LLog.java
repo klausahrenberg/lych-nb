@@ -84,19 +84,19 @@ public abstract class LLog {
     public static void error(LException exception, boolean promptUser) {
         String message = exception.getMessage();
         try {
-            message = LBase.getResources().localize(exception.getSender(), ILConstants.EXCEPTION + ILConstants.DOT + exception.getMessage());
+            message = LBase.getResources().localize(exception.sender(), ILConstants.EXCEPTION + ILConstants.DOT + exception.getMessage());
             message = (message == null ? (exception.getCause() != null ? exception.getCause().getMessage() : exception.getMessage()) : message);
         } catch (Exception ex) {
             
         }
         if (!printAndroidLogger("e", message, exception)) {
-            printToConsole(APP_TAG + " (error) " + getCallerInfo(exception.getSender()) + ": " + message + " (" + exception.getMessage() + ")", true);
+            printToConsole(APP_TAG + " (error) " + getCallerInfo(exception.sender()) + ": " + message + " (" + exception.getMessage() + ")", true);
             if (LOG_LEVEL == LLogLevel.DEBUGGING) {
                 exception.printStackTrace();
             }
         }
         if ((LLog.onError != null) && (promptUser)) {
-            LLog.onError.get().handle(new LErrorEvent(exception.getSender(), message, exception.getCause(), false));
+            LLog.onError.get().handle(new LErrorEvent(exception.sender(), message, exception.getCause(), false));
         }
     }
     

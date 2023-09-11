@@ -25,7 +25,7 @@ import java.util.ListIterator;
 public class LYosos<T> extends LList<T>
         implements ILYosos<T>, ILCloneable {
 
-    protected LinkedList<ILConsumer<LListChange<T>, Exception>> yososListeners;
+    protected LinkedList<ILConsumer<LListChange<T>>> yososListeners;
     protected boolean notifyAllowed = true;
     protected int updating = 0;
     protected boolean removeNotUpdatedYosos;
@@ -48,7 +48,7 @@ public class LYosos<T> extends LList<T>
     }
 
     @Override
-    public ILRegistration addListener(ILConsumer<LListChange<T>, Exception> yososListener) {
+    public ILRegistration addListener(ILConsumer<LListChange<T>> yososListener) {
         if (yososListeners == null) {
             yososListeners = new LinkedList<>();
         }
@@ -57,7 +57,7 @@ public class LYosos<T> extends LList<T>
     }
 
     @Override
-    public void removeListener(ILConsumer<LListChange<T>, Exception> yososListener) {
+    public void removeListener(ILConsumer<LListChange<T>> yososListener) {
         if (yososListeners != null) {
             yososListeners.remove(yososListener);
         }

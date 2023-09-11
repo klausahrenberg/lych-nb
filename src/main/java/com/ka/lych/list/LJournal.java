@@ -1,9 +1,10 @@
 package com.ka.lych.list;
 
 import com.ka.lych.annotation.Id;
+import com.ka.lych.exceptions.LItemNotExistsException;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.ILConstants;
-import com.ka.lych.util.ILConsumer;
+import com.ka.lych.util.LException;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LObjects;
 import com.ka.lych.util.LReflections;
@@ -35,15 +36,17 @@ public class LJournal<V>
         LObjects.requireNonNull(hashIndex);
         _list = list;
         _hashIndex = hashIndex;
+        _list.forEach(LException.throwing(item -> _add(item)));
         _list.addListener(change -> {
             switch (change.type()) {
-                case CHANGED -> {}
+                case CHANGED -> {
+                }
                 case ADDED -> _add(change.item());
-                case REMOVED -> {}
-                default -> {}
+                case REMOVED -> _remove(change.item());
+                default -> {
+                }
             };
         });
-        _list.forEach(ILConsumer.accept(item -> _add(item)));
     }
 
     @Override
@@ -61,15 +64,21 @@ public class LJournal<V>
         LObjects.requireNonNull(key, "Key can't be null");
         LObjects.requireClass(key, String.class, "Key must be a String: " + key.getClass());
         var slot = _slot((String) key);
+        return (_containsKey((String) key, slot) > -1);
+    }
+
+    protected int _containsKey(String key, int slot) {
+        int i = 0;
         LJournalItem<V> ji = _slots[slot];
         while (ji != null) {
             if ((ji.getValue() != null) && (ji.getKey().equals(key))) {
-                return true;
+                return i;
             } else {
                 ji = ji.next();
             }
+            i++;
         }
-        return false;
+        return -1;
     }
 
     @Override
@@ -93,12 +102,23 @@ public class LJournal<V>
         return null;
     }
 
+    public LJournal<V> add(V item) {    
+        return this.put(item);
+    }
+    
+    public LJournal<V> put(V item) {
+        _list.add(item);
+        return this;
+    }
+    
     @Override
+    @Deprecated
     public V put(String key, V item) {
         throw new UnsupportedOperationException("Method 'put' not supported.");
     }
 
     @Override
+    @Deprecated
     public void putAll(Map<? extends String, ? extends V> map) {
         throw new UnsupportedOperationException("Method 'putAll' not supported.");
     }
@@ -110,7 +130,7 @@ public class LJournal<V>
 
     @Override
     public void clear() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        _list.clear();
     }
 
     @Override
@@ -129,26 +149,51 @@ public class LJournal<V>
     }
 
     protected void _add(V item) throws LDoubleHashKeyException {
-        
-            if (_fields == null) {
-                _fields = LReflections.getFieldsOfInstance(item, null, _hashIndex);
-                LLog.test(this, "hash fields are: %s", _fields.toString());
-            }
-            LLog.test(this, "add %s", item);
+        if (_fields == null) {
+            _fields = LReflections.getFieldsOfInstance(item, null, _hashIndex);
+        }
+        var key = _key(item);
+        var slot = _slot(key);
+        //LLog.test(this, "slot is %s / key is '%s' / item: %s", slot, key, item);
+        if (_containsKey(key, slot) == -1) {
+            LJournalItem<V> ji = new LJournalItem<>(key, item);
+            ji.next(_slots[slot]);
+            _slots[slot] = ji;
+        } else {
+            throw new LDoubleHashKeyException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")");
+        }
+        LLog.test(this, "added (%s items): %s", this.size(), item);        
+    }
+    
+    public void _remove(V item) throws LItemNotExistsException {
+        if (_fields != null) {            
             var key = _key(item);
             var slot = _slot(key);
-            LLog.test(this, "slot is %s / key is '%s' / item: %s", slot, key, item);
-            if (!this.containsKey(key)) {
-                LJournalItem<V> ji = new LJournalItem<>(key, item);
-                ji.next(_slots[slot]);
-                _slots[slot] = ji;
-                LLog.test(this, "add ok");                
+            if (_containsKey(key, slot) > -1) {
+                LJournalItem last = null;
+                LJournalItem hi = _slots[slot];
+                while (hi != null) {
+                    if (!hi.getKey().equals(key)) {
+                        last = hi;
+                        hi = hi.next();
+                    } else {
+                        if (hi.getValue() != item) {
+                            throw new LItemNotExistsException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")");                            
+                        }
+                        if (last == null) {
+                            _slots[slot] = hi.next();
+                        } else {
+                            last.next(hi.next());
+                        }
+                        hi.setValue(null);
+                        hi.next(null);
+                        hi = null;
+                    }
+                }
             } else {
-                LLog.test(this, "add failed");
-                throw new LDoubleHashKeyException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")");
+                throw new LItemNotExistsException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")");
             }
-
-        
+        }        
     }
 
     protected void _removeHashKey(V item) {

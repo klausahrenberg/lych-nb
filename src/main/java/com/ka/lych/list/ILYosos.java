@@ -13,9 +13,9 @@ import java.util.function.Predicate;
  */
 public interface ILYosos<T> extends Iterable<T> {
 
-    public ILRegistration addListener(ILConsumer<LListChange<T>, Exception> yososListener);
+    public ILRegistration addListener(ILConsumer<LListChange<T>> yososListener);
 
-    public void removeListener(ILConsumer<LListChange<T>, Exception> yososListener);
+    public void removeListener(ILConsumer<LListChange<T>> yososListener);
 
     @Override
     public void forEach(Consumer<? super T> action);

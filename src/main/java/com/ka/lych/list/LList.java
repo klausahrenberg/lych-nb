@@ -20,7 +20,7 @@ import java.util.function.Predicate;
  */
 public class LList<T> extends ArrayList<T> {
     
-    protected LList<ILConsumer<LListChange<T>, Exception>> _listeners;
+    protected LList<ILConsumer<LListChange<T>>> _listeners;
 
     public LList() {
     }
@@ -37,7 +37,7 @@ public class LList<T> extends ArrayList<T> {
         super(values);
     }
     
-    public ILRegistration addListener(ILConsumer<LListChange<T>, Exception> listener) {
+    public ILRegistration addListener(ILConsumer<LListChange<T>> listener) {
         if (_listeners == null) {
             _listeners = new LList<>();
         }
@@ -45,7 +45,7 @@ public class LList<T> extends ArrayList<T> {
         return () -> removeListener(listener);
     }
 
-    public void removeListener(ILConsumer<LListChange<T>, Exception> listener) {
+    public void removeListener(ILConsumer<LListChange<T>> listener) {
         if (_listeners != null) {
             _listeners.remove(listener);
         }

@@ -15,6 +15,7 @@ import com.ka.lych.observable.LObject;
 import com.ka.lych.util.ILConsumer;
 import com.ka.lych.util.ILRegistration;
 import com.ka.lych.util.LArrays;
+import com.ka.lych.util.LUnchecked;
 
 /**
  *
@@ -30,7 +31,7 @@ public class LFilteredYosos<T> extends AbstractList<T>
     protected boolean notifyAllowed = true;
     private int[] filtered;
     private int size;
-    protected LinkedList<ILConsumer<LListChange<T>, Exception>> yososListeners;
+    protected LinkedList<ILConsumer<LListChange<T>>> yososListeners;
     private ILYosos<T> sourceYosos;
     private LObject<Predicate<? super T>> predicate;
     private LObject<Comparator<? super T>> comparator;
@@ -63,7 +64,7 @@ public class LFilteredYosos<T> extends AbstractList<T>
     }
 
     @Override
-    public ILRegistration addListener(ILConsumer<LListChange<T>, Exception> yososListener) {
+    public ILRegistration addListener(ILConsumer<LListChange<T>> yososListener) {
         if (yososListeners == null) {
             yososListeners = new LinkedList<>();
         }
@@ -72,7 +73,7 @@ public class LFilteredYosos<T> extends AbstractList<T>
     }
 
     @Override
-    public void removeListener(ILConsumer<LListChange<T>, Exception> yososListener) {
+    public void removeListener(ILConsumer<LListChange<T>> yososListener) {
         if (yososListeners != null) {
             yososListeners.remove(yososListener);
         }
