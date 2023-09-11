@@ -4,7 +4,6 @@ import com.ka.lych.annotation.Id;
 import com.ka.lych.exceptions.LItemNotExistsException;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.ILConstants;
-import com.ka.lych.util.ILConsumer;
 import com.ka.lych.util.LException;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LObjects;
@@ -13,7 +12,6 @@ import com.ka.lych.util.LReflections.LFields;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  *
