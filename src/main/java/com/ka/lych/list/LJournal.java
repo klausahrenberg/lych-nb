@@ -2,6 +2,8 @@ package com.ka.lych.list;
 
 import com.ka.lych.annotation.Id;
 import com.ka.lych.exceptions.LItemNotExistsException;
+import com.ka.lych.observable.ILChangeListener;
+import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.ILConstants;
@@ -27,6 +29,20 @@ public class LJournal<V>
     protected final Class _hashIndex;
     protected LFields _fields;
     private final LJournalItem<V>[] _slots = new LJournalItem[NUMBER_OF_SLOTS];
+    private final ILChangeListener<Object, ILObservable> observableListener = change -> {
+        LLog.test(this, "time for change %s", change.getSource());
+        /*if (change.oldValue() != null) {
+            this.removeHashKey(change.oldValue());
+        }
+        if (change.newValue() != null) {
+            try {
+                this.addHashKey((V) change.getSource());
+            } catch (LDoubleHashKeyException dhke) {
+                //impossible state
+                throw new IllegalStateException(dhke.getMessage(), dhke);
+            }
+        }*/
+    };
 
     public LJournal(LList<V> list) {
         this(list, Id.class);
@@ -154,7 +170,7 @@ public class LJournal<V>
         if (_fields == null) {
             _fields = LReflections.getFieldsOfInstance(item, null, _hashIndex);
         }
-        var key = _key(item);
+        var key = _key(item, true);
         var slot = _slot(key);
         //LLog.test(this, "slot is %s / key is '%s' / item: %s", slot, key, item);
         if (_containsKey(key, slot) == -1) {
@@ -162,6 +178,7 @@ public class LJournal<V>
             ji.next(_slots[slot]);
             _slots[slot] = ji;
         } else {
+            //tbd remove listeners
             throw new LDoubleHashKeyException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")");
         }
         LLog.test(this, "added (%s items): %s", this.size(), item);        
@@ -217,7 +234,7 @@ public class LJournal<V>
             var field = _fields.get(i);
             values[i] = field.value(item);
             if ((addListeners) && (field.isObservable())) {
-                ((LObservable) values[i]).addListener(changeListener)
+                ((LObservable) values[i]).addListener(observableListener);
             }
             LLog.test(this, "hashKey is %s of key: %s", values[i].hashCode(), values[i]);
         }
