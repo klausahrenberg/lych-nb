@@ -2,6 +2,7 @@ package com.ka.lych.list;
 
 import com.ka.lych.annotation.Id;
 import com.ka.lych.exceptions.LItemNotExistsException;
+import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.LException;
@@ -203,13 +204,21 @@ public class LJournal<V>
     }
 
     protected String _key(V item) {
+        return _key(item, false);
+    }
+    
+    protected String _key(V item, boolean addListeners) {
         LObjects.requireNonNull(_fields, "Fields can't be null.");
         if (_fields.size() == 0) {
             throw new IllegalArgumentException("Record has no IDs. (missing annotation @ID ?): class '" + item.getClass().getName() + "': " + item);
         }
         Object[] values = new Object[_fields.size()];
         for (int i = 0; i < _fields.size(); i++) {
-            values[i] = _fields.get(i).value(item);
+            var field = _fields.get(i);
+            values[i] = field.value(item);
+            if ((addListeners) && (field.isObservable())) {
+                ((LObservable) values[i]).addListener(changeListener)
+            }
             LLog.test(this, "hashKey is %s of key: %s", values[i].hashCode(), values[i]);
         }
         return LString.concatWithSpacer(ILConstants.DOT, ILConstants.NULL_VALUE, values);
