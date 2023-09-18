@@ -8,6 +8,7 @@ import java.util.function.Consumer;
  *
  * @author klausahrenberg
  * @param <R> type of result after successful _future operation
+ * @param <T>
  */
 public abstract class LFuture<R, T extends Throwable>
         implements ILRegistration {
@@ -145,28 +146,6 @@ public abstract class LFuture<R, T extends Throwable>
         }
         return this.value;
     }
-
-    /*@SuppressWarnings("unchecked")
-    public static <R, T extends Throwable> LFuture<R, T> error(T error) {
-        LFuture waiter = new LFuture(null) {
-            @Override
-            public void remove() {
-            }
-        };
-        waiter.finish(error, null, false);
-        return waiter;
-    }
-
-    @SuppressWarnings("unchecked")
-    public static <T> LFuture value(T value) {
-        LFuture waiter = new LFuture(null) {
-            @Override
-            public void remove() {
-            }
-        };
-        waiter.finish(null, value, false);
-        return waiter;
-    }*/
 
     protected static LList<LTask> runningTasks;
 

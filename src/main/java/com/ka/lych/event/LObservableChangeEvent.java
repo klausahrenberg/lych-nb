@@ -30,7 +30,7 @@ public class LObservableChangeEvent<E, BC extends ILObservable> extends LEvent<L
     } 
     
     public E newValue() {
-        return getSource().get();
+        return source().get();
     } 
     
     public LObservableChangeEvent<E, BC> ifOldValueExists(Consumer<E> action) {

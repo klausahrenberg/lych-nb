@@ -7,14 +7,14 @@ package com.ka.lych.event;
  */
 public class LEvent<T> {
     
-    private final T source;
+    private final T _source;
 
     public LEvent(T source) {
-        this.source = source;
+        _source = source;
     }
 
-    public T getSource() {
-        return source;
+    public T source() {
+        return _source;
     }
     
 }

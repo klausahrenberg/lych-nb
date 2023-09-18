@@ -184,6 +184,14 @@ public abstract class LRecord {
     public static <T extends Record> T of(Class<T> recordClass, Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {
         return LReflections.of(LRequiredClass.of(recordClass), values, acceptIncompleteId);
     }
+    
+    public static <T extends Record> T create(Class<T> recordClass, Map<String, Object> values) {
+        try {
+            return LRecord.of(recordClass, values);
+        } catch (LParseException lpe) {
+            throw new LUnchecked(LRecord.class, lpe.getMessage(), lpe);
+        }
+    }
 
     @SuppressWarnings("unchecked")
     public static <T extends Record> T example(Class<T> recordClass) {
@@ -236,7 +244,7 @@ public abstract class LRecord {
 
     @SuppressWarnings("unchecked")
     private static final ILChangeListener<Object, ILObservable> recordIdListener = change -> {        
-        Record rcd = null;// (Record) change.getSource().getBean();
+        Record rcd = null;// (Record) change.source().getBean();
         var fields = LRecord.getFields(rcd.getClass());
         var oldIdObjects = getOldIdObjects(rcd);
         //Update oldIds, if necessary
@@ -252,7 +260,7 @@ public abstract class LRecord {
                     if (complete) {
                         try {
                             LObservable cloneObs = (LObservable) obs.clone();
-                            if (obs == change.getSource()) {
+                            if (obs == change.source()) {
                                 cloneObs.set(change.oldValue());
                             }
                             oldIds[i] = cloneObs;

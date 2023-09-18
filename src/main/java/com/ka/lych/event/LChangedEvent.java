@@ -7,7 +7,7 @@ package com.ka.lych.event;
  */
 public class LChangedEvent<T> extends LEvent<T> {        
     
-    private final T oldValue;   
+    private final T _oldValue;   
     
     public LChangedEvent(T source) {
         this(source, null);
@@ -15,15 +15,15 @@ public class LChangedEvent<T> extends LEvent<T> {
         
     public LChangedEvent(T source, T oldValue) {
         super(source);
-        this.oldValue = oldValue;
+        _oldValue = oldValue;
     }
     
-    public T getOldValue() {
-        return oldValue;
+    public T oldValue() {
+        return _oldValue;
     } 
     
-    public T getNewValue() {
-        return getSource();
+    public T newValue() {
+        return source();
     }    
     
 }

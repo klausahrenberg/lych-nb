@@ -140,9 +140,9 @@ public abstract class LLog {
             } catch (Exception e) {
                 if (notification instanceof LErrorEvent) {
                     LErrorEvent ev = (LErrorEvent) notification;
-                    LLog.error(ev.getSource(), ev.getMessage(), ev.getException());
+                    LLog.error(ev.source(), ev.getMessage(), ev.getException());
                 } else {
-                    LLog.debug(notification.getSource(), notification.getMessage());
+                    LLog.debug(notification.source(), notification.getMessage());
                 }
             }    
         }

@@ -18,12 +18,20 @@ public class LTestJournal {
 
     public static void main(String[] args) {
         
-        LTestRecord apple = null;
+        LTestRecord apple = LRecord.create(LTestRecord.class, LMap.of(LMap.entry("id", "Apfel")));
+        LTestRecord apple2 = LRecord.create(LTestRecord.class, LMap.of(LMap.entry("id", "Apfel")));
+        LLog.test(LTestJournal.class, "equals %s", apple.equals(apple2));
+        LLog.test(LTestJournal.class, "is same %s", (apple == apple2));
+        LLog.test(LTestJournal.class, "hashkeys same %s", (apple.hashCode() == apple2.hashCode()));
+        
         
         LList<LTestRecord> _list = LList.empty();
         LJournal<LTestRecord> _journal = new LJournal<>(_list);
+        
+       // LFuture.execute(() -> LRecord.of(LTestRecord.class, LMap.of(LMap.entry("id", "Apfel")))).await();
+        
         try {
-            _list.add(apple = LRecord.of(LTestRecord.class, LMap.of(LMap.entry("id", "Apfel"))));
+            _list.add(apple);
             _list.add(LRecord.of(LTestRecord.class, LMap.of(LMap.entry("id", "Pflaume"))));
             _list.add(LRecord.of(LTestRecord.class, LMap.of(LMap.entry("id", "Birne"))));
         } catch (LParseException lpe) {

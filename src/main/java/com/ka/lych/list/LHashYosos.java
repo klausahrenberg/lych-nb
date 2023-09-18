@@ -32,7 +32,7 @@ public class LHashYosos<K, V extends ILHashYoso> extends LYosos<V>
         }
         if (change.newValue() != null) {
             try {
-                this.addHashKey((V) change.getSource());
+                this.addHashKey((V) change.source());
             } catch (LDoubleHashKeyException dhke) {
                 //impossible state
                 throw new IllegalStateException(dhke.getMessage(), dhke);

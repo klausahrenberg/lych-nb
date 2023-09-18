@@ -30,13 +30,16 @@ public class LJournal<V>
     protected LFields _fields;
     private final LJournalItem<V>[] _slots = new LJournalItem[NUMBER_OF_SLOTS];
     private final ILChangeListener<Object, ILObservable> observableListener = change -> {
-        LLog.test(this, "time for change %s", change.getSource());
+        LLog.test(this, "time for change %s", change.source().owner());
+        var oldKey = _key((V) change.source().owner(), false, change.source(), change.oldValue());
+        var newKey = _key((V) change.source().owner(), false, null, null);
+        LLog.test(this, "change key from '%s' to '%s'", oldKey, newKey);
         /*if (change.oldValue() != null) {
             this.removeHashKey(change.oldValue());
         }
         if (change.newValue() != null) {
             try {
-                this.addHashKey((V) change.getSource());
+                this.addHashKey((V) change.source());
             } catch (LDoubleHashKeyException dhke) {
                 //impossible state
                 throw new IllegalStateException(dhke.getMessage(), dhke);
@@ -170,7 +173,7 @@ public class LJournal<V>
         if (_fields == null) {
             _fields = LReflections.getFieldsOfInstance(item, null, _hashIndex);
         }
-        var key = _key(item, true);
+        var key = _key(item, true, null, null);
         var slot = _slot(key);
         //LLog.test(this, "slot is %s / key is '%s' / item: %s", slot, key, item);
         if (_containsKey(key, slot) == -1) {
@@ -221,10 +224,10 @@ public class LJournal<V>
     }
 
     protected String _key(V item) {
-        return _key(item, false);
+        return _key(item, false, null, null);
     }
     
-    protected String _key(V item, boolean addListeners) {
+    protected String _key(V item, boolean addListeners, LObservable oldObservable, Object oldValue) {
         LObjects.requireNonNull(_fields, "Fields can't be null.");
         if (_fields.size() == 0) {
             throw new IllegalArgumentException("Record has no IDs. (missing annotation @ID ?): class '" + item.getClass().getName() + "': " + item);
@@ -232,10 +235,21 @@ public class LJournal<V>
         Object[] values = new Object[_fields.size()];
         for (int i = 0; i < _fields.size(); i++) {
             var field = _fields.get(i);
-            values[i] = field.value(item);
-            if ((addListeners) && (field.isObservable())) {
-                ((LObservable) values[i]).addListener(observableListener);
+            
+            if (field.isObservable()) {                
+                var obs = field.observable(item);
+                values[i] = obs.get();
+                if (addListeners) {
+                    obs.owner(item);
+                    obs.addListener(observableListener);
+                } else if (obs == oldObservable) {
+                    values[i] = oldValue;
+                }
+            } else {
+                values[i] = field.value(item);
             }
+            
+            
             LLog.test(this, "hashKey is %s of key: %s", values[i].hashCode(), values[i]);
         }
         return LString.concatWithSpacer(ILConstants.DOT, ILConstants.NULL_VALUE, values);

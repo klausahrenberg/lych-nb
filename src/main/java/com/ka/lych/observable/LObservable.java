@@ -12,6 +12,7 @@ import com.ka.lych.util.ILParseable;
 import com.ka.lych.util.ILRegistration;
 import com.ka.lych.util.LLoadingState;
 import com.ka.lych.util.LLog;
+import com.ka.lych.util.LObjects;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -30,6 +31,7 @@ public abstract class LObservable<T, BC extends ILObservable>
         implements ILObservable<T, BC>, ILLoadable, ILParseable, ILLocalizable {
 
     T _value;
+    Object _owner;
     LList<ILChangeListener<T, BC>> _listeners;
     LList<ILValidator<T, BC>> _acceptors;
     LList<LObservable<Object, ILObservable>> _boundedObservables;    
@@ -329,7 +331,7 @@ public abstract class LObservable<T, BC extends ILObservable>
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(_value);
+        return LObjects.hash(_value);
     }
 
     @Override
@@ -344,14 +346,6 @@ public abstract class LObservable<T, BC extends ILObservable>
             obj = ((LObservable) obj)._value;            
         }
         return Objects.equals(_value, obj);
-        /*if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final LObservable<?> other = (LObservable<?>) obj;
-        if (!Objects.equals(this.value, other.value)) {
-            return false;
-        }
-        return true;*/
     }
 
     @Override
@@ -462,6 +456,15 @@ public abstract class LObservable<T, BC extends ILObservable>
         } /*else {
             return LWaiter.confirmation();
         }*/
+    }
+
+    public Object owner() {
+        return _owner;
+    }
+
+    public BC owner(Object owner) {
+        _owner = owner;
+        return (BC) this;
     }
     
     @Override
