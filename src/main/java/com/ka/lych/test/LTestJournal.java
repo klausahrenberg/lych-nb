@@ -46,6 +46,7 @@ public class LTestJournal {
         //LLog.test(LTestJournal.class, "apple2 '%s' with hashCode %s", apple2.id(), apple2.hashCode()); 
                 
         LLog.test(LTestJournal.class, "Apfel exists?: %s", _journal.containsKey("Apfel"));
+        LLog.test(LTestJournal.class, "Pflaumäe exists?: %s", _journal.containsKey("Pflaumäe"));
         LLog.test(LTestJournal.class, "Apfel2 exists?: %s", _journal.containsKey("Apfel2"));
         
         
