@@ -29,11 +29,16 @@ public class LJournal<V>
     protected final Class _hashIndex;
     protected LFields _fields;
     private final LJournalItem<V>[] _slots = new LJournalItem[NUMBER_OF_SLOTS];
-    private final ILChangeListener<Object, ILObservable> observableListener = change -> {
+    private final ILChangeListener<Object, ILObservable> _observableListener = change -> {
         LLog.test(this, "time for change %s", change.source().owner());
         var oldKey = _key((V) change.source().owner(), false, change.source(), change.oldValue());
-        var newKey = _key((V) change.source().owner(), false, null, null);
-        LLog.test(this, "change key from '%s' to '%s'", oldKey, newKey);
+        if (_removeKey(oldKey)) {
+            var newKey = _key((V) change.source().owner(), false, null, null);
+            _addKey(newKey, (V) change.source().owner());
+            LLog.test(this, "changed key from '%s' to '%s'", oldKey, newKey);
+        } else {
+            LLog.test(this, "can't remove old key '%s'", oldKey);
+        }    
         /*if (change.oldValue() != null) {
             this.removeHashKey(change.oldValue());
         }
@@ -61,8 +66,10 @@ public class LJournal<V>
             switch (change.type()) {
                 case CHANGED -> {
                 }
-                case ADDED -> _add(change.item());
-                case REMOVED -> _remove(change.item());
+                case ADDED ->
+                    _add(change.item());
+                case REMOVED ->
+                    _remove(change.item());
                 default -> {
                 }
             };
@@ -122,15 +129,15 @@ public class LJournal<V>
         return null;
     }
 
-    public LJournal<V> add(V item) {    
+    public LJournal<V> add(V item) {
         return this.put(item);
     }
-    
+
     public LJournal<V> put(V item) {
         _list.add(item);
         return this;
     }
-    
+
     @Override
     @Deprecated
     public V put(String key, V item) {
@@ -144,7 +151,7 @@ public class LJournal<V>
     }
 
     @Override
-    public V remove(Object item) {             
+    public V remove(Object item) {
         LException.<V>throwing(i -> _remove((V) i)).accept((V) item);
         return (V) item;
     }
@@ -174,59 +181,65 @@ public class LJournal<V>
             _fields = LReflections.getFieldsOfInstance(item, null, _hashIndex);
         }
         var key = _key(item, true, null, null);
+        if (!_addKey(key, item)) {
+            throw new LDoubleHashKeyException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists.");
+        }
+        LLog.test(this, "added (%s items): %s", this.size(), item);
+    }
+    
+    protected boolean _addKey(String key, V item) {
         var slot = _slot(key);
         //LLog.test(this, "slot is %s / key is '%s' / item: %s", slot, key, item);
         if (_containsKey(key, slot) == -1) {
             LJournalItem<V> ji = new LJournalItem<>(key, item);
             ji.next(_slots[slot]);
             _slots[slot] = ji;
+            return true;
         } else {
-            //tbd remove listeners
-            throw new LDoubleHashKeyException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (slot: " + slot + ")");
+            return false;
         }
-        LLog.test(this, "added (%s items): %s", this.size(), item);        
     }
-    
-    public V _remove(V item) throws LItemNotExistsException {        
-        if (_fields != null) {            
+
+    protected V _remove(V item) throws LItemNotExistsException {
+        if (_fields != null) {
             var key = _key(item);
-            var slot = _slot(key);
-            if (_containsKey(key, slot) > -1) {
-                LJournalItem last = null;
-                LJournalItem hi = _slots[slot];
-                while (hi != null) {
-                    if (!hi.getKey().equals(key)) {
-                        last = hi;
-                        hi = hi.next();
-                    } else {
-                        if (hi.getValue() != item) {
-                            throw new LItemNotExistsException(this, "Journal item of key '" + (key != null ? "'" + key + "'" : "null") + "' is not the same: " + hi.getValue());                            
-                        }
-                        if (last == null) {
-                            _slots[slot] = hi.next();
-                        } else {
-                            last.next(hi.next());
-                        }
-                        hi.setValue(null);
-                        hi.next(null);
-                        hi = null;
-                    }
-                }
-            } else {
+            if (!_removeKey(key)) {
                 throw new LItemNotExistsException(this, "Journal contains no key: '" + (key != null ? "'" + key + "'" : "null") + "'");
             }
-        }       
+        }
         return item;
     }
 
-    protected void _removeHashKey(V item) {
-
+    protected boolean _removeKey(String key) {
+        var slot = _slot(key);
+        if (_containsKey(key, slot) > -1) {
+            LJournalItem last = null;
+            LJournalItem hi = _slots[slot];
+            while (hi != null) {
+                if (!hi.getKey().equals(key)) {
+                    last = hi;
+                    hi = hi.next();
+                } else {
+                    if (last == null) {
+                        _slots[slot] = hi.next();
+                    } else {
+                        last.next(hi.next());
+                    }
+                    hi.setValue(null);
+                    hi.next(null);
+                    hi = null;
+                }
+            }
+            return true;
+        } else {
+            return false;
+        }
     }
 
     protected String _key(V item) {
         return _key(item, false, null, null);
     }
-    
+
     protected String _key(V item, boolean addListeners, LObservable oldObservable, Object oldValue) {
         LObjects.requireNonNull(_fields, "Fields can't be null.");
         if (_fields.size() == 0) {
@@ -235,21 +248,20 @@ public class LJournal<V>
         Object[] values = new Object[_fields.size()];
         for (int i = 0; i < _fields.size(); i++) {
             var field = _fields.get(i);
-            
-            if (field.isObservable()) {                
+
+            if (field.isObservable()) {
                 var obs = field.observable(item);
                 values[i] = obs.get();
                 if (addListeners) {
                     obs.owner(item);
-                    obs.addListener(observableListener);
+                    obs.addListener(_observableListener);
                 } else if (obs == oldObservable) {
                     values[i] = oldValue;
                 }
             } else {
                 values[i] = field.value(item);
             }
-            
-            
+
             LLog.test(this, "hashKey is %s of key: %s", values[i].hashCode(), values[i]);
         }
         return LString.concatWithSpacer(ILConstants.DOT, ILConstants.NULL_VALUE, values);
