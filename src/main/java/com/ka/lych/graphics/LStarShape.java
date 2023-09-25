@@ -1,7 +1,7 @@
 package com.ka.lych.graphics;
 
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.geometry.LPoint;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LReflections.LMethod;
 import org.w3c.dom.Node;
 

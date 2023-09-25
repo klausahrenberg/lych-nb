@@ -1,5 +1,6 @@
 package com.ka.lych.xml;
 
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.geometry.LBounds;
 import com.ka.lych.graphics.ILCanvasCommand;
 import com.ka.lych.graphics.LCanvas;
@@ -16,7 +17,6 @@ import com.ka.lych.graphics.LStyle;
 import com.ka.lych.list.LList;
 import com.ka.lych.util.ILParseable;
 import com.ka.lych.util.LLog;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
 import java.util.Optional;
 import org.w3c.dom.NamedNodeMap;
@@ -82,7 +82,7 @@ public abstract class LSvgUtils {
                 }
                 case SVG_XMLNS, SVG_ID -> {}
                 default -> {
-                    LLog.error(LSvgUtils.class, "Unknown SVG command: '" + node.getNodeName() + "' - ignored: '" + node.getTextContent() + "'");
+                    LLog.error("Unknown SVG command: '" + node.getNodeName() + "' - ignored: '" + node.getTextContent() + "'");
                 }
             }
         }
@@ -106,11 +106,11 @@ public abstract class LSvgUtils {
                 double[] coord = LXmlUtils.xmlStrToDoubleArray(new StringBuilder(s), 2);
                 canvas.add(LMatrix.getTranslateInstance(coord[0], coord[1]));
             } else {
-                throw new LParseException(LSvgUtils.class, "Can't find brackets for transformation: '" + sb + "'");
+                throw new LParseException("Can't find brackets for transformation: '%s'", sb);
             }
             return sb.substring(b + 1).trim();
         } else { 
-            throw new LParseException(LSvgUtils.class, "Unknown command for transformation: '" + sb + "'");
+            throw new LParseException("Unknown command for transformation: '%s'", sb);
         }
     }
     

@@ -15,7 +15,7 @@ public class LTestString {
      */
     @SuppressWarnings("unchecked")
     public static void main(String[] args) {
-        LLog.test(LTestString.class, LString.format("The ${black} fox in the dark", LMap.of(LMap.entry("black", "red"))));
+        LLog.test(LString.format("The ${black} fox in the dark", LMap.of(LMap.entry("black", "red"))));
         // TODO code application logic here
     }
     

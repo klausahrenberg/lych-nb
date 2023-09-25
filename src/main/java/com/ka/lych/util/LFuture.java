@@ -36,7 +36,7 @@ public abstract class LFuture<R, T extends Throwable>
         latch.countDown();
         if (!cancelled) {
             if (hasError()) {   
-                LLog.test(this, "handler %s", this.handlers.size());
+                LLog.test("handler %s", this.handlers.size());
                 if (this.handlers.getIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR) != null) {                   
                     this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR, eh -> eh.handler().accept(this.error));
                 } else {
@@ -56,7 +56,7 @@ public abstract class LFuture<R, T extends Throwable>
         try {
             latch.await();
         } catch (InterruptedException ex) {
-            LLog.error(service, ex.getMessage(), ex);
+            LLog.error(ex.getMessage(), ex);
         }
         return this;
     }
@@ -142,7 +142,7 @@ public abstract class LFuture<R, T extends Throwable>
                 throw error;
             }
         } catch (InterruptedException ex) {
-            LLog.error(service, ex.getMessage(), ex);
+            LLog.error(ex.getMessage(), ex);
         }
         return this.value;
     }

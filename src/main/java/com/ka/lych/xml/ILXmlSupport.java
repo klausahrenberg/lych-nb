@@ -1,6 +1,6 @@
 package com.ka.lych.xml;
 
-import com.ka.lych.util.LParseException;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

@@ -1,9 +1,9 @@
 package com.ka.lych.graphics;
 
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.geometry.ILBounds;
 import com.ka.lych.geometry.LGeomUtils;
 import com.ka.lych.observable.LString;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.LXmlUtils;
 import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
 import org.w3c.dom.Document;

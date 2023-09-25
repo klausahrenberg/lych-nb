@@ -53,7 +53,7 @@ public abstract class LAbstractPaint<BC>
             p._style = _style;
             return p;
         } catch (Exception e) {
-            LLog.error(this, "clone failed", e);
+            LLog.error("clone failed", e);
             throw new InternalError();
         }
     }

@@ -1,6 +1,6 @@
 package com.ka.lych.event;
 
-import com.ka.lych.util.LException;
+import com.ka.lych.exception.LException;
 
 /**
  *

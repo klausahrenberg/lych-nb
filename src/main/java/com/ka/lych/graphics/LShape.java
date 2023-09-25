@@ -1,6 +1,7 @@
 package com.ka.lych.graphics;
 
 import com.ka.lych.annotation.Json;
+import com.ka.lych.exception.LParseException;
 import java.util.Arrays;
 import java.util.EnumSet;
 import com.ka.lych.geometry.ILBounds;
@@ -16,7 +17,6 @@ import com.ka.lych.ui.observable.ILHasId;
 import com.ka.lych.ui.observable.ILHasVisibility;
 import com.ka.lych.util.ILCloneable;
 import com.ka.lych.util.LLog;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.ILXmlSupport;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.xml.LXmlUtils;
@@ -830,7 +830,7 @@ public class LShape<BC extends LShape>
             LBounds.union(this, anotherBounds, dest);
             return dest;
         } catch (Exception ex) {
-            LLog.error(this, ex.getMessage(), ex);
+            LLog.error(ex.getMessage(), ex);
             return null;
         }
     }
@@ -842,7 +842,7 @@ public class LShape<BC extends LShape>
             LBounds.intersect(this, anotherBounds, dest);
             return dest;
         } catch (Exception ex) {
-            LLog.error(this, ex.getMessage(), ex);
+            LLog.error(ex.getMessage(), ex);
             return null;
         }
     }
@@ -977,7 +977,7 @@ public class LShape<BC extends LShape>
             }
             return p;
         } catch (Exception e) {
-            LLog.error(this, "LShape.clone", e);
+            LLog.error("LShape.clone", e);
             throw new InternalError();
         }
     }

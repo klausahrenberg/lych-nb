@@ -5,6 +5,7 @@ import com.ka.lych.geometry.LSize;
 import com.ka.lych.geometry.LBounds;
 import com.ka.lych.event.LChangedEvent;
 import com.ka.lych.event.LEventHandler;
+import com.ka.lych.exception.LException;
 import com.ka.lych.geometry.LScaleMode;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.*;

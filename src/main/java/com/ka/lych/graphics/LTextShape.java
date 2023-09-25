@@ -1,11 +1,11 @@
 package com.ka.lych.graphics;
 
 import com.ka.lych.annotation.Json;
+import com.ka.lych.exception.LParseException;
 import java.util.EnumSet;
 import com.ka.lych.geometry.LAlignment;
 import com.ka.lych.observable.*;
 import com.ka.lych.util.ILConstants;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;

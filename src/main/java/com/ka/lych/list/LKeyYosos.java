@@ -1,5 +1,6 @@
 package com.ka.lych.list;
 
+import com.ka.lych.exception.LValueException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Iterator;
@@ -31,7 +32,7 @@ public class LKeyYosos<T extends LYoso> extends LYosos<T> {
         String key = "";//createKey((T) change.getSource().getBean());
         printKeys();
         return (existsKey(key)
-                ? new LValueException(this, "Key '" + key + "' already exists in list.")
+                ? new LValueException("Key '%s' already exists in list.", key)
                 : null);
     };
 
@@ -112,7 +113,7 @@ public class LKeyYosos<T extends LYoso> extends LYosos<T> {
     }
 
     public void printKeys() {
-        keys.forEach((String k, T value) -> LLog.debug(this, "key '" + k + "' / value: " + value));
+        keys.forEach((String k, T value) -> LLog.debug("key '%s' / value: %s", k, value));
     }
 
     @Override

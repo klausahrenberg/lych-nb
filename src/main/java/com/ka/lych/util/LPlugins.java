@@ -2,7 +2,6 @@ package com.ka.lych.util;
 
 import java.util.Iterator;
 import java.util.ServiceLoader;
-import com.ka.lych.LBase;
 import com.ka.lych.list.LYosos;
 
 /**
@@ -23,7 +22,7 @@ public class LPlugins extends LYosos<LPlugin> {
         Iterator<LPlugin> iter = sl.iterator();
         LPlugin plugin;
         if (!iter.hasNext()) {
-            LLog.debug(this, "No plugins found.");
+            LLog.debug("No plugins found.");
         }
         while (iter.hasNext()) {
             plugin = iter.next();
@@ -31,7 +30,7 @@ public class LPlugins extends LYosos<LPlugin> {
             plugin.loadLanguageBundle();                        
             //LBase.getResources().addResBundle(plugin.pluginBundleName, plugin.getClass().getClassLoader());
             this.add(plugin); 
-            LLog.debug(this, "Plugin '" + plugin.getClass() + "' detected");
+            LLog.debug("Plugin '" + plugin.getClass() + "' detected");
         }        
     }
 

@@ -42,7 +42,7 @@ public class LPaint extends LAbstractPaint<LPaint> {
             p._color = _color;            
             return p;
         } catch (Exception e) {
-            LLog.error(this, "clone failed", e);
+            LLog.error("clone failed", e);
             throw new InternalError();
         }
     }

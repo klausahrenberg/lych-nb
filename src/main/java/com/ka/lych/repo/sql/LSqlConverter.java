@@ -203,12 +203,12 @@ public abstract class LSqlConverter {
                     //byte[] blobAsBytes = blob.getBytes(1, blobLength);
                     //ByteArrayInputStream in = new ByteArrayInputStream(blobAsBytes);
                     ObjectInputStream is = new ObjectInputStream(blob.getBinaryStream());      
-                    LLog.test(LSqlConverter.class, "create blobable %s / %s", requiredClass.requiredClass(), blobLength);
+                    LLog.test("create blobable %s / %s", requiredClass.requiredClass(), blobLength);
                     ILBlobable b = (ILBlobable) LReflections.newInstance(requiredClass.requiredClass());
                     b.read(is);
                     result = b;
                 } catch (Exception sqle) {
-                    LLog.error(LSqlConverter.class, sqle.getMessage(), sqle);
+                    LLog.error(sqle.getMessage(), sqle);
                 }
             } else if ((source.getClass().isArray()) && (ILBlobable.class.isAssignableFrom(requiredClass.requiredClass()))) {                 
                 /*try {

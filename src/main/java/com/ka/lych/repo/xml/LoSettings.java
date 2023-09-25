@@ -50,7 +50,7 @@ public class LoSettings extends LXmlRepository {
                     throw new Exception("mkdir failed (" + dirName + ")");
                 }
             } catch (Exception e) {
-                LLog.error(this, "Can't create folder '" + dirName + "'", e, true);
+                LLog.error("Can't create folder '" + dirName + "'", e, true);
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.ka.lych.util;
 
+import com.ka.lych.exception.LUnchecked;
 import java.util.function.Consumer;
 
 /**
@@ -16,7 +17,7 @@ public interface ILConsumer<T> {
         try {
             acceptOrElseThrow(t);
         } catch (Exception ex) {
-            throw new LUnchecked(this, ex.getMessage(), ex);
+            throw new LUnchecked(ex);
         }
     }
 

@@ -1,8 +1,9 @@
 package com.ka.lych.observable;
 
+import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LValueException;
 import java.text.DecimalFormat;
 import com.ka.lych.geometry.LGeomUtils;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.LXmlUtils;
 
 /**
@@ -17,7 +18,7 @@ public class LInteger extends LObservable<Integer, LInteger> {
 
     private ILValidator<Integer, LInteger> numberAcceptor = (Lchange) -> {
         return (!LGeomUtils.isWithinLimits(get(), lowerLimit, upperLimit) ?
-                new LValueException(this, "Given value is out of limits: value=" + get() + "; lowerLimit=" + lowerLimit + "; upperLimit=" + upperLimit) :
+                new LValueException("Given value is out of limits: value=%s; lowerLimit=%s; upperLimit=%s", get(), lowerLimit, upperLimit) :
                 null);
     };
     
@@ -122,7 +123,7 @@ public class LInteger extends LObservable<Integer, LInteger> {
         try {
             setValue(LXmlUtils.xmlStrToInteger(value));
         } catch (LValueException lve) {
-            throw new LParseException(this, lve.getMessage(), lve);
+            throw new LParseException(lve);
         }
     }
 

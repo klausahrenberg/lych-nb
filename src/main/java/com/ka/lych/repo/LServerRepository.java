@@ -1,5 +1,6 @@
 package com.ka.lych.repo;
 
+import com.ka.lych.exception.LDataException;
 import com.ka.lych.util.LFuture;
 import java.util.Optional;
 

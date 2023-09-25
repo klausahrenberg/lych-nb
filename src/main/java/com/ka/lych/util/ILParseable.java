@@ -1,5 +1,7 @@
 package com.ka.lych.util;
 
+import com.ka.lych.exception.LParseException;
+
 /**
  *
  * @author klausahrenberg
@@ -22,7 +24,7 @@ public interface ILParseable<E extends LParseException> {
             parseable.parse(value);
             return parseable;
         } catch (IllegalAccessException iae) {
-            throw new LParseException(ILParseable.class, "Static method 'of' for parseable can not be called. Required class: " + pClass + ". Error: " + iae.getMessage(), iae);
+            throw new LParseException(iae, "Static method 'of' for parseable can not be called. Required class: %s. Error: %s", pClass, iae.getMessage());
         }
     }
 

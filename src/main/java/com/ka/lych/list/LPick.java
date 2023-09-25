@@ -153,7 +153,7 @@ public class LPick<T extends LYoso, V extends LTYoso<V>> extends LKeyYosos<V> {
                 //getAdder().convert(yoso.getHashKey());                            
                 throw new UnsupportedOperationException("tbi again");
             } else {
-                LLog.error(this, "Yoso, Selector and/or Adder missing.");
+                LLog.error("Yoso, Selector and/or Adder missing.");
             }
         }
     }
@@ -164,7 +164,7 @@ public class LPick<T extends LYoso, V extends LTYoso<V>> extends LKeyYosos<V> {
                 //getRemover().convert(yoso.getHashKey());         
                 throw new UnsupportedOperationException("tbi again");
             } else {
-                LLog.error(this, "Yoso, Selector and/or Remover missing.");
+                LLog.error("Yoso, Selector and/or Remover missing.");
             }
         }
     }

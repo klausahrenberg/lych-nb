@@ -1,10 +1,10 @@
 package com.ka.lych.test;
 
 import com.ka.lych.annotation.Id;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.list.LMap;
 import com.ka.lych.list.LYoso;
 import com.ka.lych.observable.LString;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LRecord;
 
 /**

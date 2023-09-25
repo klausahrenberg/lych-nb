@@ -1,11 +1,11 @@
 package com.ka.lych.geometry;
 
 import com.ka.lych.annotation.Json;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.observable.ILChangeListener;
 import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.ILValidator;
 import com.ka.lych.util.ILCloneable;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.LXmlUtils;
 import com.ka.lych.observable.LDouble;
 import com.ka.lych.util.ILParseable;

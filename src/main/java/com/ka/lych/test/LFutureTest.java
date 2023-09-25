@@ -1,6 +1,6 @@
 package com.ka.lych.test;
 
-import com.ka.lych.repo.LDataException;
+import com.ka.lych.exception.LDataException;
 import com.ka.lych.util.LFuture;
 
 public class LFutureTest {
@@ -16,7 +16,7 @@ public class LFutureTest {
                 ex.printStackTrace();
             }
             System.out.println("> SubThread finished now: " + Thread.currentThread().hashCode() + ". Result should follow in next line...");
-            throw new LDataException(LFutureTest.class, "Holla");
+            throw new LDataException("Holla");
             //return 5;
         })
                 .await()

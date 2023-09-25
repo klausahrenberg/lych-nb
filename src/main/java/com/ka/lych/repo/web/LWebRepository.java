@@ -4,7 +4,6 @@ import com.ka.lych.event.LErrorEvent;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.repo.ILRepository;
-import com.ka.lych.repo.LDataException;
 import com.ka.lych.repo.LDataServiceState;
 import com.ka.lych.repo.LQuery;
 import com.ka.lych.util.ILHandler;
@@ -18,11 +17,12 @@ import com.ka.lych.util.LFuture;
 import java.net.URL;
 import java.util.Optional;
 import com.ka.lych.annotation.Json;
+import com.ka.lych.exception.LDataException;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.repo.LColumnItem;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LReflections.LField;
 import java.net.MalformedURLException;
 import java.util.Collection;
@@ -100,14 +100,14 @@ public class LWebRepository implements
         return LFuture.<Integer, LDataException>execute(task -> {
             try {
                 var request = LJson.of(new LOdwRequest(dataClass.getSimpleName(), null)).toString();
-                LLog.test(this, "request %s", request);
+                LLog.test("request %s", request);
                 var map = LJsonParser.of(LMap.class).listFactory(_listFactory).url(new URL(_url + "/count"), request).parseMap();
                 //var map = LJsonParser.parse(LMap.class, new URL(url + "/count"), request);
                 
-                LLog.test(this, "count %s", LArrays.toString(map.values()));
+                LLog.test("count %s", LArrays.toString(map.values()));
                 return (int) map.get("count");
             } catch (Exception ex) {
-                throw new LDataException(this, ex.getLocalizedMessage(), ex);
+                throw new LDataException(ex);
             }
         });
     }
@@ -117,11 +117,11 @@ public class LWebRepository implements
         return LFuture.<List<T>, LDataException>execute(task -> {
             try {
                 var request = LJson.of(new LOdwRequest(dataClass.getSimpleName(), query)).toString();
-                LLog.test(this, "request %s", request);
+                LLog.test("request %s", request);
                 
                 return (LList<T>) LJsonParser.of(dataClass).listFactory(_listFactory).url(new URL(_url + "/fetch"), request).parseList();                                
             } catch (Exception ex) {
-                throw new LDataException(this, ex.getLocalizedMessage(), ex);
+                throw new LDataException(ex);
             }
         });
     }
@@ -131,10 +131,10 @@ public class LWebRepository implements
         return LFuture.<R, LDataException>execute(task -> {
             try {
                 var request = LJson.of(new LRequestRoot(dataClass.getSimpleName(), rootName)).toString();
-                LLog.test(this, "fecthRoot: '%s'", request);
+                LLog.test("fecthRoot: '%s'", request);
                 return (R) LJsonParser.of(dataClass).listFactory(_listFactory).url(new URL(_url + "/root"), request).parse();                                
             } catch (Exception ex) {
-                throw new LDataException(this, ex.getLocalizedMessage(), ex);
+                throw new LDataException(ex);
             }
         });
     }
@@ -175,7 +175,7 @@ public class LWebRepository implements
                 LReflections.update(rcd, map);
                 return rcd;
             } catch (LParseException | MalformedURLException ex) {
-                throw new LDataException(this, ex.getLocalizedMessage(), ex);
+                throw new LDataException(ex);
             }
         });
     }

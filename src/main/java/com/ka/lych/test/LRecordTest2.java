@@ -8,12 +8,12 @@ import com.ka.lych.util.LLog;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LInteger;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LRecord;
 import java.util.Optional;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LRecords;
 import com.ka.lych.observable.LDate;
@@ -40,7 +40,7 @@ public class LRecordTest2 extends LBase {
         repository.registerTable(KPart.class);
         repository.registerTable(KPartKPartRelation.class);
         //repository.registerRelation(KPart.class, KPart.class, null);
-        repository.setConnected(true).await().onError(ce -> LLog.notification(this, ce));
+        repository.setConnected(true).await().onError(ce -> LLog.notification(ce));
 
         
         
@@ -52,8 +52,8 @@ public class LRecordTest2 extends LBase {
             
             repository.<KPart>fetch(KPart.class, Optional.empty(), null)
                     .await()
-                    .onError(ex -> LLog.error(this, ex.getMessage(), ex))
-                    .then(parts -> LLog.test(this, "parts %s", LArrays.toString(parts.toString())));
+                    .onError(ex -> LLog.error(ex.getMessage(), ex))
+                    .then(parts -> LLog.test("parts %s", LArrays.toString(parts.toString())));
             
             KPartKPartRelation ppr = LRecord.of(KPartKPartRelation.class, 
                                                 LMap.of(
@@ -65,20 +65,20 @@ public class LRecordTest2 extends LBase {
             
             repository.<KPartKPartRelation>fetch(KPartKPartRelation.class, Optional.empty(), null)
                     .await()
-                    .onError(ex -> LLog.error(this, ex.getMessage(), ex))
+                    .onError(ex -> LLog.error(ex.getMessage(), ex))
                     .then(parts -> {                        
-                        LLog.test(this, "part realtions %s", LArrays.toString(parts.toString()));
+                        LLog.test("part realtions %s", LArrays.toString(parts.toString()));
                         
                         var map = LRecords.<KPartKPartRelation>mapOf(KPartKPartRelation.class, parts, LList.of("parent", "child", "position"));
-                        LLog.test(this, "map of relations %s", map.toString());
+                        LLog.test("map of relations %s", map.toString());
                         
                         var ppr2 = map.<KPartKPartRelation>get(LRecords.keyOf(KPartKPartRelation.class, p1, p2, 11));
-                        LLog.test(this, "ppr2 %s", ppr2);
+                        LLog.test("ppr2 %s", ppr2);
                     });
 
             
             
-            LLog.test(this, "Finished");
+            LLog.test("Finished");
         } catch (LParseException ex) {
             LLog.error(ex, true);
         }
@@ -94,7 +94,7 @@ public class LRecordTest2 extends LBase {
         if (repository != null) {
             repository.setConnected(false);
         }
-        LLog.debug(this, "Closing application. Kamsamnida...");
+        LLog.debug("Closing application. Kamsamnida...");
     }
 
     public record KPart (      

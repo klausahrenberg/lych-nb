@@ -29,17 +29,19 @@ public class LTestJournal {
         _list.add(pflaume);
         _list.add(birne);
         
-        LLog.test(LTestJournal.class, "list created: %s", LArrays.toString(_list.toArray()));        
+        LLog.test("list created: %s", LArrays.toString(_list.toArray()));        
         
         
         apple.id().set("Pflaumäe");       
                 
-        LLog.test(LTestJournal.class, "Apfel exists?: %s", _journal.containsKey("Apfel"));
-        LLog.test(LTestJournal.class, "Pflaumäe exists?: %s", _journal.containsKey("Pflaumäe"));
-        LLog.test(LTestJournal.class, "Apfel2 exists?: %s", _journal.containsKey("Apfel2"));
+        LLog.test("Apfel exists?: %s", _journal.containsKey("Apfel"));
+        LLog.test("Pflaumäe exists?: %s", _journal.containsKey("Pflaumäe"));
+        LLog.test("Apfel2 exists?: %s", _journal.containsKey("Apfel2"));
         
         birne.id().set("Pflaume");
         
+        LLog.test("birne: %s", birne);
+                        
     }
 
     public record LTestRecord(

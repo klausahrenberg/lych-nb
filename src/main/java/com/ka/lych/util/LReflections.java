@@ -34,6 +34,7 @@ import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Late;
 import com.ka.lych.annotation.Lazy;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.xml.LXmlUtils;
 import java.lang.reflect.Modifier;
 import java.util.AbstractList;
@@ -78,15 +79,15 @@ public abstract class LReflections {
                         } else if (!isRecord) {
                             field.set(toUpdate, LRecord.toObservable(field, mi.getValue()));
                         } else {
-                            throw new LParseException(LReflections.class, "Can't set field '" + field.name() + "', because class is a record. Inside of records, only observables can be updated.");
+                            throw new LParseException("Can't set field '%s', because class is a record. Inside of records, only observables can be updated.", field.name());
                         }
                     } else if (!isRecord) {
                         field.set(toUpdate, mi.getValue());
                     } else {
-                        throw new LParseException(LReflections.class, "Can't set field '" + field.name() + "', because class is a record. Inside of records, only observables can be updated.");
+                        throw new LParseException("Can't set field '%s', because class is a record. Inside of records, only observables can be updated.", field.name());
                     }
                 } catch (IllegalAccessException iae) {
-                    throw new LParseException(LReflections.class, iae.getMessage(), iae);
+                    throw new LParseException(iae);
                 }
             }
         }
@@ -121,7 +122,7 @@ public abstract class LReflections {
                             ((ILParseable) t).parse((String) v);
                             v = t;
                         } else {
-                            throw new LParseException(LRecord.class, "Can not parse value for field '" + field.name() + "'. Unknown field class: " + reqClass.getName());
+                            throw new LParseException("Can not parse value for field '%s'. Unknown field class: %s", field.name(), reqClass.getName());
                         }
                     } else {
                         v = null;
@@ -133,7 +134,7 @@ public abstract class LReflections {
             }
         }
         if (mf.length() > 0) {
-            throw new LParseException(LRecord.class, "For record " + classToBeInstanciated.getName() + " id, fields are missing for instanciation: " + mf.toString());
+            throw new LParseException("For record %s id, fields are missing for instanciation: %s", classToBeInstanciated.getName(), mf.toString());
         }
     }
 
@@ -143,13 +144,13 @@ public abstract class LReflections {
         boolean isOptional = (Optional.class.isAssignableFrom(requClass.requiredClass()));
         Class classToBeInstanciated = (!isOptional ? requClass.requiredClass() : (((requClass.parameterClasses().isPresent()) && (!requClass.parameterClasses().get().isEmpty())) ? (requClass.parameterClasses().get().get(0)) : null));
         if ((!isRecord(classToBeInstanciated)) && (classToBeInstanciated.isMemberClass()) && (!Modifier.isStatic(classToBeInstanciated.getModifiers()))) {
-            throw new LParseException(LReflections.class, "Can't instanciate non-static inner classes. Please make following inner class static: " + classToBeInstanciated.getName());
+            throw new LParseException("Can't instanciate non-static inner classes. Please make following inner class static: %s", classToBeInstanciated.getName());
         }
         if ((isOptional) && (classToBeInstanciated == null)) {
             if ((values == null) || (values.isEmpty())) {
                 return null;
             } else {
-                throw new LParseException(LReflections.class, "Can't find required class for Optional and map of values is not empty");
+                throw new LParseException("Can't find required class for Optional and map of values is not empty");
             }
         }
 
@@ -168,7 +169,7 @@ public abstract class LReflections {
             }
         }
         if (mf.length() > 0) {
-            throw new LParseException(LRecord.class, "For record " + classToBeInstanciated.getName() + " id, fields are missing for instanciation: " + mf.toString());
+            throw new LParseException("For record %s id, fields are missing for instanciation: %s",classToBeInstanciated.getName(), mf.toString());
         } else {
             _validateMapValues(classToBeInstanciated, fields, values);
         }
@@ -180,7 +181,7 @@ public abstract class LReflections {
             var consValues = new Object[consParams.length];
             for (int i = 0; i < consParams.length; i++) {
                 if (!values.containsKey(consParams[i].getName())) {
-                    throw new LParseException(LReflections.class, "Required value for key '" + consParams[i].getName() + "' is missing.");
+                    throw new LParseException("Required value for key '%s' is missing.", consParams[i].getName());
                 }
                 consValues[i] = values.get(consParams[i].getName());
                 values.remove(consParams[i].getName());
@@ -263,7 +264,7 @@ public abstract class LReflections {
                     try {
                         return (int) annotation.getDeclaredMethod("value").invoke(annInst);
                     } catch (Exception ex) {
-                        LLog.error(LReflections.class, ex.getMessage(), ex);
+                        LLog.error(ex.getMessage(), ex);
                     }
                 }
 
@@ -281,7 +282,7 @@ public abstract class LReflections {
                     try {
                         return (boolean) annotation.getDeclaredMethod(valueName).invoke(annInst);
                     } catch (Exception ex) {
-                        LLog.error(LReflections.class, ex.getMessage(), ex);
+                        LLog.error(ex.getMessage(), ex);
                     }
                 }
 
@@ -359,10 +360,10 @@ public abstract class LReflections {
                         } else if (pti.getActualTypeArguments()[0] instanceof Class) {
                             requiredClass = (Class) (pti.getActualTypeArguments()[0]);
                         } else if (pti.getActualTypeArguments()[0] instanceof TypeVariable) {
-                            throw new LParseException(LReflections.class, "Required class not found. Field has no class as type argument, just type variable: " + pti.getActualTypeArguments()[0] + "; Field: " + field.name() + ": " + field);
+                            throw new LParseException("Required class not found. Field has no class as type argument, just type variable: %s; Field: %s: %s", pti.getActualTypeArguments()[0], field.name(), field);
                         }
                     } else {
-                        throw new LParseException(LReflections.class, "Required class not found. Field has no type arguments: " + field);
+                        throw new LParseException("Required class not found. Field has no type arguments: %s", field);
                     }
                 } else {
                     //no observable
@@ -383,7 +384,7 @@ public abstract class LReflections {
                 requiredClass = field.type();
             }
             if (requiredClass == null) {
-                throw new LParseException(LReflections.class, "Can't get required class from field '" + field.name() + "': " + field);
+                throw new LParseException("Can't get required class from field '%s': %s", field.name(), field);
             }
         }
         return new LRequiredClass(requiredClass, paramClasses);

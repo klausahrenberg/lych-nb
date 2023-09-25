@@ -56,9 +56,9 @@ public class LTestJsoperties {
         */
         
         var jsoperties = new LJsoperties(this.getClass().getSimpleName());       
-        LLog.test(this, "before load: %s", LXmlUtils.fieldsToString(this));
+        LLog.test("before load: %s", LXmlUtils.fieldsToString(this));
         jsoperties.load(this);        
-        LLog.test(this, "after load: %s", LJson.of(this).toString());        
+        LLog.test("after load: %s", LJson.of(this).toString());        
         //LLog.test(this, "userGroups count: %s / %s", userGroups.size(), LArrays.toString(userGroups.toArray()));
         //LLog.test(this, "specialGroup is: %s", specialGroup);       
         

@@ -8,13 +8,13 @@ import com.ka.lych.util.LLog;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LInteger;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LRecord;
 import java.util.Optional;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Lazy;
 import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.observable.LObject;
 
 /**
@@ -35,25 +35,25 @@ public class LRecordTest extends LBase {
         repository.database().set("test_db");
         repository.registerTable(KContact.class, null);
         repository.registerTable(KPpap.class, null);
-        repository.setConnected(true).await().onError(ce -> LLog.notification(this, ce));
+        repository.setConnected(true).await().onError(ce -> LLog.notification(ce));
 
         try {
             KContact c = LRecord.of(KContact.class, LMap.of(LMap.entry("id", "hey"), LMap.entry("boundTo", "nothing"), LMap.entry("testInt", 17), LMap.entry("testBool", true)));
-            LLog.test(this, "contact: %s", c);
+            LLog.test("contact: %s", c);
             repository.persist(c, Optional.empty()).await();
 
             KPpap p = LRecord.of(KPpap.class, LMap.of(LMap.entry("id", "E21-004"), LMap.entry("revision", "01"), LMap.entry("supplier", c)));
-            LLog.test(this, "ppap: %s", p);
+            LLog.test("ppap: %s", p);
             repository.persist(p, Optional.empty()).await();
 
-            LLog.test(this, "Finished");
+            LLog.test("Finished");
         } catch (LParseException ex) {
             LLog.error(ex, true);
         }
 
         repository.fetch(KPpap.class, Optional.empty(), Optional.empty()).await()
-                .then(r -> LLog.test(this, "PPAPs requered"))
-                .onError(ex -> LLog.error(this, ex.getMessage(), ex, true));
+                .then(r -> LLog.test("PPAPs requered"))
+                .onError(ex -> LLog.error(ex.getMessage(), ex, true));
 
     }
 
@@ -62,7 +62,7 @@ public class LRecordTest extends LBase {
         if (repository != null) {
             repository.setConnected(false);
         }
-        LLog.debug(this, "Closing application. Kamsamnida...");
+        LLog.debug("Closing application. Kamsamnida...");
     }
 
     record LPerson(@Id LString id,

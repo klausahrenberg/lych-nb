@@ -1,5 +1,7 @@
 package com.ka.lych.util;
 
+import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LUnchecked;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.ILChangeListener;
@@ -143,7 +145,7 @@ public abstract class LRecord {
                 if ((Map.class.isAssignableFrom(field._requiredClass.requiredClass())) && (!(value instanceof LMap))) {
                 //if (!(value instanceof LMap)) {
                     if ((field._requiredClass.parameterClasses().isEmpty()) || (field._requiredClass.parameterClasses().get().size() < 2)) {
-                        throw new LParseException(LRecord.class, "Map needs 2 class parameters. List is empty or less than 2");
+                        throw new LParseException("Map needs 2 class parameters. List is empty or less than 2");
                     }
                     var valueMap = new LMap<String, Object>();
                     var itemClass = field._requiredClass.parameterClasses().get().get(1);
@@ -154,7 +156,7 @@ public abstract class LRecord {
                             if (Map.class.isAssignableFrom(entry.getValue().getClass())) {
                                 valueMap.put(entry.getKey(), LRecord.of(itemClass, (Map<String, Object>) entry.getValue()));
                             } else {
-                                throw new LParseException(LRecord.class, "Map should be filled by objects created by other maps, but it is: " + entry.getValue());
+                                throw new LParseException("Map should be filled by objects created by other maps, but it is: %s", entry.getValue());
                             }
                         }
                     }
@@ -189,7 +191,7 @@ public abstract class LRecord {
         try {
             return LRecord.of(recordClass, values);
         } catch (LParseException lpe) {
-            throw new LUnchecked(LRecord.class, lpe.getMessage(), lpe);
+            throw new LUnchecked(lpe);
         }
     }
 
@@ -265,7 +267,7 @@ public abstract class LRecord {
                             }
                             oldIds[i] = cloneObs;
                         } catch (CloneNotSupportedException cnse) {
-                            LLog.error(LRecord.class, "Storing oldKey failed: " + rcd, cnse);
+                            LLog.error("Storing oldKey failed: " + rcd, cnse);
                         }
                     }
                 } else {

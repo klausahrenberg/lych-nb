@@ -1,9 +1,9 @@
 package com.ka.lych.test.term;
 
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.util.LJson;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LTerm;
-import com.ka.lych.util.LParseException;
 
 /**
  *
@@ -15,11 +15,11 @@ public class LTestTerm {
 
         try {
             var term = new LTerm("rek_vorgang_nr ≈= 2022");
-            LLog.test(this, "term is: %s", LJson.of(term).toString());
+            LLog.test("term is: %s", LJson.of(term).toString());
             var result = term.getValue(null);
-            LLog.test(this, "result is: %s", result);
+            LLog.test("result is: %s", result);
         } catch (LParseException lpe) {
-            LLog.error(this, "Can't create term", lpe);
+            LLog.error("Can't create term", lpe);
         }
 
     }

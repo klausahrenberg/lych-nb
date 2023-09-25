@@ -112,12 +112,12 @@ public class LResources
                             return LString.format(s, values);
                         }
                     } catch (IllegalFormatException ife) {
-                        LLog.error(this, "String format exception for '" + extKey + "': " + ife.getMessage());
+                        LLog.error("String format exception for '" + extKey + "': " + ife.getMessage());
                     }    
                 }                    
             } catch (MissingResourceException mre) {
                 if (!isTooltip) {
-                    LLog.debug(this, "Language item for key '" + extKey + "' not found.");
+                    LLog.debug("Language item for key '" + extKey + "' not found.");
                 }
             }
         } 

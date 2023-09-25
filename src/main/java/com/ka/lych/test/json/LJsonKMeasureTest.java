@@ -49,21 +49,21 @@ public class LJsonKMeasureTest {
         //LOdwRequest r = LRecord.example(LOdwRequest.class);
         try {
             var o = LJsonParser.of(LOdwRequest.class).payload(km).parse();
-            LLog.test(this, "loaded: %s", o);
-            LLog.test(this, "query is: %s", (LQuery) o.query().get());
-            LLog.test(this, "back to json: \n %s", LJson.of(o).toString());
-            LLog.test(this, "-------------------------------------------");
+            LLog.test("loaded: %s", o);
+            LLog.test("query is: %s", (LQuery) o.query().get());
+            LLog.test("back to json: \n %s", LJson.of(o).toString());
+            LLog.test("-------------------------------------------");
             var o2 = LJsonParser.of(LQuery.class).payload(km3).parse();
-            LLog.test(this, "loaded: %s", o2);
-            LLog.test(this, "query is: %s", o2);
-            LLog.test(this, "back to json: \n %s", LJson.of(o2).toString());
-            LLog.test(this, "-------------------------------------------");
+            LLog.test("loaded: %s", o2);
+            LLog.test("query is: %s", o2);
+            LLog.test("back to json: \n %s", LJson.of(o2).toString());
+            LLog.test("-------------------------------------------");
             
             var jTest = LJsonParser.of(KJsonTest.class).payload(km4).parse();
-            LLog.test(this, "loaded: %s", jTest);
-            LLog.test(this, "back to json: \n %s", LJson.of(jTest).toString());
+            LLog.test("loaded: %s", jTest);
+            LLog.test("back to json: \n %s", LJson.of(jTest).toString());
         } catch (Exception ex) {
-            LLog.error(this, "exception: ", ex);
+            LLog.error("exception: ", ex);
         }
 
     }

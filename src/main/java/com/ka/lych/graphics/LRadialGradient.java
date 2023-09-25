@@ -175,7 +175,7 @@ public class LRadialGradient extends LAbstractPaint<LRadialGradient> {
             p.stops = this.stops.clone();
             return p;
         } catch (Exception e) {
-            LLog.error(this, "clone failed", e);
+            LLog.error("clone failed", e);
             throw new InternalError();
         }
     }

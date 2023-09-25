@@ -1,21 +1,21 @@
 package com.ka.lych.list;
 
 import com.ka.lych.annotation.Id;
-import com.ka.lych.event.LObservableChangeEvent;
-import com.ka.lych.exceptions.LItemNotExistsException;
+import com.ka.lych.exception.LDoubleHashKeyException;
+import com.ka.lych.exception.LException;
+import com.ka.lych.exception.LItemNotExistsException;
+import com.ka.lych.exception.LUnchecked;
+import com.ka.lych.exception.LValueException;
 import com.ka.lych.observable.ILChangeListener;
 import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.ILValidator;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
-import com.ka.lych.observable.LValueException;
 import com.ka.lych.util.ILConstants;
-import com.ka.lych.util.LException;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LObjects;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.util.LReflections.LFields;
-import com.ka.lych.util.LUnchecked;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -36,17 +36,17 @@ public class LJournal<V>
     private final ILValidator<Object, ILObservable> _observableAcceptor = change -> {
         var newKey = _key((V) change.source().owner(), false, null, null);
         return (containsKey(newKey)
-                ? new LValueException(this, "Key already exists: " + newKey)
+                ? new LValueException("Key '%s' already exists.", newKey)
                 : null);
     };
     private final ILChangeListener<Object, ILObservable> _observableListener = change -> {
-        LLog.test(this, "time for change %s", change.source().owner());
+        LLog.test("time for change %s", change.source().owner());
         var oldKey = _key((V) change.source().owner(), false, change.source(), change.oldValue());
         if (_removeKey(oldKey)) {
             var newKey = _key((V) change.source().owner(), false, null, null);
             //_addKey(newKey, (V) change.source().owner());
             if (!_addKey(newKey, (V) change.source().owner())) {
-                throw new LUnchecked(this, "Key " + (newKey != null ? "'" + newKey + "'" : "null") + " already exists.");
+                throw new LUnchecked("Key " + (newKey != null ? "'" + newKey + "'" : "null") + " already exists.");
             }
         } 
     };
@@ -181,9 +181,9 @@ public class LJournal<V>
         }
         var key = _key(item, true, null, null);
         if (!_addKey(key, item)) {
-            throw new LDoubleHashKeyException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists.");
+            throw new LDoubleHashKeyException("Key '%s' already exists.", key);
         }
-        LLog.test(this, "added (%s items): %s", this.size(), item);
+        LLog.test("added (%s items): %s", this.size(), item);
     }
     
     protected boolean _addKey(String key, V item) {
@@ -203,7 +203,7 @@ public class LJournal<V>
         if (_fields != null) {
             var key = _key(item);
             if (!_removeKey(key)) {
-                throw new LItemNotExistsException(this, "Journal contains no key: '" + (key != null ? "'" + key + "'" : "null") + "'");
+                throw new LItemNotExistsException("Journal contains no key '%s'", key);
             } else {
                 _removeListeners(item);
             }
@@ -264,7 +264,7 @@ public class LJournal<V>
                 values[i] = field.value(item);
             }
 
-            LLog.test(this, "hashKey is %s of key: %s", values[i].hashCode(), values[i]);
+            LLog.test("hashKey is %s of key: %s", values[i].hashCode(), values[i]);
         }
         return LString.concatWithSpacer(ILConstants.DOT, ILConstants.NULL_VALUE, values);
     }

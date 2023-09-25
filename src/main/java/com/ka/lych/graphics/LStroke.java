@@ -1,13 +1,13 @@
 package com.ka.lych.graphics;
 
 import com.ka.lych.annotation.Json;
+import com.ka.lych.exception.LParseException;
 import java.util.Objects;
 import com.ka.lych.observable.LDouble;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.util.ILCloneable;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.LLog;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.ILXmlSupport;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.xml.LXmlUtils;
@@ -195,7 +195,7 @@ public class LStroke
             }*/
             return po;
         } catch (Exception e) {
-            LLog.error(this, "LStroke.clone", e);
+            LLog.error("LStroke.clone", e);
             throw new InternalError();
         }
     }

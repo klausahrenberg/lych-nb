@@ -18,6 +18,7 @@ import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Lazy;
+import com.ka.lych.exception.LDataException;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
@@ -86,27 +87,27 @@ public interface ILRepository<BC extends ILRepository> {
 
     @SuppressWarnings("unchecked")
     public default void checkTables() throws LDataException {
-        LLog.debug(this, "Check db tables...");
+        LLog.debug("Check db tables...");
         if (!isReadOnly()) {
-            LLog.debug(this, "Check %s items", DATA_SHEME.size());
+            LLog.debug("Check %s items", DATA_SHEME.size());
             for (var entry : DATA_SHEME.entrySet()) {
-                LLog.debug(this, "Check %s", entry);
+                LLog.debug("Check %s", entry);
                 var rpc = entry.getKey();
                 var tableName = entry.getValue();
                 if (rpc.repository() == this) {
                     if (!existsTable(tableName)) {
                         if (rpc.childClass() == null) {
-                            LLog.debug(this, "Create table '%s'...", tableName);
+                            LLog.debug("Create table '%s'...", tableName);
                             createTable(rpc.parentClass());
                         } else {
-                            LLog.debug(this, "Create relation '%s'...", tableName);
+                            LLog.debug("Create relation '%s'...", tableName);
                             createRelation(rpc.parentClass(), rpc.childClass());
                         }
                     }
                 }
             }
         }
-        LLog.debug(this, "Tables checked.");
+        LLog.debug("Tables checked.");
     }
 
     public default String getTableName(Class parentClass) throws LDataException {
@@ -116,7 +117,7 @@ public interface ILRepository<BC extends ILRepository> {
     public default String getTableName(Class parentClass, Class childClass) throws LDataException {
         var result = DATA_SHEME.get(new LRepoParentChild(this, parentClass, childClass));
         if (LString.isEmpty(result)) {
-            throw new LDataException(this, "Can't find tableName for class '" + parentClass.getName() + "'" + (childClass != null ? "(" + childClass.getName() + "'" : ""));
+            throw new LDataException("Can't find tableName for class '" + parentClass.getName() + "'" + (childClass != null ? "(" + childClass.getName() + "'" : ""));
         }
         return result;
     }

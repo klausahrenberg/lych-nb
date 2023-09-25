@@ -30,7 +30,7 @@ public class LRotateAnimation extends LAnimation {
     @Override
     public void execute(LCanvasRenderer canvasRenderer, LShape shape, long now) {
         
-        LLog.test(this, "rotate %s / delay %s / duration %s", now, delay(), duration() );
+        LLog.test("rotate %s / delay %s / duration %s", now, delay(), duration() );
         if ((now >= delay()) && (now < delay() + duration())) {
             double angle = getFromAngle() + (getToAngle() - getFromAngle()) * (now - delay()) / duration();            
             

@@ -7,6 +7,7 @@ module lych {
     exports com.ka.lych;
     exports com.ka.lych.annotation;
     exports com.ka.lych.event;
+    exports com.ka.lych.exception;
     exports com.ka.lych.geometry;
     exports com.ka.lych.graphics;
     exports com.ka.lych.graphics.anim;

@@ -1,6 +1,6 @@
 package com.ka.lych.observable;
 
-import com.ka.lych.util.LParseException;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.xml.LXmlUtils;
 import com.ka.lych.util.LLog;
 
@@ -25,7 +25,7 @@ public class LPixel extends LDouble {
         try {
             parse(initialValue);
         } catch (LParseException pex) {
-            LLog.error(this, pex.getMessage(), pex);
+            LLog.error(pex.getMessage(), pex);
         }    
     }
     

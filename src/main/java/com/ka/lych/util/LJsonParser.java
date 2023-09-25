@@ -18,6 +18,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import com.ka.lych.annotation.Json;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.util.LReflections.LRequiredClass;
 import java.util.Optional;
 import java.util.function.Function;
@@ -104,7 +105,7 @@ public class LJsonParser<T> {
             br.close();
             return this;
         } catch (IOException ex) {
-            throw new LParseException(LJsonParser.class, ex.getMessage(), ex);
+            throw new LParseException(ex);
         }
     }
     
@@ -116,7 +117,7 @@ public class LJsonParser<T> {
         try {            
             return bufferedReader(new BufferedReader(new FileReader(inputFile)));
         } catch (IOException ex) {
-            throw new LParseException(LJsonParser.class, ex.getMessage(), ex);
+            throw new LParseException(ex);
         }
     }
     
@@ -137,7 +138,7 @@ public class LJsonParser<T> {
                 if (http.getResponseCode() == LHttpStatus.OK.value()) {
                     is = http.getInputStream();
                 } else {
-                    throw new LParseException(LJsonParser.class, "Server returned failure response code: " + http.getResponseCode() + " / Reason: " + LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase());
+                    throw new LParseException("Server returned failure response code: %s / Reason: %s", http.getResponseCode(), LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase());
                 }
             }
             BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
@@ -151,7 +152,7 @@ public class LJsonParser<T> {
         } catch (LParseException lpe) {
             throw lpe;
         } catch (Exception ex) {
-            throw new LParseException(LJsonParser.class, ex.getMessage(), ex);
+            throw new LParseException(ex);
         }
     }
 
@@ -407,7 +408,7 @@ public class LJsonParser<T> {
                 }
             }
         } else {
-            throw new LParseException(this, "Stack has no object map inside, can't create object");
+            throw new LParseException("Stack has no object map inside, can't create object");
         }
         _state = LState.AFTER_VALUE;
         if (_stack.isEmpty()) {
@@ -529,7 +530,7 @@ public class LJsonParser<T> {
             var field = fields.get(_currentKey);
             requiredClass = field.requiredClass();
         } else {
-            throw new LParseException(this, "Illegal state at start of object");
+            throw new LParseException("Illegal state at start of object");
         }
         _stack.push(new LMapItem(LType.ARRAY, requiredClass, _currentKey, null, _factoredList()));
         _currentKey = null;
@@ -539,7 +540,7 @@ public class LJsonParser<T> {
     private void startObject() throws LParseException {
         _state = LState.IN_OBJECT;                        
         LRequiredClass requiredClass = null;
-        LLog.test(this, "start object %s / %s", _resultClass, _stack.isEmpty());
+        LLog.test("start object %s / %s", _resultClass, _stack.isEmpty());
         if (_stack.isEmpty()) {
             requiredClass = new LRequiredClass(_resultClass, null);
         } else if (_stack.peek().type() == LType.ARRAY) {
@@ -555,12 +556,12 @@ public class LJsonParser<T> {
                 var fields = LReflections.getFields(_stack.peek().requiredClass.requiredClass(), null, Json.class);
                 var field = fields.get(_currentKey);
                 if (field == null) {
-                    throw new LParseException(this, "Can't get field for key'" + _currentKey +"' " + _stack.peek().requiredClass().requiredClass() + " / " + _resultClass);
+                    throw new LParseException("Can't get field for key'%s' %s / %s", _currentKey, _stack.peek().requiredClass().requiredClass(), _resultClass);
                 }
                 requiredClass = field.requiredClass();
             }
         } else {
-            throw new LParseException(this, "Illegal state at start of object");
+            throw new LParseException("Illegal state at start of object");
         }
         _stack.push(new LMapItem(LType.OBJECT, requiredClass, _currentKey, new LMap<String, Object>(), null));            
         _currentKey = null;
@@ -610,7 +611,7 @@ public class LJsonParser<T> {
                 peeked.list().add(value);
             }
         } else if (_result != null) {
-            LLog.test(this, "key %s / currentKey %s / value %s", key, _currentKey, value);
+            LLog.test("key %s / currentKey %s / value %s", key, _currentKey, value);
             LReflections.update(_result, LMap.of(LMap.entry(_currentKey, value)));
         } else {
             throwException("Illegal state" + _state);
@@ -626,7 +627,7 @@ public class LJsonParser<T> {
     }
 
     private void throwException(String message, Throwable cause) throws LParseException {
-        throw new LParseException(this, message + " (json position " + _characterCounter + ", text area: '" + _payload.substring(Math.max(0, _characterCounter - 20), Math.min(_payload.length(), _characterCounter + 5))/*.replace("\n", " ")*/.replace("\t", "") + "')", cause);
+        throw new LParseException(cause, message + " (json position " + _characterCounter + ", text area: '" + _payload.substring(Math.max(0, _characterCounter - 20), Math.min(_payload.length(), _characterCounter + 5))/*.replace("\n", " ")*/.replace("\t", "") + "')");
     }
 
 }

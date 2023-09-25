@@ -15,7 +15,7 @@ public class LPatternTest {
     public static void main(String[] args) {        
         var p = new LPattern("\"Note \"YY.000");
         p.setNumberValue(1);
-        LLog.test(LPatternTest.class, "this intValue: %s; patternValue '%s'", p.getIntValue(), p.get());
+        LLog.test("this intValue: %s; patternValue '%s'", p.getIntValue(), p.get());
         
     }
     

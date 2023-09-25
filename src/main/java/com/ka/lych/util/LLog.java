@@ -4,6 +4,8 @@ import com.ka.lych.LBase;
 import com.ka.lych.event.LErrorEvent;
 import com.ka.lych.event.LEventHandler;
 import com.ka.lych.event.LNotificationEvent;
+import com.ka.lych.exception.LException;
+import com.ka.lych.observable.LString;
 import com.ka.lych.util.LReflections.LMethod;
 
 /**
@@ -72,62 +74,62 @@ public abstract class LLog {
         }
     }
 
-    public static void error(Object source, String message) {
-        error(source, message, null, false);
+    public static void error(String message) {
+        error(message, null, false);
     }
 
-    public static void error(Object source, String message, Throwable ex) {
-        error(source, message, ex, false);
+    public static void error(String message, Throwable ex) {
+        error(message, ex, false);
     }
 
     @SuppressWarnings("unchecked")
     public static void error(LException exception, boolean promptUser) {
         String message = exception.getMessage();
         try {
-            message = LBase.getResources().localize(exception.sender(), ILConstants.EXCEPTION + ILConstants.DOT + exception.getMessage());
+            message = LBase.getResources().localize(exception, ILConstants.EXCEPTION + ILConstants.DOT + exception.getMessage());
             message = (message == null ? (exception.getCause() != null ? exception.getCause().getMessage() : exception.getMessage()) : message);
         } catch (Exception ex) {
             
         }
         if (!printAndroidLogger("e", message, exception)) {
-            printToConsole(APP_TAG + " (error) " + getCallerInfo(exception.sender()) + ": " + message + " (" + exception.getMessage() + ")", true);
+            printToConsole(APP_TAG + " (error) " + getCallerInfo() + ": " + message + " (" + exception.getMessage() + ")", true);
             if (LOG_LEVEL == LLogLevel.DEBUGGING) {
                 exception.printStackTrace();
             }
         }
         if ((LLog.onError != null) && (promptUser)) {
-            LLog.onError.get().handle(new LErrorEvent(exception.sender(), message, exception.getCause(), false));
+            LLog.onError.get().handle(new LErrorEvent(exception, message, exception.getCause(), false));
         }
     }
     
     @SuppressWarnings("unchecked")
-    public static void error(final Object source, final String message, final Throwable ex, boolean promptUser) {
+    public static void error(final String message, final Throwable ex, boolean promptUser) {
         if (!printAndroidLogger("e", message, ex)) {
-            printToConsole(APP_TAG + " (error) " + getCallerInfo(source) + ": " + message + (ex != null ? " / " + ex.getClass().getName() + ": " + ex.getMessage() : ""), true);
+            printToConsole(APP_TAG + " (error) " + getCallerInfo() + ": " + message + (ex != null ? " / " + ex.getClass().getName() + ": " + ex.getMessage() : ""), true);
             if ((ex != null) && (LOG_LEVEL == LLogLevel.DEBUGGING)) {
                 ex.printStackTrace();
             }
         }
         if ((LLog.onError != null) && (promptUser)) {
-            LLog.onError.get().handle(new LErrorEvent(source, message, ex, false));
+            LLog.onError.get().handle(new LErrorEvent(ex, message, ex, false));
         }
     }
 
     @SuppressWarnings("unchecked")
-    public static void notification(Object source, Throwable ex) {
-        notification(new LErrorEvent(source, ex.getMessage(), ex, false));
+    public static void notification(Throwable ex) {
+        notification(new LErrorEvent(ex, ex.getMessage(), ex, false));
     }
     
-    public static void notification(Object source, String message) {
-        LLog.notification(source, message, (Object) null);
+    public static void notification(String message) {
+        LLog.notification(message, (Object) null);
     }
     
-    public static void notification(Object source, String message, Object... arguments) {        
+    public static void notification(String message, Object... arguments) {        
         String m = message;
         try {
             m = String.format(m, arguments);
         } catch (Exception ex2) {}
-        notification(new LNotificationEvent(source, m, 10000));
+        notification(new LNotificationEvent(LLog.class, m, 10000));
     }
 
     public static void notification(LNotificationEvent notification) {
@@ -140,45 +142,41 @@ public abstract class LLog {
             } catch (Exception e) {
                 if (notification instanceof LErrorEvent) {
                     LErrorEvent ev = (LErrorEvent) notification;
-                    LLog.error(ev.source(), ev.getMessage(), ev.getException());
+                    LLog.error(ev.getMessage(), ev.getException());
                 } else {
-                    LLog.debug(notification.source(), notification.getMessage());
+                    LLog.debug(notification.getMessage());
                 }
             }    
         }
     }
 
-    public static void debug(Object source, String message, Object... arguments) {
-        debug(source, "debug", false, message, arguments);
+    public static void debug(String message, Object... arguments) {
+        debug("debug", false, message, arguments);
     }
 
-    private static String getCallerInfo(Object source) {
+    private static String getCallerInfo() {
         try {
             StackTraceElement[] stackTraceElements = Thread.currentThread().getStackTrace();
             int count = stackTraceElements.length;
             for (int i = 0; i < count; i++) {
                 StackTraceElement ste = stackTraceElements[i];
-                String callerClass = ste.getClassName();                                   
-                String sourceClass = (source instanceof Class ? ((Class) source).getName() : source.getClass().getName());                
-                if (callerClass.equals(sourceClass)) {
-                    return callerClass.substring(callerClass.lastIndexOf(".") + 1) + "." + ste.getMethodName() + ":" + ste.getLineNumber();                        
+                String callerClass = ste.getClassName();
+                if ((!callerClass.equals(Thread.class.getName())) && (!callerClass.equals(LLog.class.getName()))) {
+                    return callerClass.substring(callerClass.lastIndexOf(".") + 1) + "." + ste.getMethodName() + ":" + ste.getLineNumber();     
                 }
             }
         } catch (Exception ex) {
             return "n.a.";
         }
-        return source.getClass().getSimpleName();
+        return "<unknown>";
     }
 
-    private static void debug(Object source, final String dMode, final boolean printAsError, final String message, final Object... arguments) {
+    private static void debug(final String dMode, final boolean printAsError, final String message, final Object... arguments) {
         Throwable ex = ((arguments != null) && (arguments.length > 0) && (arguments[arguments.length - 1] instanceof Throwable) ? (Throwable) arguments[arguments.length - 1] : null);
-        String m = message;
-        try {
-            m = String.format(m, arguments);
-        } catch (Exception ex2) {}
+        String m = LString.format(message, arguments);
         if (!printAndroidLogger("d", m, ex)) {
             if (LOG_LEVEL == LLogLevel.DEBUGGING) {
-                m = APP_TAG + " (" + dMode + ") " + getCallerInfo(source) + ": " + m;                
+                m = APP_TAG + " (" + dMode + ") " + getCallerInfo() + ": " + m;                
                 if (ex != null) {
                     m += " / " + ex.getClass().getName() + ": " + ex.getMessage();
                 }
@@ -198,8 +196,8 @@ public abstract class LLog {
         }
     }
 
-    public static void test(Object source, String message, Object... arguments) {
-        debug(source, "test", false, message, arguments);
+    public static void test(String message, Object... arguments) {
+        debug("test", false, message, arguments);
     }
 
 }

@@ -38,13 +38,13 @@ public class LWebRepositoryTest extends LBase {
         //repository.setConnected(true).await().catchError(ce -> LLog.notification(this, ce));
 
         var result = repository.countData(KContact.class, Optional.empty(), Optional.empty()).await();
-        LLog.test(this, "count: %s", result.value());
+        LLog.test("count: %s", result.value());
         var array = repository.fetch(KContact.class, Optional.empty(), Optional.of(new LQuery(0, 100, Optional.of(LList.of(new LSortOrder("id", LSortDirection.ASCENDING))), Optional.empty(), Optional.empty()))).await().value();
-        LLog.test(this, "array %s", LArrays.toString(array));
+        LLog.test("array %s", LArrays.toString(array));
 
         if (array.size() > 0) {
             var rcd = array.get(0);
-            repository.persist(rcd, Optional.empty()).await().then(e -> LLog.test(this, "ok")).onError(e -> LLog.error(this, e.getMessage(), e, true));
+            repository.persist(rcd, Optional.empty()).await().then(e -> LLog.test("ok")).onError(e -> LLog.error(e.getMessage(), e, true));
         }
 
     }
@@ -54,7 +54,7 @@ public class LWebRepositoryTest extends LBase {
         if (repository != null) {
             repository.setConnected(false);
         }
-        LLog.debug(this, "Closing application. Kamsamnida...");
+        LLog.debug("Closing application. Kamsamnida...");
     }
 
     record LPerson(@Id LString id,

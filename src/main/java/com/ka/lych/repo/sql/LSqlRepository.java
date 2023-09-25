@@ -7,7 +7,6 @@ import com.ka.lych.event.LErrorEvent;
 import com.ka.lych.event.LEvent;
 import com.ka.lych.event.LEventHandler;
 import com.ka.lych.observable.*;
-import com.ka.lych.repo.LDataException;
 import com.ka.lych.repo.LDataServiceState;
 import com.ka.lych.util.*;
 import com.ka.lych.util.LReflections.LField;
@@ -26,6 +25,8 @@ import java.util.Locale;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Index;
+import com.ka.lych.exception.LDataException;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.repo.LServerRepository;
 import java.util.Objects;
 
@@ -203,7 +204,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 try {
                     this.checkTables();
                 } catch (Exception lde) {
-                    LLog.error(this, "Can't check database tables.", lde, true);
+                    LLog.error("Can't check database tables.", lde, true);
                 }
             }
         });
@@ -286,7 +287,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                             + (user().get() != null ? "UID=" + user().get() + ";" : "")
                             + (password().get() != null ? "PASSWORD=" + password().get() + ";" : "");
             }
-            LLog.debug(this, "Connect to: " + url);
+            LLog.debug("Connect to: " + url);
             _connection = DriverManager.getConnection(url, props);
             _queryStatement = _connection.createStatement();
             if (state().get() == LDataServiceState.REQUESTING) {
@@ -306,7 +307,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 _state.set(LDataServiceState.NOT_AVAILABLE);
                 notifyOnError(e);
             }
-            throw new LDataException(this, e.getMessage(), e);
+            throw new LDataException(e);
         }
         return state();
     }
@@ -359,7 +360,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                         _state.set(LDataServiceState.REQUESTING);
                         connect();
                     } else {
-                        throw new LDataException(this, "Can't connect because of missing or incomplete connection details");
+                        throw new LDataException("Can't connect because of missing or incomplete connection details");
                     }
                 }
             } else {
@@ -421,45 +422,45 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     protected LSqlResultSet executeQuery(String sql, int maxRows) throws LDataException {
         try {
-            LLog.debug(this, "SQL query: %s", sql);
+            LLog.debug("SQL query: %s", sql);
             LSqlResultSet resultSet = new LSqlResultSet(_connection, sql, maxRows);
             return resultSet;
         } catch (SQLException sqle) {
-            throw new LDataException(this, sqle.getMessage(), sqle);
+            throw new LDataException(sqle);
         }
     }
 
     protected void executeUpdate(String sql) throws LDataException {
         if (!isReadOnly()) {
             try {
-                LLog.debug(this, "SQL update: %s", sql);
+                LLog.debug("SQL update: %s", sql);
                 _queryStatement.executeUpdate(sql);
             } catch (SQLException sqle) {
-                throw new LDataException(this, sqle.getMessage() + " / sql statement: " + sql, sqle);
+                throw new LDataException(sqle, "%s / sql statement: %s", sqle.getMessage(), sql);
             }
         } else {
-            throw new LDataException(this, "Can't execute update, database is readOnly");
+            throw new LDataException("Can't execute update, database is readOnly");
         }
     }
 
     protected int executeInsert(String sql, boolean returnGeneratedKey) throws LDataException {
         if (!isReadOnly()) {
             try {
-                LLog.debug(this, "SQL insert: %s", sql);
+                LLog.debug("SQL insert: %s", sql);
                 _queryStatement.executeUpdate(sql, (returnGeneratedKey ? Statement.RETURN_GENERATED_KEYS : Statement.NO_GENERATED_KEYS));
                 if (returnGeneratedKey) {
                     ResultSet rs = _queryStatement.getGeneratedKeys();
                     rs.next();
                     return rs.getInt(1);
                 } else {
-                    LLog.debug(this, "SQL insert 0");
+                    LLog.debug("SQL insert 0");
                     return 0;
                 }
             } catch (SQLException sqle) {
-                throw new LDataException(this, sqle.getMessage(), sqle);
+                throw new LDataException(sqle);
             }
         } else {
-            throw new LDataException(this, "Can't execute update, database is readOnly");
+            throw new LDataException("Can't execute update, database is readOnly");
         }
     }
 
@@ -776,16 +777,16 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                             throw lde;
                         }
                     } else {
-                        throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
+                        throw new LDataException("Service is not available. Wrong service state: %s", state().get());
                     }
                 } else {
-                    throw new LDataException(this, "Key of record is not complete: " + primaryKeyComplete + " / record: " + rcd);
+                    throw new LDataException("Key of record is not complete: %s / record: %s", primaryKeyComplete, rcd);
                 }
             } catch (Exception ex) {
                 if (ex instanceof LDataException) {
                     throw ex;
                 } else {
-                    throw new LDataException(this, "Exception during persisting: " + ex.getMessage(), ex);
+                    throw new LDataException(ex);
                 }
             }
             return rcd;
@@ -839,7 +840,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     ps.close();
                 } catch (Exception sqle) {
                     //LLog.error(this, sqle.getMessage());
-                    throw new LDataException(this, sqle.getMessage(), sqle);
+                    throw new LDataException(sqle);
                 }
                 commitTransaction();
             } catch (LDataException lde) {
@@ -906,13 +907,13 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                             result.add(new LSqlRelationsItem(tableName, isChild, (isChild ? paColumns : chColumns), data));
                         } catch (LParseException lpe) {
                             sqlResultSet.close();
-                            throw new LDataException(this, lpe.getMessage(), lpe);
+                            throw new LDataException(lpe);
                         }
 
                     }
                     sqlResultSet.close();
                 } catch (SQLException sqle) {
-                    throw new LDataException(this, sqle.getMessage(), sqle);
+                    throw new LDataException(sqle);
                 }
             }
         }
@@ -1003,7 +1004,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 }
                 commitTransaction();
             } else {
-                throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
+                throw new LDataException("Service is not available. Wrong service state: %s", state().get());
             }
             return rcd;
         });
@@ -1015,7 +1016,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             var columnItems = getColumnsWithoutLinks(data.getClass());
             executeUpdate(getRelationDeleteStatement(getTableName(parent.getClass(), data.getClass()), getColumnsWithoutLinks(parent.getClass()), columnItems, parent, data));
         } else {
-            throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
+            throw new LDataException("Service is not available. Wrong service state: %s", state().get());
         }
     }
 
@@ -1026,7 +1027,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             //Start transaction
             _connection.setSavepoint();
         } catch (SQLException sqle) {
-            throw new LDataException(this, sqle.getMessage(), sqle);
+            throw new LDataException(sqle);
         }
     }
 
@@ -1036,7 +1037,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             _connection.commit();
             _connection.setAutoCommit(true);
         } catch (SQLException sqle) {
-            throw new LDataException(this, sqle.getMessage(), sqle);
+            throw new LDataException(sqle);
         }
     }
 
@@ -1046,7 +1047,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             _connection.rollback();
             _connection.setAutoCommit(true);
         } catch (SQLException sqle) {
-            throw new LDataException(this, sqle.getMessage(), sqle);
+            throw new LDataException(sqle);
         }
     }
 
@@ -1121,7 +1122,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             var columns = this.getColumnsWithoutLinks(rcdClass);
             column = columns.getIf(ci -> ci.getDataFieldName().equals((String) colObject));
             if (column == null) {
-                throw new LDataException(this, "Cant find column '" + colObject + "' in record class: " + rcdClass);
+                throw new LDataException("Cant find column '%s' in record class: %s", colObject, rcdClass);
             }
         } else {
             LObjects.requireInstanceOf(LColumnItem.class, colObject);
@@ -1147,7 +1148,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 }
                 subs.append("(").append(prefix).append(column.getDataFieldName()).append(opString).append(toSql(observable)).append(") and ");
             } catch (LParseException lpe) {
-                throw new LDataException(this, "Can't create comparison", lpe);
+                throw new LDataException(lpe, "Can't create comparison");
             }
         }
     }
@@ -1218,10 +1219,10 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     throw new SQLException("Can't request counts");
                 }
                 sqlResultSet.close();
-                LLog.debug(this, "count: " + count);
+                LLog.debug("count: " + count);
                 return count;
             } catch (SQLException sqle) {
-                throw new LDataException(this, sqle.getMessage(), sqle);
+                throw new LDataException(sqle);
             }
         });
     }
@@ -1237,10 +1238,10 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 throw new SQLException("Can't request counts");
             }
             sqlResultSet.close();
-            LLog.debug(this, "count: " + count);
+            LLog.debug("count: " + count);
             return count;
         } catch (SQLException sqle) {
-            throw new LDataException(this, sqle.getMessage(), sqle);
+            throw new LDataException(sqle);
         }
     }
 
@@ -1343,7 +1344,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         try {
             return (map.size() > 0 ? LRecord.of(rcdClass, map) : null);
         } catch (LParseException lpe) {
-            throw new LDataException(this, lpe.getMessage(), lpe);
+            throw new LDataException(lpe);
         }
     }
 
@@ -1383,12 +1384,12 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 }
                 sqlResultSet.close();
             } catch (SQLException e) {
-                LLog.error(this, "Fetching record failed: '" + sql.toString() + "'", e);
+                LLog.error("Fetching record failed: '" + sql.toString() + "'", e);
                 return null;
             }
             return rcd;
         } else {
-            throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
+            throw new LDataException("Service is not available. Wrong service state: %s", state().get());
         }
     }
 
@@ -1416,7 +1417,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 return null;
             }
         } catch (LDataException | SQLException e) {
-            LLog.error(this, getClass().getSimpleName() + ".fetchValue", e);
+            LLog.error(getClass().getSimpleName() + ".fetchValue", e);
             return null;
         }
     }
@@ -1456,9 +1457,9 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     var columns = getColumnsWithoutLinks(rcdClass);
                     LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
                     while ((!task.isCancelled()) && (sqlResultSet.next())) {
-                        LLog.test(this, "fetch...");
+                        LLog.test("fetch...");
                         T rcd = _createRecord(rcdClass, sqlResultSet, columns, "", false);
-                        LLog.test(this, "fetchedRecord: %s", rcd);
+                        LLog.test("fetchedRecord: %s", rcd);
                         if ((parent.isPresent()) && (rcd instanceof ILHasParent)) {
                             ((ILHasParent) rcd).setParent(parent.get());
                         }
@@ -1467,11 +1468,11 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     }
                     sqlResultSet.close();
                 } catch (SQLException e) {
-                    LLog.error(this, getClass().getSimpleName() + ".fetch", e);
+                    LLog.error(getClass().getSimpleName() + ".fetch", e);
                 }
                 return result;
             } else {
-                throw new LDataException(this, "Service is not available. Wrong service state: " + state().get());
+                throw new LDataException("Service is not available. Wrong service state: %s", state().get());
             }
         });
     }
@@ -1494,7 +1495,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         if (_onError != null) {
             _onError.fireEvent(new LErrorEvent(this, e.getMessage(), e, false));
         } else {
-            LLog.error(this, e.getMessage(), e);
+            LLog.error(e.getMessage(), e);
         }
     }
 

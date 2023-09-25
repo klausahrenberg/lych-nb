@@ -1,11 +1,11 @@
 package com.ka.lych.observable;
 
+import com.ka.lych.exception.LParseException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.ka.lych.list.LYosos;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.LNumberSystem;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.LXmlUtils;
 
 /**
@@ -102,7 +102,7 @@ public class LPattern extends LString
             buildAndSetStringValue();
         } else {
             set(null);
-            throw new LParseException(this, "No value given.");
+            throw new LParseException("No value given.");
         }
     }
 
@@ -189,7 +189,7 @@ public class LPattern extends LString
                         if ((token.charAt(0) == '\"') && (token.charAt(token.length() - 1) == '\"')) {
                             elements.add(new LStringElement(token.substring(1, token.length() - 1)));
                         } else {
-                            throw new LParseException(this, "Illegal part of value: " + value);
+                            throw new LParseException("Illegal part of value: %s", value);
                         }
                         break;
                     case KEYWORD_DECIMAL:
@@ -223,7 +223,7 @@ public class LPattern extends LString
                         if (LNumberSystem.isValidDigit(token.charAt(0), CONTROL_DIGITS)) {
                             elements.add(new LControlDigitElement(token));
                         } else {
-                            throw new LParseException(this, "Illegal token: " + token);
+                            throw new LParseException("Illegal token: %s", token);
                         }
                 }
             }
@@ -263,14 +263,14 @@ public class LPattern extends LString
                                 break;
                         }
                     } else {
-                        throw new LParseException(this, "Uncomplete counter parameter: " + cDetail);
+                        throw new LParseException("Incomplete counter parameter: %s", cDetail);
                     }
                 }
             } catch (NumberFormatException nfe) {
-                throw new LParseException(this, nfe.getMessage(), nfe);
+                throw new LParseException(nfe);
             }
         } else {
-            throw new LParseException(this, "Illegal part of value: " + value);
+            throw new LParseException("Illegal part of value: %s", value);
         }
     }
 
@@ -349,7 +349,7 @@ public class LPattern extends LString
                 value = value.substring(trimmedValue.length());
                 return value;
             } else {                
-                throw new LParseException(this, "invalid parsing value: '" + value + "'");
+                throw new LParseException("invalid parsing value: '%s'", value);
             }            
         }
     }
@@ -380,7 +380,7 @@ public class LPattern extends LString
                 }
                 return value;
             } else {
-                throw new LParseException(this, "invalid parsing value: '" + value + "'");
+                throw new LParseException("invalid parsing value: '%s'", value);
             }
         }
 
@@ -421,7 +421,7 @@ public class LPattern extends LString
                 outputFormat = DateTimeFormatter.ofPattern(digits == 2 ? "uu" : "uuuu");
             } else {
                 outputFormat = null;
-                throw new LParseException(this, "Year component must be 2 or 4 digits. Illegal length: " + digits);
+                throw new LParseException("Year component must be 2 or 4 digits. Illegal length: %s", digits);
             }
         }
 
@@ -459,7 +459,7 @@ public class LPattern extends LString
                 outputFormat = DateTimeFormatter.ofPattern(digits == 3 ? "MMM" : "MM");
             } else {
                 outputFormat = null;
-                throw new LParseException(this, "Month component must be 1 to 3 digits. Illegal length: " + digits);
+                throw new LParseException("Month component must be 1 to 3 digits. Illegal length: %s", digits);
             }
         }
 
@@ -530,7 +530,7 @@ public class LPattern extends LString
                 }
             } else {
                 outputFormat = null;
-                throw new LParseException(this, "Month component must be 1 to 2 digits. Illegal length: " + digits);
+                throw new LParseException("Month component must be 1 to 2 digits. Illegal length: %s", digits);
             }
         }
 
@@ -610,10 +610,10 @@ public class LPattern extends LString
                     addIntValue(LNumberSystem.digitsToInt(iS, digits) * divisor);
                     return value;
                 } catch (NumberFormatException nfe) {
-                    throw new LParseException(this, "Wrong number format: '" + iS + "'");
+                    throw new LParseException("Wrong number format: '%s'", iS);
                 }
             } else {
-                throw new LParseException(this, "No number value: '" + value + "'");
+                throw new LParseException("No number value: '%s'", value);
             }
 
         }

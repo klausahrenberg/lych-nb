@@ -55,7 +55,7 @@ public abstract class LRecords<T extends Record> {
                             try {
                                 keyStrings[i] = ((Path) obs.get()).toUri().toURL().toString();
                             } catch (MalformedURLException mfe) {
-                                LLog.error(LRecords.class, mfe.getMessage(), mfe);
+                                LLog.error(mfe.getMessage(), mfe);
                             }  
                         } else {
                             keyStrings[i] = obs.toParseableString();
@@ -83,7 +83,7 @@ public abstract class LRecords<T extends Record> {
                         try {
                             keyStrings[i] = ((Path) key).toUri().toURL().toString();
                         } catch (MalformedURLException mfe) {
-                            LLog.error(LRecords.class, mfe.getMessage(), mfe);
+                            LLog.error(mfe.getMessage(), mfe);
                         }    
                     } else if (key != null) {
                         if (key instanceof Record) {

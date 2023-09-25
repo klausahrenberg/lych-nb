@@ -37,7 +37,7 @@ public class LJsoperties {
                     throw new Exception("mkdir failed (" + dirName + ")");
                 }
             } catch (Exception e) {
-                LLog.error(LJsoperties.class, "Can't create folder '" + dirName + "'", e, true);
+                LLog.error("Can't create folder '" + dirName + "'", e, true);
             }
         }
     }
@@ -61,20 +61,20 @@ public class LJsoperties {
                             .concat(ILConstants.KEYWORD_FILE_JSON_SUFFIX);
                     var resStream = getClass().getClassLoader().getResourceAsStream(templateName);                    
                     if (resStream == null) {
-                        LLog.debug(this, "Template of json settings '%s' doesn't exists. Can't copy it to directory '%s'.", templateName, jsonFile.getAbsolutePath());
+                        LLog.debug("Template of json settings '%s' doesn't exists. Can't copy it to directory '%s'.", templateName, jsonFile.getAbsolutePath());
                     } else {
                         LJsonParser.update(o).inputStream(resStream).parse();
                         this.save(o, id);
-                        LLog.debug(this, "Settings loaded from template: '%s'. Settings file with default values created at: '%s'.", templateName, jsonFile.getAbsolutePath());
+                        LLog.debug("Settings loaded from template: '%s'. Settings file with default values created at: '%s'.", templateName, jsonFile.getAbsolutePath());
                     }                                        
                 }
             } else {
                 LJsonParser.update(o).file(jsonFile).parse();
-                LLog.debug(this, "Settings with new loading from file: '%s'.", jsonFile.getAbsolutePath());
+                LLog.debug("Settings with new loading from file: '%s'.", jsonFile.getAbsolutePath());
             }
         } catch (Exception ex) {
             //jsonFile = null;
-            LLog.error(this, ex.getMessage(), ex);
+            LLog.error(ex.getMessage(), ex);
         }
     }
     
@@ -85,11 +85,11 @@ public class LJsoperties {
             if (jsonFile.exists()) {
                 return LJsonParser.of(requiredClass).file(jsonFile).parse();
             } else {
-                LLog.debug(this, "Can't find '%s'.", jsonFile.getAbsolutePath());
+                LLog.debug("Can't find '%s'.", jsonFile.getAbsolutePath());
             }
          } catch (Exception ex) {
             //jsonFile = null;
-            LLog.error(this, ex.getMessage(), ex);
+            LLog.error(ex.getMessage(), ex);
         }   
         return null;
     }
@@ -107,7 +107,7 @@ public class LJsoperties {
             writer.write(LJson.of(o).toString());
             writer.close();
         } catch (Exception ex) {
-            LLog.error(this, ex.getMessage(), ex);
+            LLog.error(ex.getMessage(), ex);
         }
     }
 

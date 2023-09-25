@@ -2,8 +2,9 @@ package com.ka.lych.observable;
 
 import java.text.DecimalFormat;
 import com.ka.lych.event.LObservableChangeEvent;
+import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LValueException;
 import com.ka.lych.geometry.LGeomUtils;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.LXmlUtils;
 
 /**
@@ -19,7 +20,7 @@ public class LDouble extends LObservable<Double, LDouble> {
     
     private ILValidator<Double, LDouble> numberAcceptor = (LObservableChangeEvent<Double, LDouble> change) -> {
         return (!LGeomUtils.isWithinLimits(get(), lowerLimit, upperLimit, precision * 0.001) ?
-                new LValueException(this, "Given value is out of limits: value=" + get() + "; lowerLimit=" + lowerLimit + "; upperLimit=" + upperLimit) :
+                new LValueException("Given value is out of limits: value=%s; lowerLimit=%s; upperLimit=%s", get(), lowerLimit, upperLimit) :
                 null);
     };
 

@@ -1,6 +1,7 @@
 package com.ka.lych.observable;
 
-import com.ka.lych.util.LParseException;
+import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LValueException;
 import com.ka.lych.xml.LXmlUtils;
 import java.util.Objects;
 
@@ -31,7 +32,7 @@ public class LBoolean extends LObservable<Boolean, LBoolean> {
         try {
             setValue(LXmlUtils.xmlStrToBoolean(value));
         } catch (LValueException lve) {
-            throw new LParseException(this, lve.getMessage(), lve);
+            throw new LParseException(lve);
         }
     }
 

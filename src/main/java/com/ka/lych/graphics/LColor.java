@@ -1,10 +1,10 @@
 package com.ka.lych.graphics;
 
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.ILParseable;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.xml.LXmlUtils;
 
@@ -225,7 +225,7 @@ public class LColor
                 if (result != null) {
                     return result;
                 } else {
-                    throw new LParseException(LColor.class, "Unknown color value: " + sValue);
+                    throw new LParseException("Unknown color value: %s", sValue);
                 }
             }
 

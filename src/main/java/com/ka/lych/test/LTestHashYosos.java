@@ -18,11 +18,11 @@ public class LTestHashYosos {
         hItems.addListener(change -> {
             switch (change.type()) {
                 case CHANGED ->
-                    LLog.debug(LTestHashYosos.class, "changed at index " + change.index() + ": " + change.item());
+                    LLog.debug("changed at index " + change.index() + ": " + change.item());
                 case ADDED ->
-                    LLog.debug(LTestHashYosos.class, "added at index " + change.index() + ": " + change.item());
+                    LLog.debug("added at index " + change.index() + ": " + change.item());
                 case REMOVED ->
-                    LLog.debug(LTestHashYosos.class, "removed from index " + change.index() + ": " + change.item());
+                    LLog.debug("removed from index " + change.index() + ": " + change.item());
             }
             //LLog.debug(LTestYosos.class, hItems.toString(true));
         });

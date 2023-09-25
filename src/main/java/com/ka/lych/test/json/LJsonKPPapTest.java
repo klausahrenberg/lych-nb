@@ -42,12 +42,12 @@ public class LJsonKPPapTest {
         //LOdwRequest r = LRecord.example(LOdwRequest.class);
         try {
             var o = LJsonParser.of(KPpapPlanning.class).payload(ppap).parse();
-            LLog.test(this, "loaded: %s", o);
-            LLog.test(this, "back to json: \n %s", LJson.of(o).toString());
-            LLog.test(this, "-------------------------------------------");
-            LLog.test(this, "link to project: %s", o.project.get().getClass().getName());
+            LLog.test("loaded: %s", o);
+            LLog.test("back to json: \n %s", LJson.of(o).toString());
+            LLog.test("-------------------------------------------");
+            LLog.test("link to project: %s", o.project.get().getClass().getName());
         } catch (Exception ex) {
-            LLog.error(this, "exception: ", ex);
+            LLog.error("exception: ", ex);
         }
 
     }

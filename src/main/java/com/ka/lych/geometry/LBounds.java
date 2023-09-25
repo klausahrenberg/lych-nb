@@ -1,10 +1,10 @@
 package com.ka.lych.geometry;
 
 import com.ka.lych.annotation.Json;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.observable.LDouble;
 import com.ka.lych.util.ILParseable;
 import com.ka.lych.util.LLog;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.xml.LXmlUtils;
 
@@ -63,7 +63,7 @@ public class LBounds<T extends LBounds> extends LSize<T>
             LBounds.intersect(this, anotherBounds, dest);
             return dest;
         } catch (Exception ex) {
-            LLog.error(this, ex.getMessage(), ex);
+            LLog.error(ex.getMessage(), ex);
             return null;
         }
     }        
@@ -94,7 +94,7 @@ public class LBounds<T extends LBounds> extends LSize<T>
             LBounds.union(this, anotherBounds, dest);
             return dest;
         } catch (Exception ex) {
-            LLog.error(this, ex.getMessage(), ex);
+            LLog.error(ex.getMessage(), ex);
             return null;
         }
     }

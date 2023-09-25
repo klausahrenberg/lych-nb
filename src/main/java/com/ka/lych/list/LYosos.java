@@ -409,7 +409,7 @@ public class LYosos<T> extends LList<T>
             }
             return clone;
         } catch (Exception e) {
-            LLog.error(this, ".clone", e);
+            LLog.error(".clone", e);
             return null;
         }
 

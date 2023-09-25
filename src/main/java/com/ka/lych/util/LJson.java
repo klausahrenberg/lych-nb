@@ -374,7 +374,7 @@ public class LJson {
             json.beginObject();
             var fields = LReflections.getFieldsOfInstance(o, null, Json.class);
             var it_fields = fields.iterator();
-            LLog.test(LJson.class, "write object'%s' / %s", o, fields.size());
+            LLog.test("write object'%s' / %s", o, fields.size());
             while (it_fields.hasNext()) {
                 var field = it_fields.next();
                 if (LReflections.existsAnnotation(field, Lazy.class)) {

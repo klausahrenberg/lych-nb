@@ -16,6 +16,7 @@ import java.util.ResourceBundle;
 import javax.xml.parsers.*;
 import com.ka.lych.event.LChangedEvent;
 import com.ka.lych.event.LEventHandler;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.geometry.ILPoint;
 import com.ka.lych.geometry.LScaleMode;
 import com.ka.lych.graphics.anim.ILAnimation;
@@ -385,7 +386,7 @@ public class LCanvas extends LShape<LCanvas>
             Document xml = db.parse(is);
             this.parseXml(xml.getDocumentElement(), null);
         } catch (Exception e) {
-            LLog.error(this, "Canvas.readFromString", e);
+            LLog.error("Canvas.readFromString", e);
         }
         return true;
     }

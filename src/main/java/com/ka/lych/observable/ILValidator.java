@@ -1,6 +1,7 @@
 package com.ka.lych.observable;
 
 import com.ka.lych.event.LObservableChangeEvent;
+import com.ka.lych.exception.LValueException;
 
 /**
  *

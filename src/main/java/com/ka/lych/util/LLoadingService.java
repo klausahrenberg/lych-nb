@@ -28,7 +28,7 @@ public class LLoadingService
     @Override
     public Object run(LTask task) throws Throwable {
         while ((!task.isCancelled()) && (queue != null) && (!queue.isEmpty())) {
-            LLog.test(this, "queue: %s", queue.size());
+            LLog.test("queue: %s", queue.size());
             //Get loadable from stack without removing
             var loadable = queue.peek();
             loadable.load();//.await().ifError(ex -> LLog.error(this, "Can't finished loading of canvas", (Throwable) ex));

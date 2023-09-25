@@ -4,10 +4,10 @@ import java.io.*;
 import java.util.Iterator;
 import javax.xml.parsers.*;
 import com.ka.lych.event.LErrorEvent;
+import com.ka.lych.exception.LDataException;
 import com.ka.lych.list.LKeyYosos;
 import com.ka.lych.list.LYoso;
 import com.ka.lych.observable.LObservable;
-import com.ka.lych.repo.LDataException;
 import com.ka.lych.repo.LDataServiceState;
 import com.ka.lych.util.ILHandler;
 import com.ka.lych.util.LLog;
@@ -59,7 +59,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
             //db.setEntityResolver(new Resolver());
             db.setErrorHandler(new EH());
             try {
-                LLog.debug(this, "Load XML file '" + datasFile.getAbsolutePath() + "'");
+                LLog.debug("Load XML file '" + datasFile.getAbsolutePath() + "'");
                 FileInputStream fis = new FileInputStream(datasFile);
                 //
                 InputSource is = new InputSource(fis);
@@ -136,7 +136,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
             }
         } catch (Exception saxe) {
             saxe.printStackTrace();
-            LLog.error(this, "XmlDataService.load", saxe);
+            LLog.error("XmlDataService.load", saxe);
         }
     }
 
@@ -202,7 +202,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
                         }
 
                     }
-                    LLog.debug(this, "Save XML file '" + datasFile.getAbsolutePath() + "'");
+                    LLog.debug("Save XML file '" + datasFile.getAbsolutePath() + "'");
                     //Speichern
                     LXmlUtils.emitDocument(xmlFile, datasFile.getAbsolutePath());
                 

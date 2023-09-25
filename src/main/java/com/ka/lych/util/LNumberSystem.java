@@ -1,5 +1,7 @@
 package com.ka.lych.util;
 
+import com.ka.lych.exception.LParseException;
+
 
 /**
  *
@@ -89,11 +91,11 @@ public class LNumberSystem {
                 if (b > -1) {
                     result = result + b * (int) (Math.pow(digits.length, value.length() - i - 1));
                 } else {
-                    throw new LParseException(LNumberSystem.class, "Invalid number: '" + value + "'");
+                    throw new LParseException("Invalid number: '%s'", value);
                 }
             }
         } else {
-            throw new LParseException(LNumberSystem.class, "Value out of range: '" + value + "' / max: " + max);
+            throw new LParseException("Value out of range: '%s' / max: %s", value, max);
         }
         return result;
     }

@@ -3,8 +3,9 @@ package com.ka.lych.observable;
 import java.util.EnumSet;
 import java.util.Objects;
 import com.ka.lych.event.LObservableChangeEvent;
+import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LValueException;
 import com.ka.lych.util.ILLocalizable;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.xml.LXmlUtils;
 import com.ka.lych.list.LList;
 import com.ka.lych.util.ILLoadable;
@@ -189,7 +190,7 @@ public abstract class LObservable<T, BC extends ILObservable>
             }
         } else {
             if (_boundedConverter != null) {
-                throw new LValueException(this, "Can't set a bounded observable, if converter is needed.");
+                throw new LValueException("Can't set a bounded observable, if converter is needed.");
             }
             getSingleBoundedObservable().set(value);
         }
@@ -205,7 +206,7 @@ public abstract class LObservable<T, BC extends ILObservable>
             setValue(value);
             return true;
         } catch (LValueException lve) {
-            LLog.error(this, lve.getMessage(), lve);
+            LLog.error(lve.getMessage(), lve);
             return false;
         }
     }
@@ -223,9 +224,9 @@ public abstract class LObservable<T, BC extends ILObservable>
         if (_notifyAllowed) { 
             if (_listeners != null) {                
                 _listeners.forEach(changeListener -> {
-                    LLog.test(this, "change %s", changeListener);
+                    LLog.test("change %s", changeListener);
                     changeListener.changed(changeEvent);
-                    LLog.test(this, "changed");
+                    LLog.test("changed");
                         });
             }
             _changed = false;
@@ -285,7 +286,7 @@ public abstract class LObservable<T, BC extends ILObservable>
             try {
                 setValue((T) LXmlUtils.xmlStrToEnum(value, v.getClass()));
             } catch (LValueException lve) {
-                throw new LParseException(this, lve.getMessage(), lve);
+                throw new LParseException(lve);
             }
         } else if (EnumSet.class.isAssignableFrom(v.getClass())) {
             throw new UnsupportedOperationException("EnumSets are not supported yet.");

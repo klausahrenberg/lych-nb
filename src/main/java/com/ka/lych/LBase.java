@@ -103,7 +103,7 @@ public abstract class LBase {
                 LMacAdapter.setQuitHandler(this, event -> exit(0));
                 LMacAdapter.setDockIconImage(getRessources().getImage(this, appName));*/
             } catch (Exception e) {
-                LLog.error(LBase.class, "Error while loading the OSXAdapter:", e);
+                LLog.error("Error while loading the OSXAdapter:", e);
             }
         }
     }

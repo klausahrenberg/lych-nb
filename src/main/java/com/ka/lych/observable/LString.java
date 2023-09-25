@@ -1,9 +1,9 @@
 package com.ka.lych.observable;
 
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
 import com.ka.lych.util.ILConstants;
-import com.ka.lych.util.LParseException;
 import com.ka.lych.util.LReflections;
 import java.util.List;
 import java.util.Objects;
@@ -331,6 +331,14 @@ public class LString extends LObservable<String, LString>
             return (!intArray.isEmpty() ? intArray : null);
         } else {
             return null;
+        }
+    }
+    
+    public static String format(String message, Object... arguments) {
+        try {
+            return String.format(message, arguments);
+        } catch (Exception ex) {
+            return message + " " + ILConstants.BRACKET_SQUARE_OPEN + ex.getMessage() + ILConstants.BRACKET_SQUARE_CLOSE;
         }
     }
 

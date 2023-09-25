@@ -3,9 +3,10 @@ package com.ka.lych.list;
 import java.io.*;
 import java.util.*;
 import com.ka.lych.event.LObservableChangeEvent;
+import com.ka.lych.exception.LDoubleHashKeyException;
+import com.ka.lych.exception.LValueException;
 import com.ka.lych.observable.ILChangeListener;
 import com.ka.lych.observable.ILObservable;
-import com.ka.lych.observable.LValueException;
 import com.ka.lych.observable.ILValidator;
 
 /**
@@ -21,7 +22,7 @@ public class LHashYosos<K, V extends ILHashYoso> extends LYosos<V>
 
     private final ILValidator<K, ILObservable> hashYosoAcceptor = (LObservableChangeEvent<K, ILObservable> change) -> {
         return (existsHashKey(change.newValue())
-                ? new LValueException(this, "Key already exists: " + change.newValue())
+                ? new LValueException("Key already exists: %s", change.newValue())
                 : null);
     };
 
@@ -208,7 +209,7 @@ public class LHashYosos<K, V extends ILHashYoso> extends LYosos<V>
             K key = (K) value.getHashKey();
             int hash = getHash(key);
             if (this.existsHashKey(key, hash)) {
-                throw new LDoubleHashKeyException(this, "Key " + (key != null ? "'" + key + "'" : "null") + " already exists. (hash: " + hash + ")");
+                throw new LDoubleHashKeyException("Key '%s' already exists. (hash: %s)", key, hash);
             }
             LxHashIndexItem<K, V> hi = new LxHashIndexItem<>(value);
             hi.next = hashItems[hash];
@@ -241,8 +242,7 @@ public class LHashYosos<K, V extends ILHashYoso> extends LYosos<V>
                 throws LDoubleHashKeyException {
             int newHash = getHash(newKey);
             if (this.existsHashKey(newKey, newHash)) {
-                throw new LDoubleHashKeyException(this, "Can't modify existing key "
-                        + oldKey + " to new key " + newKey);
+                throw new LDoubleHashKeyException("Can't modify existing key '%s' to new key '%s'", oldKey, newKey);
             }
             V value = this.getHashYoso(oldKey);
             // removeOld
