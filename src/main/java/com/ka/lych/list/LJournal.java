@@ -1,17 +1,21 @@
 package com.ka.lych.list;
 
 import com.ka.lych.annotation.Id;
+import com.ka.lych.event.LObservableChangeEvent;
 import com.ka.lych.exceptions.LItemNotExistsException;
 import com.ka.lych.observable.ILChangeListener;
 import com.ka.lych.observable.ILObservable;
+import com.ka.lych.observable.ILValidator;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
+import com.ka.lych.observable.LValueException;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.LException;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LObjects;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.util.LReflections.LFields;
+import com.ka.lych.util.LUnchecked;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -29,27 +33,22 @@ public class LJournal<V>
     protected final Class _hashIndex;
     protected LFields _fields;
     private final LJournalItem<V>[] _slots = new LJournalItem[NUMBER_OF_SLOTS];
+    private final ILValidator<Object, ILObservable> _observableAcceptor = change -> {
+        var newKey = _key((V) change.source().owner(), false, null, null);
+        return (containsKey(newKey)
+                ? new LValueException(this, "Key already exists: " + newKey)
+                : null);
+    };
     private final ILChangeListener<Object, ILObservable> _observableListener = change -> {
         LLog.test(this, "time for change %s", change.source().owner());
         var oldKey = _key((V) change.source().owner(), false, change.source(), change.oldValue());
         if (_removeKey(oldKey)) {
             var newKey = _key((V) change.source().owner(), false, null, null);
-            _addKey(newKey, (V) change.source().owner());
-            LLog.test(this, "changed key from '%s' to '%s'", oldKey, newKey);
-        } else {
-            LLog.test(this, "can't remove old key '%s'", oldKey);
-        }    
-        /*if (change.oldValue() != null) {
-            this.removeHashKey(change.oldValue());
-        }
-        if (change.newValue() != null) {
-            try {
-                this.addHashKey((V) change.source());
-            } catch (LDoubleHashKeyException dhke) {
-                //impossible state
-                throw new IllegalStateException(dhke.getMessage(), dhke);
+            //_addKey(newKey, (V) change.source().owner());
+            if (!_addKey(newKey, (V) change.source().owner())) {
+                throw new LUnchecked(this, "Key " + (newKey != null ? "'" + newKey + "'" : "null") + " already exists.");
             }
-        }*/
+        } 
     };
 
     public LJournal(LList<V> list) {
@@ -152,7 +151,7 @@ public class LJournal<V>
 
     @Override
     public V remove(Object item) {
-        LException.<V>throwing(i -> _remove((V) i)).accept((V) item);
+        _list.remove(item);
         return (V) item;
     }
 
@@ -205,6 +204,8 @@ public class LJournal<V>
             var key = _key(item);
             if (!_removeKey(key)) {
                 throw new LItemNotExistsException(this, "Journal contains no key: '" + (key != null ? "'" + key + "'" : "null") + "'");
+            } else {
+                _removeListeners(item);
             }
         }
         return item;
@@ -254,6 +255,7 @@ public class LJournal<V>
                 values[i] = obs.get();
                 if (addListeners) {
                     obs.owner(item);
+                    obs.addAcceptor(_observableAcceptor);
                     obs.addListener(_observableListener);
                 } else if (obs == oldObservable) {
                     values[i] = oldValue;
@@ -265,6 +267,19 @@ public class LJournal<V>
             LLog.test(this, "hashKey is %s of key: %s", values[i].hashCode(), values[i]);
         }
         return LString.concatWithSpacer(ILConstants.DOT, ILConstants.NULL_VALUE, values);
+    }
+    
+    protected void _removeListeners(V item) {        
+        for (int i = 0; i < _fields.size(); i++) {
+            var field = _fields.get(i);
+
+            if (field.isObservable()) {
+                var obs = field.observable(item);
+                obs.owner(null);
+                obs.removeAcceptor(_observableAcceptor);
+                obs.removeListener(_observableListener);
+            }
+        }
     }
 
     protected int _slot(String key) {

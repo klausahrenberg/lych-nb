@@ -221,8 +221,12 @@ public abstract class LObservable<T, BC extends ILObservable>
 
     protected void _fireChangedEvent(LObservableChangeEvent<T, BC> changeEvent) {        
         if (_notifyAllowed) { 
-            if (_listeners != null) {
-                _listeners.forEach(changeListener -> changeListener.changed(changeEvent));
+            if (_listeners != null) {                
+                _listeners.forEach(changeListener -> {
+                    LLog.test(this, "change %s", changeListener);
+                    changeListener.changed(changeEvent);
+                    LLog.test(this, "changed");
+                        });
             }
             _changed = false;
         }
