@@ -2,7 +2,10 @@ package com.ka.lych.ui;
 
 import com.ka.lych.graphics.LCanvas;
 import com.ka.lych.observable.LString;
+import com.ka.lych.ui.observable.ILHasEnabled;
+import com.ka.lych.ui.observable.ILHasId;
 import com.ka.lych.ui.observable.ILHasTitle;
+import com.ka.lych.ui.observable.ILHasVisibility;
 
 /**
  *
@@ -10,7 +13,7 @@ import com.ka.lych.ui.observable.ILHasTitle;
  * @param <T>
  * @param <BC>
  */
-public interface ILLabel<T, BC> extends ILHasTitle<BC>, ILSupportsObservables<T> {
+public interface ILLabel<T, BC> extends ILHasTitle<BC>, ILHasId<BC>, ILHasVisibility<BC>, ILHasEnabled<BC> {
     
     public LString icon();       
     

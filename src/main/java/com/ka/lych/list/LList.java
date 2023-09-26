@@ -71,7 +71,7 @@ public class LList<T> extends ArrayList<T> {
     }
 
     public int count(Predicate<? super T> filter) {
-        return ILYosos.count(this, filter);
+        return LList.count(this, filter);
     }
     
     public boolean contains(Predicate<? super T> filter) {
@@ -204,5 +204,17 @@ public class LList<T> extends ArrayList<T> {
             _listeners.forEach(listener -> listener.accept(cl));
         }
     }
+    
+    public static <T> int count(Iterable<T> list, Predicate<? super T> filter) {
+        int result = 0;
+        Iterator<T> it_list = list.iterator();
+        while (it_list.hasNext()) {
+            T item = it_list.next();
+            if (filter.test(item)) {
+                result++;
+            }
+        }
+        return result;
+    }    
     
 }

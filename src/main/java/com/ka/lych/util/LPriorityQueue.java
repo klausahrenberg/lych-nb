@@ -1,8 +1,9 @@
 package com.ka.lych.util;
 
+import com.ka.lych.list.LList;
 import java.util.Comparator;
+import java.util.List;
 
-import com.ka.lych.list.LYosos;
 
 /**
  * A list for managing different items and priorities
@@ -12,11 +13,11 @@ import com.ka.lych.list.LYosos;
  */
 public class LPriorityQueue<T> {
 
-    protected LYosos<LPriorityItem<T>> items;
+    protected List<LPriorityItem<T>> items;
     protected LPriorityComparator comparator;
 
     public LPriorityQueue() {
-        items = new LYosos<LPriorityItem<T>>();
+        items = new LList<LPriorityItem<T>>();
         comparator = new LPriorityComparator();
     }
 

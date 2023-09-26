@@ -5,6 +5,6 @@ package com.ka.lych.ui;
  * @author klausahrenberg
  * @param <T>
  */
-public interface ILProgressBar<T> extends ILControl, ILSupportsObservables<T> {
+public interface ILProgressBar<T> extends ILControl {
     
 }

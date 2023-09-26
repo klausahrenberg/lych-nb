@@ -1,11 +1,12 @@
 package com.ka.lych.graphics;
 
 import com.ka.lych.annotation.Json;
+import com.ka.lych.list.LList;
 import java.util.Objects;
-import com.ka.lych.list.LYosos;
 import com.ka.lych.observable.LDouble;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.util.LLog;
+import java.util.List;
 
 /**
  *
@@ -32,7 +33,7 @@ public class LLinearGradient extends LAbstractPaint<LLinearGradient> {
     @Json
     protected LObject<LSpreadMethod> spreadMethod;
     @Json
-    protected LObject<LYosos<LStop>> stops;
+    protected LObject<List<LStop>> stops;
     
     public LLinearGradient() {       
     }            
@@ -43,7 +44,7 @@ public class LLinearGradient extends LAbstractPaint<LLinearGradient> {
         this.setX2(x2);
         this.setY2(y2);
         this.setSpreadMethod(spreadMethod);
-        this.setStops(new LYosos<>(stops));
+        this.setStops(new LList<>(stops));
     }
     
     public final LDouble x1() {
@@ -121,18 +122,18 @@ public class LLinearGradient extends LAbstractPaint<LLinearGradient> {
         spreadMethod().set(spreadMethod);
     }
     
-    public LObject<LYosos<LStop>> stops() {
+    public LObject<List<LStop>> stops() {
         if (stops == null) {
-            stops = new LObject<>(new LYosos<>());            
+            stops = new LObject<>(new LList<>());            
         }
         return stops;
     }
         
-    public LYosos<LStop> getStops() {
+    public List<LStop> getStops() {
         return (stops != null ? stops.get() : null);
     }
 
-    public void setStops(LYosos<LStop> stops) {
+    public void setStops(List<LStop> stops) {
         stops().set(stops);
     }
     

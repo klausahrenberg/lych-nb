@@ -1,7 +1,7 @@
 package com.ka.lych.util;
 
-import com.ka.lych.list.ILYosos;
 import com.ka.lych.observable.LObject;
+import java.util.List;
 
 /**
  *
@@ -9,7 +9,7 @@ import com.ka.lych.observable.LObject;
  * @param <T>
  * @param <C>
  */
-public interface ILSupportsChildrens<T, C extends ILYosos<T>> {
+public interface ILSupportsChildrens<T, C extends List<T>> {
     
     public LObject<C> childrens();
     
@@ -30,7 +30,7 @@ public interface ILSupportsChildrens<T, C extends ILYosos<T>> {
     public boolean loadChildrens();
     
     default public boolean hasChildren(T children) {
-        return ((hasChildrens()) && (getChildrens() != null) && (getChildrens().exists(children)));
+        return ((hasChildrens()) && (getChildrens() != null) && (getChildrens().contains(children)));
     }
     
 }

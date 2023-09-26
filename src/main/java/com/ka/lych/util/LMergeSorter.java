@@ -3,7 +3,6 @@ package com.ka.lych.util;
 import java.util.Comparator;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
-import com.ka.lych.list.LYoso;
 import com.ka.lych.observable.LString;
 import com.ka.lych.repo.LQuery;
 import com.ka.lych.repo.LQuery.LSortOrder;

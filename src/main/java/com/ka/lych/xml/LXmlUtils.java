@@ -18,19 +18,16 @@ import javax.xml.parsers.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import com.ka.lych.event.LEvent;
 import com.ka.lych.exception.LParseException;
 import com.ka.lych.geometry.ILBounds;
 import com.ka.lych.geometry.ILSize;
 import com.ka.lych.geometry.LBounds;
 import com.ka.lych.geometry.LSize;
-import com.ka.lych.list.ILHashYoso;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.*;
 import com.ka.lych.ui.ILControl;
 import com.ka.lych.util.ILConstants;
-import com.ka.lych.util.ILHandler;
 import com.ka.lych.util.ILParseable;
 import com.ka.lych.util.LArrays;
 import com.ka.lych.util.LLog;
@@ -1024,12 +1021,13 @@ public class LXmlUtils {
 
     private static String nonPrimitiveToString(Object object) {
         String result;
-        if (object instanceof ILHashYoso) {
+        /*if (object instanceof ILHashYoso) {
             Object hKey = ((ILHashYoso) object).getHashKey();
             result = (isPrimitiveType(hKey) ? hKey.toString() : Integer.toString(object.hashCode()));
         } else {
             result = Integer.toString(object.hashCode());
-        }
+        }*/
+        result = Integer.toString(object.hashCode());
         return object.getClass().getName() + "@" + result;
     }
 

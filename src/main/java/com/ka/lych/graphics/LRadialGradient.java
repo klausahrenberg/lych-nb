@@ -1,10 +1,11 @@
 package com.ka.lych.graphics;
 
 import com.ka.lych.annotation.Json;
+import com.ka.lych.list.LList;
 import java.util.Objects;
-import com.ka.lych.list.LYosos;
 import com.ka.lych.observable.*;
 import com.ka.lych.util.LLog;
+import java.util.List;
 
 /**
  *
@@ -30,7 +31,7 @@ public class LRadialGradient extends LAbstractPaint<LRadialGradient> {
     @Json
     protected LObject<LSpreadMethod> spreadMethod;
     @Json
-    protected LObject<LYosos<LStop>> stops;
+    protected LObject<List<LStop>> stops;
 
     public LRadialGradient() {
     }
@@ -125,18 +126,18 @@ public class LRadialGradient extends LAbstractPaint<LRadialGradient> {
         spreadMethod().set(spreadMethod);
     }
 
-    public LObject<LYosos<LStop>> stops() {
+    public LObject<List<LStop>> stops() {
         if (stops == null) {
-            stops = new LObject<>(new LYosos<>());
+            stops = new LObject<>(new LList<>());
         }
         return stops;
     }
 
-    public LYosos<LStop> getStops() {
+    public List<LStop> getStops() {
         return (stops != null ? stops.get() : null);
     }
 
-    public void setStops(LYosos<LStop> stops) {
+    public void setStops(List<LStop> stops) {
         stops().set(stops);
     }
 

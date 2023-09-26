@@ -5,8 +5,6 @@ import java.util.Iterator;
 import javax.xml.parsers.*;
 import com.ka.lych.event.LErrorEvent;
 import com.ka.lych.exception.LDataException;
-import com.ka.lych.list.LKeyYosos;
-import com.ka.lych.list.LYoso;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.repo.LDataServiceState;
 import com.ka.lych.util.ILHandler;
@@ -27,6 +25,7 @@ import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.repo.LColumnItem;
 import com.ka.lych.repo.LServerRepository;
+import com.ka.lych.util.LRecord;
 import java.util.List;
 
 /**
@@ -75,7 +74,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
     }
 
     @SuppressWarnings("unchecked")
-    public void load(LKeyYosos datas, File datasFile) {
+    public void load(LList datas, File datasFile) {
         Document xmlFile;
         try {
             if (datas != null) {
@@ -109,15 +108,15 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
                     NodeList nl2 = xmlRoot.getElementsByTagName(KEYWORD_XML_ITEM);
                     for (int e = 0; e < nl2.getLength(); e++) {
                         Element ai = (Element) nl2.item(e);
-                        LYoso dbti = (LYoso) LReflections.newInstance(datas.getDataClass());
-                        LFields fields = LYoso.evaluateFields(datas.getDataClass());
+                        Record dbti = null;//LRecord.of(datas.getDataClass(), null);                        
+                        LFields fields = null;//LRecord.getFields(datas.getDataClass());
                         for (int i = 0; i < fields.size(); i++) {
                             LField c = fields.get(i);
                             if (!c.isLinked()) {
                                 NodeList nlc = ai.getElementsByTagName(c.name());
                                 Element elc = (nlc.getLength() > 0 ? (Element) nlc.item(0) : null);
                                 if (elc != null) {
-                                    dbti.observable(c).parse(elc.getTextContent());
+                                    c.observable(c).parse(elc.getTextContent());
                                 }
                             } else {
                                 /*LoDatas lt = (LoDatas) datas.getLinkedDatas(c.getName());
@@ -140,7 +139,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
         }
     }
 
-    public void save(LKeyYosos datas, File datasFile) {
+    public void save(LList datas, File datasFile) {
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         try {
             if (datas != null) {                
@@ -171,19 +170,19 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
                     //items
                     //Element mapRoot = (Element) xmlRoot.appendChild(xmlFile.createElement(datas.getTableName()));
                     @SuppressWarnings("unchecked")
-                    Iterator<LYoso> itt = datas.iterator();
+                    Iterator<Record> itt = datas.iterator();
                     while (itt.hasNext()) {
-                        LYoso dbti = itt.next();
+                        Record dbti = itt.next();
                         Element mapItem = (Element) xmlRoot.appendChild(xmlFile.createElement(KEYWORD_XML_ITEM));
                         //mapItem.setAttribute("key", dbti.getDatasName().toString());
 
                         //LLog.notification("Save key '" + dbti.getDatasName().toString() + "'");
-                        LFields fieldc = LYoso.evaluateFields(datas.getDataClass());
+                        LFields fieldc = null;//LRecord.getFields(datas.getDataClass());
                         for (int i = 0; i < fieldc.size(); i++) {
                             LField c = fieldc.get(i);
 
                             if (!c.isLinked()) {
-                                LObservable dt = dbti.observable(c);                                
+                                LObservable dt = c.observable(c);                                
                                 //LObservable dt = dbti.getSubItem(c);
                                 if ((dt != null) && (dt.get() != null)) {
                                     Element dtItem = (Element) mapItem.appendChild(xmlFile.createElement(c.name()));
@@ -235,7 +234,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public LFuture<Integer, LDataException> countData(LKeyYosos<?> datas, LTerm filter) {
+    public LFuture<Integer, LDataException> countData(LList<?> datas, LTerm filter) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

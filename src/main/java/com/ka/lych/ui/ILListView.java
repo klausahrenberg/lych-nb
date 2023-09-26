@@ -3,7 +3,7 @@ package com.ka.lych.ui;
 import com.ka.lych.event.ELActionTrigger;
 import com.ka.lych.event.LActionEvent;
 import com.ka.lych.event.LFileEvent;
-import com.ka.lych.list.ILYosos;
+import com.ka.lych.list.LList;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.util.ILHandler;
 
@@ -16,9 +16,9 @@ public interface ILListView<T> extends ILControl {
     
     //public LObservable<LxItems<T>> observableYosos();
     
-    public ILYosos<T> yosos();
+    public LList<T> yosos();
             
-    public void yosos(ILYosos<T> yosos);
+    public void yosos(LList<T> yosos);
     
     public void addAcceptedFileExtension(String... extensions);
     

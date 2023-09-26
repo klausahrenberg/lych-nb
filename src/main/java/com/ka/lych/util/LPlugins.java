@@ -1,14 +1,14 @@
 package com.ka.lych.util;
 
+import com.ka.lych.list.LList;
 import java.util.Iterator;
 import java.util.ServiceLoader;
-import com.ka.lych.list.LYosos;
 
 /**
  *
  * @author Klaus Ahrenberg
  */
-public class LPlugins extends LYosos<LPlugin> {
+public class LPlugins extends LList<LPlugin> {
 
     public LPlugins() {
         super();

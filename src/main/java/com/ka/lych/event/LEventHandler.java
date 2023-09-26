@@ -1,6 +1,6 @@
 package com.ka.lych.event;
 
-import com.ka.lych.list.LYosos;
+import com.ka.lych.list.LList;
 import com.ka.lych.observable.ILChangeListener;
 import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.LObservable;
@@ -15,7 +15,7 @@ import java.util.function.Function;
 public class LEventHandler<T extends LEvent> extends LObservable<ILHandler<T>, LEventHandler> {
 
     private boolean supportMultipleListeners;
-    private LYosos<ILHandler<T>> additionalListeners;
+    private LList<ILHandler<T>> additionalListeners;
 
     private final ILChangeListener<ILHandler<T>, LEventHandler> valueListener = change -> {
         if ((change.newValue() != get()) && (supportMultipleListeners)) {
@@ -41,7 +41,7 @@ public class LEventHandler<T extends LEvent> extends LObservable<ILHandler<T>, L
     public void add(ILHandler<T> newValue) {
         if (supportMultipleListeners) {
             if (additionalListeners == null) {
-                additionalListeners = new LYosos<>();
+                additionalListeners = new LList<>();
             }
             additionalListeners.add(newValue);
             _fireChangedEvent(new LObservableChangeEvent(this, null, null));

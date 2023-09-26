@@ -20,8 +20,8 @@ import com.ka.lych.exception.LParseException;
 import com.ka.lych.geometry.ILPoint;
 import com.ka.lych.geometry.LScaleMode;
 import com.ka.lych.graphics.anim.ILAnimation;
-import com.ka.lych.list.LYosos;
-import com.ka.lych.list.LYososIterator;
+import com.ka.lych.list.LIterator;
+import com.ka.lych.list.LList;
 import com.ka.lych.observable.*;
 import com.ka.lych.util.*;
 import com.ka.lych.util.LReflections.LMethod;
@@ -56,11 +56,11 @@ public class LCanvas extends LShape<LCanvas>
     @Json
     protected LObject<LColor> background;
     @Json
-    private LYosos<LCanvas> marks;
+    private LList<LCanvas> marks;
     @Json
     protected LObject<LCanvasState> state;
     @Json
-    protected LObject<LYosos<ILCanvasCommand>> commands;
+    protected LObject<LList<ILCanvasCommand>> commands;
 
     protected ILCanvasFontRenderer fontRenderer;
     
@@ -234,9 +234,9 @@ public class LCanvas extends LShape<LCanvas>
         this.fontRenderer = fontRenderer;
     }
 
-    public LYosos<ILCanvasCommand> getCommands() {
+    public LList<ILCanvasCommand> getCommands() {
         if (commands == null) {
-            commands = new LObject<>(new LYosos<>());
+            commands = new LObject<>(new LList<>());
         }
         return commands.get();
     }
@@ -463,9 +463,9 @@ public class LCanvas extends LShape<LCanvas>
         }*/
     }
 
-    public LYosos<LCanvas> getMarks() {
+    public LList<LCanvas> getMarks() {
         if (marks == null) {
-            marks = new LYosos<>();
+            marks = new LList<>();
         }
         return marks;
     }
@@ -475,7 +475,7 @@ public class LCanvas extends LShape<LCanvas>
     public void execute(LCanvasRenderer canvasRenderer, long now) {
         super.execute(canvasRenderer, now);
         if (commands != null) {
-            LYososIterator<ILCanvasCommand> it_cmd = new LYososIterator<>(getCommands());
+            LIterator<ILCanvasCommand> it_cmd = new LIterator<>(getCommands());
             while ((!canvasRenderer.isRenderingCancelled()) && (it_cmd.hasNext())) {
                 ILCanvasCommand cmd = it_cmd.next();
                 if (cmd != null) {
@@ -491,13 +491,13 @@ public class LCanvas extends LShape<LCanvas>
         int duration = 0;
         boolean infinite = false;
         if (commands != null) {
-            LYososIterator<ILCanvasCommand> it_cmd = new LYososIterator<>(getCommands());
+            LIterator<ILCanvasCommand> it_cmd = new LIterator<>(getCommands());
             while (it_cmd.hasNext()) {
                 ILCanvasCommand cmd = it_cmd.next();
                 if ((cmd != null) && (cmd instanceof LShape)) {
                     LShape shape = (LShape) cmd;
                     if (shape.hasAnimations()) {
-                        LYososIterator<ILAnimation> it_anim = new LYososIterator<>(shape.getAnimations());
+                        LIterator<ILAnimation> it_anim = new LIterator<>(shape.getAnimations());
                         while (it_anim.hasNext()) {
                             ILAnimation anim = it_anim.next();
                             duration = Math.max(duration, anim.delay() + anim.duration());

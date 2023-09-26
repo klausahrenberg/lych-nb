@@ -3,7 +3,6 @@ package com.ka.lych.repo;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import com.ka.lych.geometry.ILBounds;
-import com.ka.lych.list.LYoso;
 import com.ka.lych.observable.*;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Json;
@@ -13,7 +12,7 @@ import com.ka.lych.annotation.Json;
  * @author klausahrenberg
  */
 
-public class LKeyValue extends LYoso
+public class LKeyValue 
         implements Comparable {
 
     @Id

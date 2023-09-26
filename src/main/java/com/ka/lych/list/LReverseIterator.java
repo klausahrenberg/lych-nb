@@ -13,13 +13,13 @@ import java.util.List;
  * @author klausahrenberg
  * @param <T>
  */
-public class LYososReverseIterator<T>
+public class LReverseIterator<T>
         implements Iterator<T> {
 
     protected final List<T> list;
     protected int cursor;
 
-    public LYososReverseIterator(List<T> list) {
+    public LReverseIterator(List<T> list) {
         this.list = list;
         cursor = list.size();
     }

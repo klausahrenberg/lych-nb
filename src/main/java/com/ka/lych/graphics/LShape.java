@@ -9,9 +9,9 @@ import com.ka.lych.geometry.LBounds;
 import com.ka.lych.geometry.LGeomUtils;
 import com.ka.lych.geometry.LPoint;
 import com.ka.lych.graphics.anim.ILAnimation;
+import com.ka.lych.list.LIterator;
+import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
-import com.ka.lych.list.LYosos;
-import com.ka.lych.list.LYososIterator;
 import com.ka.lych.observable.*;
 import com.ka.lych.ui.observable.ILHasId;
 import com.ka.lych.ui.observable.ILHasVisibility;
@@ -66,7 +66,7 @@ public class LShape<BC extends LShape>
     @Json
     LBoolean _rotatable = LBoolean.of(true);
     @Json
-    protected LObject<LYosos<ILAnimation>> animations;
+    protected LObject<LList<ILAnimation>> animations;
     protected LMap<String, Object> clientProperties;
     protected transient byte[] pointTypes;
     protected transient int countPoints;
@@ -150,18 +150,18 @@ public class LShape<BC extends LShape>
         return rotatable().get();
     }
 
-    public final LObject<LYosos<ILAnimation>> animations() {
+    public final LObject<LList<ILAnimation>> animations() {
         if (animations == null) {
-            animations = new LObject<>(new LYosos<>());
+            animations = new LObject<>(new LList<>());
         }
         return animations;
     }
 
-    public LYosos<ILAnimation> getAnimations() {
+    public LList<ILAnimation> getAnimations() {
         return (animations != null ? animations.get() : null);
     }
 
-    public void setAnimations(LYosos<ILAnimation> animations) {
+    public void setAnimations(LList<ILAnimation> animations) {
         animations().set(animations);
     }
 
@@ -588,7 +588,7 @@ public class LShape<BC extends LShape>
     }
 
     protected void parseXmlCommonAttributes(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
-        LYosos<String> excludeList = new LYosos<>();
+        LList<String> excludeList = new LList<>();
         for (String neededAttribute : neededShapeAttributes) {
             excludeList.add(neededAttribute);
         }
@@ -910,7 +910,7 @@ public class LShape<BC extends LShape>
     @Override
     public void execute(LCanvasRenderer canvasRenderer, long now) {
         if (animations != null) {
-            LYososIterator<ILAnimation> it_anim = new LYososIterator<>(getAnimations());
+            LIterator<ILAnimation> it_anim = new LIterator<>(getAnimations());
             while (it_anim.hasNext()) {
                 ILAnimation anim = it_anim.next();
                 if (anim != null) {

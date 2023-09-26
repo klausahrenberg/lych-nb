@@ -7,7 +7,7 @@ import com.ka.lych.observable.LObject;
  *
  * @author klausahrenberg
  */
-public interface ILImageView extends ILControl, ILSupportsObservables<LRasterImage> {
+public interface ILImageView extends ILControl {
     
     public LObject<LRasterImage> observableRasterImage();
     

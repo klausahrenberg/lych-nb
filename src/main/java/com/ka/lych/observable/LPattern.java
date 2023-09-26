@@ -1,12 +1,13 @@
 package com.ka.lych.observable;
 
 import com.ka.lych.exception.LParseException;
+import com.ka.lych.list.LList;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import com.ka.lych.list.LYosos;
 import com.ka.lych.util.ILConstants;
 import com.ka.lych.util.LNumberSystem;
 import com.ka.lych.xml.LXmlUtils;
+import java.util.List;
 
 /**
  * This class provides a string property which is build by a pattern and a int
@@ -51,7 +52,7 @@ public class LPattern extends LString
     private final static char KEYWORD_SECOND = 's';
     private static char[] CONTROL_DIGITS = {' ', '-', '_', '.', ',', ';', ':'};
 
-    private LYosos<LPatternElement> elements;
+    private List<LPatternElement> elements;
     private int counterStart, counterIncrement;
     private Integer numberValue;
     //private String pattern;
@@ -63,7 +64,7 @@ public class LPattern extends LString
 
     public LPattern(String pattern) {
         super();
-        elements = new LYosos<>();
+        elements = new LList<>();
         counterStart = 0;
         counterIncrement = 1;
         numberValue = null;
@@ -106,14 +107,14 @@ public class LPattern extends LString
         }
     }
 
-    private void safePatternBuffer(String buffer, LYosos<String> storage) {
+    private void safePatternBuffer(String buffer, List<String> storage) {
         if (buffer.length() > 0) {
             storage.add(buffer);
         }
     }
 
-    private LYosos<String> splitPattern(String value) {
-        LYosos<String> result = new LYosos<>();
+    private List<String> splitPattern(String value) {
+        List<String> result = new LList<>();
         if (value == null) {
             throw new IllegalArgumentException("value can't be null");
         }
@@ -179,7 +180,7 @@ public class LPattern extends LString
         counterStart = 0;
         counterIncrement = 1;
         //numberValue = 0;
-        LYosos<String> tokens = splitPattern(value);
+        List<String> tokens = splitPattern(value);
 
         if (tokens != null) {
             //String[] tokens = value.splitPattern(KEYWORD_SEPARATOR);//"\\+");

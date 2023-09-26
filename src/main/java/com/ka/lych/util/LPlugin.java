@@ -3,7 +3,6 @@ package com.ka.lych.util;
 import java.net.URLClassLoader;
 import java.util.ResourceBundle;
 import com.ka.lych.LBase;
-import com.ka.lych.list.LYoso;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LString;
 
@@ -11,7 +10,7 @@ import com.ka.lych.observable.LString;
  *
  * @author klausahrenberg
  */
-public abstract class LPlugin extends LYoso {
+public abstract class LPlugin {
     
     protected URLClassLoader pluginClassLoader = null;
     protected String pluginBundleName = null;
