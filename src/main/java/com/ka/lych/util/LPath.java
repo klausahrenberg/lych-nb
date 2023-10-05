@@ -1,6 +1,7 @@
 package com.ka.lych.util;
 
 import com.ka.lych.LBase;
+import com.ka.lych.exception.LUnchecked;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LString;
 import java.io.BufferedReader;
@@ -22,11 +23,11 @@ import java.util.regex.Pattern;
 public record LPath(Path path, LString displayName) {
 
     private static LPath root;
-    
+
     public static LPath of(Path path) {
         return new LPath(path, new LString(path.toString()));
     }
-    
+
     public static LPath root() {
         if (root == null) {
             root = new LPath(null, new LString("<root>"));
@@ -37,24 +38,24 @@ public record LPath(Path path, LString displayName) {
     public static boolean isRoot(LPath path) {
         return (path.path() == null);
     }
-    
+
     public boolean isDirectory() {
         return LPath.isDirectory(this);
     }
-    
+
     public static boolean isDirectory(LPath path) {
         return (!isRoot(path) ? Files.isDirectory(path.path()) : true);
     }
-    
+
     public LPath getParent() {
         return LPath.getParent(this);
     }
 
     public static LPath getParent(LPath path) {
-        return(isRoot(path) ? path : LPath.of(path.path().getParent()));
+        return (isRoot(path) ? path : LPath.of(path.path().getParent()));
     }
-    
-    public static LList<LPath> createRoots() throws IOException {
+
+    public static LList<LPath> createRoots() {
         var result = new LList<LPath>();
         switch (LBase.getOS()) {
             case WINDOWS -> {
@@ -91,20 +92,23 @@ public record LPath(Path path, LString displayName) {
                 //User-dirs
                 Path userDirs = Path.of(homePath.toString() + FileSystems.getDefault().getSeparator() + ".config/user-dirs.dirs");
                 if (LPath.exists(userDirs)) {
-                    BufferedReader br = new BufferedReader(new FileReader(userDirs.toString()));
-                    String strLine;
-                    while ((strLine = br.readLine()) != null) {
-                        strLine = strLine.trim();
-                        if ((strLine.startsWith("XDG_DESKTOP_DIR")) || (strLine.startsWith("XDG_PICTURES_DIR"))) {
-                            Path userPath;
-                            if ((userPath = getUserPath(strLine, homePath)) != null) {
-                                result.add(LPath.of(userPath));
+                    try {
+                        BufferedReader br = new BufferedReader(new FileReader(userDirs.toString()));
+                        String strLine;
+                        while ((strLine = br.readLine()) != null) {
+                            strLine = strLine.trim();
+                            if ((strLine.startsWith("XDG_DESKTOP_DIR")) || (strLine.startsWith("XDG_PICTURES_DIR"))) {
+                                Path userPath;
+                                if ((userPath = getUserPath(strLine, homePath)) != null) {
+                                    result.add(LPath.of(userPath));
+                                }
                             }
                         }
+                    } catch (IOException ioe) {
+                        throw new LUnchecked(ioe);
                     }
-
                 } else {
-                    throw new IOException("Can't evaluate user dirs at linux system. (Missing file '" + userDirs.toString() + "')");
+                    throw new LUnchecked("Can't evaluate user dirs at linux system. (Missing file '%s')", userDirs.toString());
                 }
             }
             default -> {
@@ -144,30 +148,30 @@ public record LPath(Path path, LString displayName) {
             return result;
         }
     }
-    
+
     public boolean exists() {
         return LPath.exists(this.path());
     }
-    
+
     public static boolean exists(Path path) {
         return Files.exists(path); //, LinkOption.NOFOLLOW_LINKS);
     }
-    
+
     public static class LPathGlobFilter
             implements DirectoryStream.Filter<Path> {
-        
+
         private final Pattern pattern;
-        
-        public LPathGlobFilter(String glob) {   
-            String regexPattern = LGlobs.toUnixRegexPattern(glob);            
-            pattern = Pattern.compile(regexPattern, Pattern.CASE_INSENSITIVE); 
+
+        public LPathGlobFilter(String glob) {
+            String regexPattern = LGlobs.toUnixRegexPattern(glob);
+            pattern = Pattern.compile(regexPattern, Pattern.CASE_INSENSITIVE);
         }
 
         @Override
         public boolean accept(Path entry) throws IOException {
             return pattern.matcher(entry.getFileName().toString()).matches();
         }
-        
-    }    
+
+    }
 
 }
