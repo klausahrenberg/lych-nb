@@ -1,5 +1,6 @@
 package com.ka.lych.util;
 
+import com.ka.lych.exception.LUnchecked;
 import com.ka.lych.list.LList;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
@@ -36,11 +37,11 @@ public abstract class LFuture<R, T extends Throwable>
         latch.countDown();
         if (!cancelled) {
             if (hasError()) {   
-                LLog.test("handler %s", this.handlers.size());
                 if (this.handlers.getIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR) != null) {                   
                     this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR, eh -> eh.handler().accept(this.error));
                 } else {
-                    throw new RuntimeException(this.error);
+                    //if no handler for errors is there, print stack trace
+                    this.error.printStackTrace();
                 }
             } else {                
                 this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.VALUE, eh -> eh.handler().accept(this.value));
