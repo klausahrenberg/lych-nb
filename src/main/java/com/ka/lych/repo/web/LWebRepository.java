@@ -113,8 +113,8 @@ public class LWebRepository implements
     }
 
     @Override
-    public <T extends Record> LFuture<List<T>, LDataException> fetch(Class<T> dataClass, Optional<? extends Record> parent, Optional<LQuery> query) {
-        return LFuture.<List<T>, LDataException>execute(task -> {
+    public <T extends Record> LFuture<LList<T>, LDataException> fetch(Class<T> dataClass, Optional<? extends Record> parent, Optional<LQuery> query) {
+        return LFuture.<LList<T>, LDataException>execute(task -> {
             try {
                 var request = LJson.of(new LOdwRequest(dataClass.getSimpleName(), query)).toString();
                 LLog.test("request %s", request);

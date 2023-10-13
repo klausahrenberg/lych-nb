@@ -1424,10 +1424,10 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<List<T>, LDataException> fetch(Class<T> rcdClass, Optional<? extends Record> parent, Optional<LQuery> query) {
+    public <T extends Record> LFuture<LList<T>, LDataException> fetch(Class<T> rcdClass, Optional<? extends Record> parent, Optional<LQuery> query) {
         Objects.requireNonNull(parent, "Parent can't be null - use Optional.empty()");
         Objects.requireNonNull(query, "Query can't be null - use Optional.empty()");
-        return LFuture.<List<T>, LDataException>execute(task -> {
+        return LFuture.<LList<T>, LDataException>execute(task -> {
             if (available()) {
                 var result = new LList<T>();
                 StringBuilder sql = new StringBuilder();
