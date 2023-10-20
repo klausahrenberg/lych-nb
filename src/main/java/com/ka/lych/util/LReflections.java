@@ -74,7 +74,7 @@ public abstract class LReflections {
                             if (LReflections.isObservable(mi.getValue().getClass())) {
                                 obs.set(((LObservable) mi.getValue()).get());
                             } else {
-                                obs.set(mi.getValue());
+                                obs.set(mi.getValue());                                    
                             }
                         } else if (!isRecord) {
                             field.set(toUpdate, LRecord.toObservable(field, mi.getValue()));

@@ -1,5 +1,8 @@
 package com.ka.lych.repo.sql;
 
+import com.ka.lych.exception.LException;
+import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LUnchecked;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.*;
@@ -154,8 +157,12 @@ public abstract class LSqlConverter {
                     } catch (NumberFormatException nfe) {
                         result = null;
                     }
-                } else if (requiredClass.requiredClass().isEnum()) {
-                    result = LXmlUtils.xmlStrToEnum((String) source, requiredClass.requiredClass());
+                } else if (requiredClass.requiredClass().isEnum()) {     
+                    try {
+                        result = LXmlUtils.xmlStrToEnum((String) source, requiredClass.requiredClass());
+                    } catch (LParseException ex) {
+                        throw new LUnchecked(ex);
+                    }    
                 } else if (Path.class.isAssignableFrom(requiredClass.requiredClass())) {
                     try {
                         URL url = new URL((String) source);

@@ -32,6 +32,7 @@ import com.ka.lych.util.ILParseable;
 import com.ka.lych.util.LArrays;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LNumberSystem;
+import com.ka.lych.util.LObjects;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.util.LReflections.LField;
 import com.ka.lych.util.LReflections.LFields;
@@ -1110,17 +1111,19 @@ public class LXmlUtils {
         }
     }
 
-    public static <T> T xmlStrToEnum(String value, Class<T> enumClass) {
-        if (enumClass.isEnum()) {
-            //Enum type
-            if (!LString.isEmpty(value)) {
-                Object[] enumConsts = enumClass.getEnumConstants();
-                for (Object enumConst : enumConsts) {
-                    if (enumConst.toString().equalsIgnoreCase(value)) {
-                        return (T) enumConst;
-                    }
+    public static <T> T xmlStrToEnum(String value, Class<T> enumClass) throws LParseException {
+        if (!enumClass.isEnum()) {
+            throw new LParseException("class %s is not an enumeration.", enumClass.getName());
+        }
+        if (!LString.isEmpty(value)) {
+            //Enum type            
+            Object[] enumConsts = enumClass.getEnumConstants();
+            for (Object enumConst : enumConsts) {
+                if (enumConst.toString().equalsIgnoreCase(value)) {
+                    return (T) enumConst;
                 }
             }
+            throw new LParseException("value '%s' is not part of enumeration type %s.", value, enumClass.getName()); 
         }
         return null;
     }

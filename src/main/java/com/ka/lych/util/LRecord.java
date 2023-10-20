@@ -18,9 +18,11 @@ import com.ka.lych.observable.LText;
 import com.ka.lych.util.LReflections.LField;
 import com.ka.lych.util.LReflections.LFields;
 import com.ka.lych.util.LReflections.LRequiredClass;
+import com.ka.lych.xml.LXmlUtils;
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.Map;
 
 /**
@@ -166,6 +168,12 @@ public abstract class LRecord {
                 } else if ((Path.class.isAssignableFrom(field.requiredClass().requiredClass())) && (!Path.class.isAssignableFrom(value.getClass()))) {                    
                     LObjects.requireClass(value, String.class);
                     value = Path.of((String) value);                
+                } else if (field._requiredClass.requiredClass().isEnum()) {
+                    LLog.test("map values requ class %s", field._requiredClass.requiredClass());
+                    LObjects.requireClass(value, String.class);
+                    value = LXmlUtils.xmlStrToEnum((String) value, field._requiredClass.requiredClass());                
+                } else if (EnumSet.class.isAssignableFrom(field._requiredClass.requiredClass())) {                     
+                    throw new UnsupportedOperationException("Enumsets not supported yet");
                 }
             }
             result = new LObject(value);

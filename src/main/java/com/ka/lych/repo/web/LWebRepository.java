@@ -19,6 +19,7 @@ import java.util.Optional;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.exception.LDataException;
 import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LUnchecked;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
@@ -26,7 +27,6 @@ import com.ka.lych.repo.LColumnItem;
 import com.ka.lych.util.LReflections.LField;
 import java.net.MalformedURLException;
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Function;
 
 /**
@@ -37,24 +37,28 @@ public class LWebRepository implements
         ILRepository<LWebRepository> {
 
     final String _url;
+    @Json
+    LObject<LDataServiceState> _state = new LObject<>(LDataServiceState.NOT_AVAILABLE);
     Function<Void, Collection> _listFactory;
 
     public LWebRepository(String url) {
         this(url, null);
     }
-    
+
     public LWebRepository(String url, Function<Void, Collection> listFactory) {
         _url = url;
         _listFactory = listFactory;
     }
-    
+
     private final LMap<Class, LList<LColumnItem>> columnsUnlinked = new LMap<>();
+
     @Override
     public LMap<Class, LList<LColumnItem>> columnsUnlinked() {
         return columnsUnlinked;
     }
-    
+
     private final LMap<LField, LMap<String, ? extends Record>> linkedMaps = new LMap<>();
+
     @Override
     public LMap<LField, LMap<String, ? extends Record>> linkedMaps() {
         return linkedMaps;
@@ -62,7 +66,12 @@ public class LWebRepository implements
 
     @Override
     public LObject<LDataServiceState> state() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        try {
+            LJsonParser.update(this).url(new URL(_url + "/state"), "state").parse();            
+        } catch (Exception ex) {
+            _state.set(LDataServiceState.NOT_AVAILABLE);
+        }
+        return _state;
     }
 
     @Override
@@ -103,7 +112,7 @@ public class LWebRepository implements
                 LLog.test("request %s", request);
                 var map = LJsonParser.of(LMap.class).listFactory(_listFactory).url(new URL(_url + "/count"), request).parseMap();
                 //var map = LJsonParser.parse(LMap.class, new URL(url + "/count"), request);
-                
+
                 LLog.test("count %s", LArrays.toString(map.values()));
                 return (int) map.get("count");
             } catch (Exception ex) {
@@ -118,8 +127,8 @@ public class LWebRepository implements
             try {
                 var request = LJson.of(new LOdwRequest(dataClass.getSimpleName(), query)).toString();
                 LLog.test("request %s", request);
-                
-                return (LList<T>) LJsonParser.of(dataClass).listFactory(_listFactory).url(new URL(_url + "/fetch"), request).parseList();                                
+
+                return (LList<T>) LJsonParser.of(dataClass).listFactory(_listFactory).url(new URL(_url + "/fetch"), request).parseList();
             } catch (Exception ex) {
                 throw new LDataException(ex);
             }
@@ -132,7 +141,7 @@ public class LWebRepository implements
             try {
                 var request = LJson.of(new LRequestRoot(dataClass.getSimpleName(), rootName)).toString();
                 LLog.test("fecthRoot: '%s'", request);
-                return (R) LJsonParser.of(dataClass).listFactory(_listFactory).url(new URL(_url + "/root"), request).parse();                                
+                return (R) LJsonParser.of(dataClass).listFactory(_listFactory).url(new URL(_url + "/root"), request).parse();
             } catch (Exception ex) {
                 throw new LDataException(ex);
             }
@@ -169,9 +178,9 @@ public class LWebRepository implements
     public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<? extends Record> parent) {
         return LFuture.<T, LDataException>execute(task -> {
             try {
-                var request = LJson.of(new LOdwRequestRecord(rcd.getClass().getSimpleName(), rcd)).toString();            
+                var request = LJson.of(new LOdwRequestRecord(rcd.getClass().getSimpleName(), rcd)).toString();
                 @SuppressWarnings("deprecation")
-                var map = LJsonParser.of(LMap.class).url(new URL(_url + "/persist"), request).parse();            
+                var map = LJsonParser.of(LMap.class).url(new URL(_url + "/persist"), request).parse();
                 LReflections.update(rcd, map);
                 return rcd;
             } catch (LParseException | MalformedURLException ex) {
@@ -213,9 +222,9 @@ public class LWebRepository implements
     public record LOdwRequest(@Json String data, @Json Optional<LQuery> query) {
 
     }
-    
+
     public record LRequestRoot(@Json String data, @Json Optional<String> rootName) {
-        
+
     }
 
     public record LOdwRequestMap(@Json String data, @Json LMap<String, Object> map) {

@@ -326,6 +326,7 @@ public class LJsonParser<T> {
 
     private void endString() throws LParseException {
         LMapItem popped = _stack.pop();
+        
         if (popped.type() == LType.KEY) {
             _currentKey = _buffer.toString();
             //make key compatible for java names
@@ -540,7 +541,6 @@ public class LJsonParser<T> {
     private void startObject() throws LParseException {
         _state = LState.IN_OBJECT;                        
         LRequiredClass requiredClass = null;
-        LLog.test("start object %s / %s", _resultClass, _stack.isEmpty());
         if (_stack.isEmpty()) {
             requiredClass = new LRequiredClass(_resultClass, null);
         } else if (_stack.peek().type() == LType.ARRAY) {
@@ -601,8 +601,9 @@ public class LJsonParser<T> {
     @SuppressWarnings("unchecked")
     private void processKeyValue(String key, Object value) throws LParseException {
         var peeked = _stack.peek();
-        if (peeked.map() != null) {            
+        if (peeked.map() != null) {               
             if (value != null) {
+                LLog.test("put in map %s / key %s / value %s / class %s" , key, _currentKey, value, value.getClass());
                 peeked.map().put(_currentKey, value);
             }
             _currentKey = null;
@@ -611,7 +612,7 @@ public class LJsonParser<T> {
                 peeked.list().add(value);
             }
         } else if (_result != null) {
-            LLog.test("key %s / currentKey %s / value %s", key, _currentKey, value);
+            //LLog.test("key %s / currentKey %s / value %s", key, _currentKey, value);
             LReflections.update(_result, LMap.of(LMap.entry(_currentKey, value)));
         } else {
             throwException("Illegal state" + _state);
