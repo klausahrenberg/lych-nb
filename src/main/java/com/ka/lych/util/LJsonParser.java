@@ -121,8 +121,8 @@ public class LJsonParser<T> {
         }
     }
     
-    public LJsonParser<T> url(URL url, String payload) throws LParseException {
-        try {
+    public LJsonParser<T> url(URL url, String payload) throws LParseException, IOException {
+        //try {
             InputStream is = null;
             if (LString.isEmpty(payload)) {
                 is = url.openStream();
@@ -149,11 +149,11 @@ public class LJsonParser<T> {
             }
             _payload = sb.toString();
             return this;
-        } catch (LParseException lpe) {
-            throw lpe;
-        } catch (Exception ex) {
-            throw new LParseException(ex);
-        }
+        //} catch (LParseException lpe) {
+        //    throw lpe;
+        //} catch (Exception ex) {
+        //    throw new LParseException(ex);
+        //}
     }
 
     @SuppressWarnings("unchecked")

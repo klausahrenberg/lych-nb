@@ -19,12 +19,12 @@ import java.util.Optional;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.exception.LDataException;
 import com.ka.lych.exception.LParseException;
-import com.ka.lych.exception.LUnchecked;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.repo.LColumnItem;
 import com.ka.lych.util.LReflections.LField;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.function.Function;
@@ -66,11 +66,6 @@ public class LWebRepository implements
 
     @Override
     public LObject<LDataServiceState> state() {
-        try {
-            LJsonParser.update(this).url(new URL(_url + "/state"), "state").parse();            
-        } catch (Exception ex) {
-            _state.set(LDataServiceState.NOT_AVAILABLE);
-        }
         return _state;
     }
 
@@ -81,7 +76,22 @@ public class LWebRepository implements
 
     @Override
     public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        if (connected) {
+            _state.set(LDataServiceState.REQUESTING);
+        }
+        return LFuture.<LObject<LDataServiceState>, LDataException>execute(task -> {
+            if (connected) {
+                try {
+                    LJsonParser.update(this).url(new URL(_url + "/state"), "state").parse();
+                } catch (Exception ex) {
+                    _state.set(LDataServiceState.NOT_AVAILABLE);
+                    throw new LDataException(ex);
+                }
+            } else {
+                _state.set(LDataServiceState.NOT_AVAILABLE);
+            }
+            return state();
+        });
     }
 
     @Override
@@ -183,7 +193,7 @@ public class LWebRepository implements
                 var map = LJsonParser.of(LMap.class).url(new URL(_url + "/persist"), request).parse();
                 LReflections.update(rcd, map);
                 return rcd;
-            } catch (LParseException | MalformedURLException ex) {
+            } catch (LParseException | IOException ex) {
                 throw new LDataException(ex);
             }
         });

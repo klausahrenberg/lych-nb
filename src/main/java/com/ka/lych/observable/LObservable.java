@@ -163,7 +163,7 @@ public abstract class LObservable<T, BC extends ILObservable>
         if (!isSingleBound()) {
             _lastException = null;    
             value = _preconfigureValue(value);
-            if (!Objects.equals(get(), value)) {                
+            if (!Objects.equals(get(), value)) {         
                 T oldValue = _value;
                 _value = value;
                 LObservableChangeEvent<T, BC> changeEvent = new LObservableChangeEvent(this, trigger, oldValue);
