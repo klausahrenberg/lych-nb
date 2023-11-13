@@ -117,6 +117,12 @@ public abstract class LReflections {
                             v = LXmlUtils.xmlStrToInteger((String) v);
                         } else if ((boolean.class.isAssignableFrom(reqClass)) || (Boolean.class.isAssignableFrom(reqClass))) {
                             v = LXmlUtils.xmlStrToBoolean((String) v);
+                        } else if (Class.class.isAssignableFrom(reqClass)) {
+                            try {
+                                v = Class.forName((String) v);
+                            } catch (ClassNotFoundException cnfe) {
+                                throw new LParseException(cnfe);
+                            }    
                         } else if (ILParseable.class.isAssignableFrom(reqClass)) {
                             var t = LReflections.newInstance(reqClass, (Object) null);
                             ((ILParseable) t).parse((String) v);

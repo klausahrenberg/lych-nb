@@ -157,7 +157,7 @@ public interface ILRepository<BC extends ILRepository> {
 
     public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Optional<? extends Record> parent, Optional<LTerm> filter);
 
-    public <R extends Record> LFuture<LList<R>, LDataException> fetch(Class<R> dataClass, Optional<? extends Record> parent, Optional<LQuery> query);
+    public <R extends Record> LFuture<LList<R>, LDataException> fetch(LQuery<R> query, Optional<? extends Record> parent);
 
     public <R extends Record> LFuture<R, LDataException> fetchRoot(Class<R> dataClass, Optional<String> rootName);
 

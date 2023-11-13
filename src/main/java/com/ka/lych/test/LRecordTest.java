@@ -16,6 +16,7 @@ import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.exception.LParseException;
 import com.ka.lych.observable.LObject;
+import com.ka.lych.repo.LQuery;
 
 /**
  *
@@ -51,8 +52,8 @@ public class LRecordTest extends LBase {
             LLog.error(ex, true);
         }
 
-        repository.fetch(KPpap.class, Optional.empty(), Optional.empty()).await()
-                .then(r -> LLog.test("PPAPs requered"))
+        repository.fetch(LQuery.of(KPpap.class), Optional.empty()).await()
+                .then(r -> LLog.test("PPAPs requered"))                
                 .onError(ex -> LLog.error(ex.getMessage(), ex, true));
 
     }

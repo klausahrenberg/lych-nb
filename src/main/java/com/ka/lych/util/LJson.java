@@ -411,6 +411,8 @@ public class LJson {
                         json.propertyString(field.name(), LJson.dateString((LocalDate) value));
                     } else if (LocalDateTime.class.isAssignableFrom(value.getClass())) {
                         json.propertyString(field.name(), LJson.datetimeString((LocalDateTime) value));
+                    } else if (Class.class.isAssignableFrom(value.getClass())) {
+                        json.propertyString(field.name(), ((Class) value).getName());
                     } else if (value.getClass().isEnum()) {
                         json.propertyString(field.name(), value.toString().toUpperCase());//.toLowerCase());
                     } else if (Collection.class.isAssignableFrom(value.getClass())) {

@@ -1424,41 +1424,41 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<LList<T>, LDataException> fetch(Class<T> rcdClass, Optional<? extends Record> parent, Optional<LQuery> query) {
+    public <T extends Record> LFuture<LList<T>, LDataException> fetch(LQuery<T> query, Optional<? extends Record> parent) {
         Objects.requireNonNull(parent, "Parent can't be null - use Optional.empty()");
         Objects.requireNonNull(query, "Query can't be null - use Optional.empty()");
         return LFuture.<LList<T>, LDataException>execute(task -> {
             if (available()) {
                 var result = new LList<T>();
                 StringBuilder sql = new StringBuilder();
-                if ((query.isPresent()) && (query.get().customSQL().isPresent())) {
-                    sql.append(query.get().customSQL().get());
+                if (query.customSQL().isPresent()) {
+                    sql.append(query.customSQL().get());
                 } else {
-                    sql.append(_buildSqlStatementForRequery(rcdClass, parent, (query.isPresent() ? query.get().filter() : Optional.empty()), false));
-                    if (query.isPresent()) {
-                        if ((query.get().sortOrders().isPresent()) && (query.get().sortOrders().get().size() > 0)) {
+                    sql.append(_buildSqlStatementForRequery(query.recordClass(), parent, query.filter(), false));                    
+                    if ((query.sortOrders().isPresent()) && (query.sortOrders().get().size() > 0)) {
+                        sql.append(" order by ");
+                        query.sortOrders().get().forEach(so -> sql.append("a.").append(so.fieldName()).append(" ").append(so.sortDirection() == LSortDirection.ASCENDING ? "ASC" : "DESC").append(", "));
+                        sql.setLength(sql.length() - 2);
+                    } else {
+                        //take ids as order by
+                        var columns = this.getColumnsWithoutLinks(query.recordClass());
+                        if (columns.getIf(coli -> coli.isFieldPrimaryKey()) != null) {
                             sql.append(" order by ");
-                            query.get().sortOrders().get().forEach(so -> sql.append("a.").append(so.fieldName()).append(" ").append(so.sortDirection() == LSortDirection.ASCENDING ? "ASC" : "DESC").append(", "));
+                            columns.forEachIf(coli -> coli.isFieldPrimaryKey(), coli -> sql.append("a.").append(coli.getDataFieldName()).append(", "));
                             sql.setLength(sql.length() - 2);
-                        } else {
-                            //take ids as order by
-                            var columns = this.getColumnsWithoutLinks(rcdClass);
-                            if (columns.getIf(coli -> coli.isFieldPrimaryKey()) != null) {
-                                sql.append(" order by ");
-                                columns.forEachIf(coli -> coli.isFieldPrimaryKey(), coli -> sql.append("a.").append(coli.getDataFieldName()).append(", "));
-                                sql.setLength(sql.length() - 2);
-                            }
                         }
-                        sql.append(" OFFSET ").append(Integer.toString(query.get().offset()))
-                                .append(" ROWS FETCH NEXT ").append(Integer.toString(query.get().limit())).append(" ROWS ONLY");
+                    }
+                    if (query.limit() > 0) {    
+                        sql.append(" OFFSET ").append(Integer.toString(query.offset()))
+                                .append(" ROWS FETCH NEXT ").append(Integer.toString(query.limit())).append(" ROWS ONLY");                    
                     }
                 }
                 try {
-                    var columns = getColumnsWithoutLinks(rcdClass);
+                    var columns = getColumnsWithoutLinks(query.recordClass());
                     LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
                     while ((!task.isCancelled()) && (sqlResultSet.next())) {
                         LLog.test("fetch...");
-                        T rcd = _createRecord(rcdClass, sqlResultSet, columns, "", false);
+                        T rcd = _createRecord(query.recordClass(), sqlResultSet, columns, "", false);
                         LLog.test("fetchedRecord: %s", rcd);
                         if ((parent.isPresent()) && (rcd instanceof ILHasParent)) {
                             ((ILHasParent) rcd).setParent(parent.get());

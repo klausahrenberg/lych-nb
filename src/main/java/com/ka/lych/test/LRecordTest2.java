@@ -19,6 +19,7 @@ import com.ka.lych.list.LRecords;
 import com.ka.lych.observable.LDate;
 import com.ka.lych.observable.LDouble;
 import com.ka.lych.observable.LObject;
+import com.ka.lych.repo.LQuery;
 import com.ka.lych.util.LArrays;
 
 /**
@@ -50,7 +51,7 @@ public class LRecordTest2 extends LBase {
             KPart p2 = LRecord.of(KPart.class, LMap.of(LMap.entry("id", "p002")));
             repository.persist(p2, Optional.empty()).await();
             
-            repository.<KPart>fetch(KPart.class, Optional.empty(), null)
+            repository.<KPart>fetch(LQuery.of(KPart.class), Optional.empty())
                     .await()
                     .onError(ex -> LLog.error(ex.getMessage(), ex))
                     .then(parts -> LLog.test("parts %s", LArrays.toString(parts.toString())));
@@ -63,7 +64,7 @@ public class LRecordTest2 extends LBase {
                                                 ));            
             repository.persist(ppr, Optional.empty()).await();
             
-            repository.<KPartKPartRelation>fetch(KPartKPartRelation.class, Optional.empty(), null)
+            repository.<KPartKPartRelation>fetch(LQuery.of(KPartKPartRelation.class), Optional.empty())
                     .await()
                     .onError(ex -> LLog.error(ex.getMessage(), ex))
                     .then(parts -> {                        

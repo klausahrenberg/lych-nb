@@ -297,7 +297,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
     }
 
     @Override
-    public <T extends Record> LFuture<LList<T>, LDataException> fetch(Class<T> dataClass, Optional<? extends Record> parent, Optional<LQuery> query) {
+    public <T extends Record> LFuture<LList<T>, LDataException> fetch(LQuery<T> query, Optional<? extends Record> parent) {
         throw new UnsupportedOperationException("fetch: Not supported yet."); 
     }
 
