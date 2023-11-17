@@ -149,6 +149,18 @@ public abstract class LReflections {
 
         boolean isOptional = (Optional.class.isAssignableFrom(requClass.requiredClass()));
         Class classToBeInstanciated = (!isOptional ? requClass.requiredClass() : (((requClass.parameterClasses().isPresent()) && (!requClass.parameterClasses().get().isEmpty())) ? (requClass.parameterClasses().get().get(0)) : null));
+        if (classToBeInstanciated == Record.class) {
+            var clazz = values.get(ILConstants.KEYWORD_CLASS);
+            if (clazz == null) {
+                throw new LParseException("Unknown type of record. Please specify class name with key '" + ILConstants.KEYWORD_CLASS + "' in map.");
+            }
+            try {
+                classToBeInstanciated = Class.forName((String) clazz);
+            } catch (ClassNotFoundException cnfe) {
+                throw new LParseException(cnfe);
+            }    
+            LLog.test("I have here a record with class: %s", classToBeInstanciated);
+        }
         if ((!isRecord(classToBeInstanciated)) && (classToBeInstanciated.isMemberClass()) && (!Modifier.isStatic(classToBeInstanciated.getModifiers()))) {
             throw new LParseException("Can't instanciate non-static inner classes. Please make following inner class static: %s", classToBeInstanciated.getName());
         }
@@ -187,7 +199,7 @@ public abstract class LReflections {
             var consValues = new Object[consParams.length];
             for (int i = 0; i < consParams.length; i++) {
                 if (!values.containsKey(consParams[i].getName())) {
-                    throw new LParseException("Required value for key '%s' is missing.", consParams[i].getName());
+                    throw new LParseException("Can't create '%s'. Required value for key '%s' is missing.", requClass, consParams[i].getName());
                 }
                 consValues[i] = values.get(consParams[i].getName());
                 values.remove(consParams[i].getName());
