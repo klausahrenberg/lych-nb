@@ -14,52 +14,92 @@ public class LQuery<R extends Record> {
     
     @Json 
     Class<R> _recordClass;
+    @Json
+    R _parent;
     @Json 
     int _offset;
     @Json 
     int _limit;
     @Json 
-    Optional<LList<LSortOrder>> _sortOrders;
+    LList<LSortOrder> _sortOrders;
     @Json 
-    Optional<LTerm> _filter;
+    LTerm _filter;
     @Json
-    Optional<String> _customSQL;
+    String _customSQL;
     
-    public LQuery(Class<R> recordClass, int offset, int limit, Optional<LList<LSortOrder>> sortOrders, Optional<LTerm> filter, Optional<String> customSQL) {
+    public LQuery() {
+        
+    }
+    
+    public LQuery(Class<R> recordClass) {
         _recordClass = recordClass;
-        _offset = offset;
-        _limit = limit;
-        _sortOrders = sortOrders;
-        _filter = filter;
-        _customSQL = customSQL;
     }
 
     public Class<R> recordClass() {
         return _recordClass;
     }
+    
+    public LQuery<R> recordClass(Class<R> recordClass) {
+        _recordClass = recordClass;
+        return this;
+    }
+
+    public R parent() {
+        return _parent;
+    }
+
+    public LQuery<R> parent(R parent) {
+        _parent = parent;
+        return this;
+    }
 
     public int offset() {
         return _offset;
+    }
+    
+    public LQuery<R> offset(int offset) {
+        _offset = offset;
+        return this;
     }
 
     public int limit() {
         return _limit;
     }
+    
+    public LQuery<R> limit(int limit) {
+        _limit = limit;
+        return this;
+    }
 
-    public Optional<LList<LSortOrder>> sortOrders() {
+    public LList<LSortOrder> sortOrders() {
         return _sortOrders;
     }
-
-    public Optional<LTerm> filter() {
-        return _filter;
+    
+    public LQuery<R> sortOrders(LList<LSortOrder> sortOrders) {
+        _sortOrders = sortOrders; 
+        return this;
     }
 
-    public Optional<String> customSQL() {
+    public LTerm filter() {
+        return _filter;
+    }
+    
+    public LQuery<R> filter(LTerm filter) {
+        _filter = filter;
+        return this;
+    }
+
+    public String customSQL() {
         return _customSQL;
     }
     
+    public LQuery<R> customSQL(String customSQL) {
+        _customSQL = customSQL;
+        return this;
+    }
+    
     public static <R extends Record> LQuery<R> of(Class<R> recordClass) {
-        return new LQuery<>(recordClass, 0, 0, Optional.empty(), Optional.empty(), Optional.empty());
+        return new LQuery<>(recordClass);
     }
     
     public static record LSortOrder(@Json String fieldName, @Json LSortDirection sortDirection) {

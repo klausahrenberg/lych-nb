@@ -25,7 +25,6 @@ import com.ka.lych.observable.LObject;
 import com.ka.lych.repo.LColumnItem;
 import com.ka.lych.util.LReflections.LField;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.Collection;
 import java.util.function.Function;
 
@@ -115,7 +114,7 @@ public class LWebRepository implements
     }
 
     @Override
-    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Optional<? extends Record> parent, Optional<LTerm> filter) {
+    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter) {
         return LFuture.<Integer, LDataException>execute(task -> {
             try {
                 var request = LJson.of(new LOdwRequest(dataClass.getSimpleName(), null)).toString();
@@ -132,10 +131,10 @@ public class LWebRepository implements
     }
 
     @Override
-    public <R extends Record> LFuture<LList<R>, LDataException> fetch(LQuery<R> query, Optional<? extends Record> parent) {
+    public <R extends Record> LFuture<LList<R>, LDataException> fetch(LQuery<R> query) {
         return LFuture.<LList<R>, LDataException>execute(task -> {
             try {
-                var request = LJson.of(query).toString();
+                var request = LJson.of(query, true).toString();
                 LLog.test("request %s", request);
 
                 return (LList<R>) LJsonParser.of(query.recordClass()).listFactory(_listFactory).url(new URL(_url + "/fetch"), request).parseList();

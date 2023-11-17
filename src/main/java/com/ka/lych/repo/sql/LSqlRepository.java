@@ -1207,7 +1207,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     @Override
-    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Optional<? extends Record> parent, Optional<LTerm> filter) {
+    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter) {
         return LFuture.<Integer, LDataException>execute(task -> {
             try {
                 String sql = _buildSqlStatementForRequery(dataClass, parent, filter, true);
@@ -1249,7 +1249,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         return (countData(tableName, sqlFilter) > 0);
     }
 
-    private String _buildSqlStatementForRequery(Class<? extends Record> rcdClass, Optional<? extends Record> parent, Optional<LTerm> filter, boolean count) throws LDataException {
+    private String _buildSqlStatementForRequery(Class<? extends Record> rcdClass, Record parent, LTerm filter, boolean count) throws LDataException {
         StringBuilder sql = new StringBuilder("select ");
         var columns = getColumnsWithoutLinks(rcdClass);
         if (!count) {
@@ -1257,7 +1257,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             sql.append(getDataFields(columns, false, "a."));
             //add count field for further childs for the first primary key field only, 
             //if parent has the same class like the childs
-            if ((parent.isPresent()) && (parent.get().getClass() == rcdClass)) {
+            if ((parent != null) && (parent.getClass() == rcdClass)) {
                 //add count field for further childs for the first primary key field
                 for (LColumnItem coli : columns) {
                     if (coli.isFieldPrimaryKey()) {
@@ -1273,8 +1273,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         //from
         String tableName = getTableName(rcdClass);
         sql.append(" from ").append(tableName).append(" as a");
-        if (parent.isPresent()) {
-            String joinTableName = getTableName(parent.get().getClass(), rcdClass);
+        if (parent != null) {
+            String joinTableName = getTableName(parent.getClass(), rcdClass);
             // main join
             sql.append(" join ");
             sql.append(joinTableName);
@@ -1284,7 +1284,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             sql.setLength(sql.length() - 5);
             sql.append(")");
             //join for further child counting
-            if ((!count) && (parent.get().getClass() == rcdClass)) {
+            if ((!count) && (parent.getClass() == rcdClass)) {
                 sql.append(" left join ");
                 sql.append(joinTableName);
                 sql.append(" as cr on (");
@@ -1294,23 +1294,23 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 sql.append(")");
             }
             //where
-            var parentColumns = (parent.get().getClass() == rcdClass ? columns : getColumnsWithoutLinks(parent.get().getClass()));
+            var parentColumns = (parent.getClass() == rcdClass ? columns : getColumnsWithoutLinks(parent.getClass()));
             sql.append(" where (");
             parentColumns.forEachIf(coli -> coli.isFieldPrimaryKey(),
                     coli -> sql.append("r.").append(ILConstants.PARENT).append(ILConstants.UNDL).append(coli.getDataFieldName()).
-                            append("=").append(toSql(getSubItem(coli, parent.get()))).append(" and "));
+                            append("=").append(toSql(getSubItem(coli, parent))).append(" and "));
             sql.setLength(sql.length() - 5);
             sql.append(")");
-            if (filter.isPresent()) {
-                sql.append(" and (").append(buildSqlFilter(rcdClass, filter.get(), "a")).append(")");
+            if (filter != null) {
+                sql.append(" and (").append(buildSqlFilter(rcdClass, filter, "a")).append(")");
             }
             //group by
-            if ((!count) && (parent.get().getClass() == rcdClass)) {
+            if ((!count) && (parent.getClass() == rcdClass)) {
                 sql.append(" group by ").append(getDataFields(columns, false, "a."));
             }
-        } else if (filter.isPresent()) {
+        } else if (filter != null) {
             //where
-            sql.append(" where ").append(buildSqlFilter(rcdClass, filter.get(), "a."));
+            sql.append(" where ").append(buildSqlFilter(rcdClass, filter, "a."));
         }
         return sql.toString();
     }
@@ -1372,9 +1372,9 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     LLog.error(lpe, true);
                 }
             });
-            var term = Optional.of(cons.size() > 1 ? LTerm.and(cons.toArray()) : cons.get(0));
+            var term = cons.size() > 1 ? LTerm.and(cons.toArray()) : cons.get(0);
             StringBuilder sql = new StringBuilder();
-            sql.append(_buildSqlStatementForRequery(rcdClass, Optional.empty(), term, false));
+            sql.append(_buildSqlStatementForRequery(rcdClass, null, term, false));
             try {
                 LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
                 if (sqlResultSet.next()) {
@@ -1424,20 +1424,19 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<LList<T>, LDataException> fetch(LQuery<T> query, Optional<? extends Record> parent) {
-        Objects.requireNonNull(parent, "Parent can't be null - use Optional.empty()");
-        Objects.requireNonNull(query, "Query can't be null - use Optional.empty()");
+    public <T extends Record> LFuture<LList<T>, LDataException> fetch(LQuery<T> query) {
+        Objects.requireNonNull(query, "Query can't be null.");
         return LFuture.<LList<T>, LDataException>execute(task -> {
             if (available()) {
                 var result = new LList<T>();
                 StringBuilder sql = new StringBuilder();
-                if (query.customSQL().isPresent()) {
-                    sql.append(query.customSQL().get());
+                if (query.customSQL() != null) {
+                    sql.append(query.customSQL());
                 } else {
-                    sql.append(_buildSqlStatementForRequery(query.recordClass(), parent, query.filter(), false));                    
-                    if ((query.sortOrders().isPresent()) && (query.sortOrders().get().size() > 0)) {
+                    sql.append(_buildSqlStatementForRequery(query.recordClass(), query.parent(), query.filter(), false));                    
+                    if ((query.sortOrders() != null) && (!query.sortOrders().isEmpty())) {
                         sql.append(" order by ");
-                        query.sortOrders().get().forEach(so -> sql.append("a.").append(so.fieldName()).append(" ").append(so.sortDirection() == LSortDirection.ASCENDING ? "ASC" : "DESC").append(", "));
+                        query.sortOrders().forEach(so -> sql.append("a.").append(so.fieldName()).append(" ").append(so.sortDirection() == LSortDirection.ASCENDING ? "ASC" : "DESC").append(", "));
                         sql.setLength(sql.length() - 2);
                     } else {
                         //take ids as order by
@@ -1460,8 +1459,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                         LLog.test("fetch...");
                         T rcd = _createRecord(query.recordClass(), sqlResultSet, columns, "", false);
                         LLog.test("fetchedRecord: %s", rcd);
-                        if ((parent.isPresent()) && (rcd instanceof ILHasParent)) {
-                            ((ILHasParent) rcd).setParent(parent.get());
+                        if ((query.parent() != null) && (rcd instanceof ILHasParent)) {
+                            ((ILHasParent) rcd).setParent(query.parent());
                         }
 
                         result.add(rcd);

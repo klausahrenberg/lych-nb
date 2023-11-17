@@ -155,9 +155,9 @@ public interface ILRepository<BC extends ILRepository> {
 
     public void createTable(Class<? extends Record> dataClass) throws LDataException;
 
-    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Optional<? extends Record> parent, Optional<LTerm> filter);
+    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter);
 
-    public <R extends Record> LFuture<LList<R>, LDataException> fetch(LQuery<R> query, Optional<? extends Record> parent);
+    public <R extends Record> LFuture<LList<R>, LDataException> fetch(LQuery<R> query);
 
     public <R extends Record> LFuture<R, LDataException> fetchRoot(Class<R> dataClass, Optional<String> rootName);
 

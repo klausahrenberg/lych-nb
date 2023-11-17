@@ -397,6 +397,7 @@ public class LJsonParser<T> {
                 //Update existing class
                 LReflections.update(_result, popped.map());
             } else {
+                LLog.test("object rq %s / rqparam %s", popped.requiredClass().requiredClass(), popped.requiredClass().parameterClasses());
                 Object o = ((popped.requiredClass().requiredClass() != Object.class) ? LReflections.of(popped.requiredClass(), popped.map(), false) : popped.map());
                 if (_stack.isEmpty()) {
                     _result = (T) o;

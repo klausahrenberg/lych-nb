@@ -297,7 +297,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
     }
 
     @Override
-    public <T extends Record> LFuture<LList<T>, LDataException> fetch(LQuery<T> query, Optional<? extends Record> parent) {
+    public <T extends Record> LFuture<LList<T>, LDataException> fetch(LQuery<T> query) {
         throw new UnsupportedOperationException("fetch: Not supported yet."); 
     }
 
@@ -327,7 +327,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
     }
 
     @Override
-    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Optional<? extends Record> parent, Optional<LTerm> filter) {
+    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

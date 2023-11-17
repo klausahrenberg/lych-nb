@@ -52,7 +52,7 @@ public class LRecordTest extends LBase {
             LLog.error(ex, true);
         }
 
-        repository.fetch(LQuery.of(KPpap.class), Optional.empty()).await()
+        repository.fetch(LQuery.of(KPpap.class)).await()
                 .then(r -> LLog.test("PPAPs requered"))                
                 .onError(ex -> LLog.error(ex.getMessage(), ex, true));
 

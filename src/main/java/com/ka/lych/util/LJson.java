@@ -372,6 +372,9 @@ public class LJson {
             }    
         } else {
             json.beginObject();
+            if (o instanceof Record) {
+                json.propertyString(ILConstants.KEYWORD_CLASS, o.getClass().getName());
+            }
             var fields = LReflections.getFieldsOfInstance(o, null, Json.class);
             var it_fields = fields.iterator();
             LLog.test("write object'%s' / %s", o, fields.size());
@@ -379,7 +382,7 @@ public class LJson {
                 var field = it_fields.next();
                 if (LReflections.existsAnnotation(field, Lazy.class)) {
                     json.propertyString(field.name(), "tbi / link to lazy value");
-                } else if ((!onlyId)/* && (tabLevel < 1))*/ || (field.isId())) {
+                } else if ((!(o instanceof Record)) || (!onlyId)/* && (tabLevel < 1))*/ || (field.isId())) {
                     //2023-06-15 (tabLevel < 1) added
                     //2023-07-02 (tabLevel < 1) removed
                     LObservable observable = (field.isObservable() ? LReflections.observable(o, field) : null);
@@ -420,7 +423,7 @@ public class LJson {
                     } else if (Map.class.isAssignableFrom(value.getClass())) {
                         json.propertyMap(field.name(), (Map) value);
                     } else {
-                        json.propertyObject(field.name(), value);
+                        json.propertyObject(field.name(), value, onlyId);
                     }
                 }
             }

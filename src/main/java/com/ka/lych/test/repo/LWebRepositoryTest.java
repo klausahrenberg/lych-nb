@@ -37,9 +37,10 @@ public class LWebRepositoryTest extends LBase {
         //repository.registerTable(KPpap.class, null);
         //repository.setConnected(true).await().catchError(ce -> LLog.notification(this, ce));
 
-        var result = repository.countData(KContact.class, Optional.empty(), Optional.empty()).await();
+        var result = repository.countData(KContact.class, null, null).await();
         LLog.test("count: %s", result.value());
-        var array = repository.fetch(new LQuery<KContact>(KContact.class, 0, 100, Optional.of(LList.of(new LSortOrder("id", LSortDirection.ASCENDING))), Optional.empty(), Optional.empty()), Optional.empty()).await().value();
+        LQuery<KContact> query = LQuery.of(KContact.class).limit(100).sortOrders(LList.of(new LSortOrder("id", LSortDirection.ASCENDING)));
+        var array = repository.fetch(query).await().value();
         LLog.test("array %s", LArrays.toString(array));
 
         if (array.size() > 0) {

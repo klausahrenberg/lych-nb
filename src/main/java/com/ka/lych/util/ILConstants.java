@@ -50,6 +50,7 @@ public interface ILConstants {
     
     public final static String KEYWORD_ID = "fx:id";
     //public final static String KEYWORD_BEAN = "fx:bean";
+    public final static String KEYWORD_CLASS = "class";
     public final static String KEYWORD_CONTROLLER = "fx:controller";
     public final static String KEYWORD_EVENTHANDLER = "#";
     public final static String KEYWORD_RESOURCE_STRING = "$";    
