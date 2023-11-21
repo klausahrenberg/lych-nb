@@ -5,6 +5,7 @@ import com.ka.lych.observable.LString;
 /**
  *
  * @author klausahrenberg
+ * @param <BC>
  */
 public interface ILHasId<BC> {                
     

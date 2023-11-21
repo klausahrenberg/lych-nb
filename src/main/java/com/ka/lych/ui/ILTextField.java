@@ -8,7 +8,8 @@ import com.ka.lych.ui.observable.ILSupportsReadOnly;
 /**
  *
  * @author klausahrenberg 
+ * @param <BC> 
  */
-public interface ILTextField<BC> extends ILControl, ILHasText, ILHasTitle<BC>, ILSupportsReadOnly, ILHasCaretPosition {   
+public interface ILTextField<BC> extends ILControl<BC>, ILHasText<BC>, ILHasTitle<BC>, ILSupportsReadOnly, ILHasCaretPosition {   
     
 }
