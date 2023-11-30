@@ -148,8 +148,8 @@ public class LWebRepository implements
     public <R extends Record> LFuture<R, LDataException> fetchRoot(Class<R> dataClass, Optional<String> rootName) {
         return LFuture.<R, LDataException>execute(task -> {
             try {
-                var request = LJson.of(new LRequestRoot(dataClass.getSimpleName(), rootName)).toString();
-                LLog.test("fecthRoot: '%s'", request);
+                var request = LJson.of(new LRequestRoot(dataClass, rootName)).toString();
+                LLog.test("fetchRoot: '%s'", request);
                 return (R) LJsonParser.of(dataClass).listFactory(_listFactory).url(new URL(_url + "/root"), request).parse();
             } catch (Exception ex) {
                 throw new LDataException(ex);
@@ -232,7 +232,7 @@ public class LWebRepository implements
 
     }
 
-    public record LRequestRoot(@Json String data, @Json Optional<String> rootName) {
+    public record LRequestRoot<R extends Record>(@Json Class<R> recordClass, @Json Optional<String> rootName) {
 
     }
 

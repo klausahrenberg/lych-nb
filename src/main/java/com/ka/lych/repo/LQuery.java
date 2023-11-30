@@ -2,7 +2,6 @@ package com.ka.lych.repo;
 
 import com.ka.lych.list.LList;
 import com.ka.lych.util.LTerm;
-import java.util.Optional;
 import com.ka.lych.annotation.Json;
 
 /**
