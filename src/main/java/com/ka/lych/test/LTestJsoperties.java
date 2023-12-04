@@ -69,7 +69,7 @@ public class LTestJsoperties {
         
         /*jsoperties.load(this);
         try {
-            LLog.test(this, "after load (new): %s", LJson.objectToJson(this).toString());
+            LLog.test(this, "after load (new): %s", LJson._objectToJson(this).toString());
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }

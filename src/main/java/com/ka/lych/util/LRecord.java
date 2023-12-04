@@ -163,7 +163,7 @@ public abstract class LRecord {
                         }
                     }
                     value = valueMap;
-                } else if (Map.class.isAssignableFrom(value.getClass())) {
+                } else if ((Record.class.isAssignableFrom(field.requiredClass().requiredClass())) && (Map.class.isAssignableFrom(value.getClass()))) {
                     value = LRecord.of(field._requiredClass.requiredClass(), (Map) value, false);
                 } else if ((Path.class.isAssignableFrom(field.requiredClass().requiredClass())) && (!Path.class.isAssignableFrom(value.getClass()))) {                    
                     LObjects.requireClass(value, String.class);
@@ -192,6 +192,7 @@ public abstract class LRecord {
 
     @SuppressWarnings("unchecked")
     public static <T extends Record> T of(Class<T> recordClass, Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {
+        LLog.test("required %s / map %s", recordClass, values);
         return LReflections.of(LRequiredClass.of(recordClass), values, acceptIncompleteId);
     }
     

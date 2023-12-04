@@ -19,14 +19,15 @@ public class LTestJson {
 
     public LTestJson() {
 
-        var resStream = getClass().getClassLoader().getResourceAsStream("com/ka/lych/test/json/LTestJson_Map.json");
+        var resStream = getClass().getClassLoader().getResourceAsStream("LTestJson.json");
         if (resStream == null) {
             LLog.debug("Template of json settings doesn't exists.");
         } else {
             try {
-                var map = LJsonParser.of(TProperty.class).inputStream(resStream).parseMap();
-                LLog.test("loaded: %s", LArrays.toString(map.values().toArray()));
-                LLog.test("back to json: \n %s", LJson.of(map).toString());
+                var list = LJsonParser.of(TDevice.class).inputStream(resStream).parseList();
+                //var map = LJsonParser.of(TProperty.class).inputStream(resStream).parseMap();
+                //LLog.test("loaded: %s", LArrays.toString(list.values().toArray()));
+                LLog.test("back to json: \n %s", LJson.of(list).toString());
             } catch (Exception ex) {
                 ex.printStackTrace();
             }

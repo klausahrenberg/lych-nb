@@ -28,43 +28,45 @@ public class LJson {
     protected final static char SEND = '}';
     protected final static char QUOTE = '\"';
 
-    protected final StringBuilder stream;
-    protected boolean separatorAlreadyCalled;
-    protected boolean firstElement;
-    protected int tabLevel;
-    protected boolean prettyFormatting;
+    protected final StringBuilder _stream;
+    protected boolean _separatorAlreadyCalled;
+    protected boolean _firstElement;
+    protected int _tabLevel;
+    final int _onlyIdAfterTablevel;
+    protected boolean _prettyFormatting;
 
     protected record LJsonTab(int tabLevel, boolean firstElement) {
 
     }
 
-    public LJson() {
-        this.stream = new StringBuilder();
-        this.separatorAlreadyCalled = false;
-        this.firstElement = true;
-        this.tabLevel = 0;
-        this.prettyFormatting = true;
+    protected LJson(int onlyIdAfterTablevel) {
+        _stream = new StringBuilder();
+        _separatorAlreadyCalled = false;
+        _firstElement = true;
+        _tabLevel = -1;
+        _onlyIdAfterTablevel = onlyIdAfterTablevel;
+        _prettyFormatting = true;
     }
 
     protected void ifSeparator() {
-        if (firstElement) {
-            firstElement = false;
+        if (_firstElement) {
+            _firstElement = false;
         } else {
             separator();
         }
     }
 
     private void lineBreak() {
-        if (prettyFormatting) {
-            stream.append("\n");
-            for (int i = 0; i < tabLevel; i++) {
-                stream.append("\t");
+        if (_prettyFormatting) {
+            _stream.append("\n");
+            for (int i = 0; i < _tabLevel; i++) {
+                _stream.append("\t");
             }
         }
     }
 
     public LJson separator() {
-        stream.append(COMMA);
+        _stream.append(COMMA);
         lineBreak();
         return this;
     }
@@ -72,12 +74,12 @@ public class LJson {
     public LJson memberName(String name) {
         if (!LString.isEmpty(name)) {
             writeString(name);
-            if (prettyFormatting) {
-                stream.append(" ");
+            if (_prettyFormatting) {
+                _stream.append(" ");
             }
-            stream.append(DPOINT);
-            if (prettyFormatting) {
-                stream.append(" ");
+            _stream.append(DPOINT);
+            if (_prettyFormatting) {
+                _stream.append(" ");
             }
         }
         return this;
@@ -88,159 +90,155 @@ public class LJson {
     }
 
     public LJson beginObject(String name) {
-        if (!separatorAlreadyCalled) {
+        if (!_separatorAlreadyCalled) {
             ifSeparator();
-            separatorAlreadyCalled = true;
+            _separatorAlreadyCalled = true;
         }
         if (!LString.isEmpty(name)) {
             memberName(name);
         }
-        stream.append(SBEGIN);
-        tabLevel++;
+        _stream.append(SBEGIN);
+        _tabLevel++;
         lineBreak();
-        firstElement = true;
+        _firstElement = true;
         return this;
     }
 
     public LJson endObject() {
-        tabLevel--;
+        _tabLevel--;
         lineBreak();
-        stream.append(SEND);
+        _stream.append(SEND);
         return this;
     }
 
     /*public LJson beginArray() {
-        if (!separatorAlreadyCalled) {
+        if (!_separatorAlreadyCalled) {
             ifSeparator();
         }
-        firstElement = true;
-        stream.append(BBEGIN);
+        _firstElement = true;
+        _stream.append(BBEGIN);
         return this;
     }
 
     public LJson beginArray(String name) {
-        if (!separatorAlreadyCalled) {
+        if (!_separatorAlreadyCalled) {
             ifSeparator();
-            separatorAlreadyCalled = true;
+            _separatorAlreadyCalled = true;
         }
-        firstElement = true;
+        _firstElement = true;
         memberName(name);
-        separatorAlreadyCalled = false;
-        stream.append(BBEGIN);
+        _separatorAlreadyCalled = false;
+        _stream.append(BBEGIN);
         return this;
     }
 
     public LJson endArray() {
-        stream.append(BEND);
+        _stream.append(BEND);
         return this;
     }*/
     public LJson propertyInteger(String name, int value) {
         ifSeparator();
-        separatorAlreadyCalled = true;
+        _separatorAlreadyCalled = true;
         memberName(name);
         writeInteger(value);
-        separatorAlreadyCalled = false;
+        _separatorAlreadyCalled = false;
         return this;
     }
 
     public LJson writeInteger(int number) {
-        if (!separatorAlreadyCalled) {
+        if (!_separatorAlreadyCalled) {
             ifSeparator();
         }
-        stream.append(LJson.integerString(number));
+        _stream.append(LJson.integerString(number));
         return this;
     }
 
     public LJson propertyDouble(String name, double value) {
         ifSeparator();
-        separatorAlreadyCalled = true;
+        _separatorAlreadyCalled = true;
         memberName(name);
         writeDouble(value);
-        separatorAlreadyCalled = false;
+        _separatorAlreadyCalled = false;
         return this;
     }
 
     public LJson writeDouble(double number) {
-        if (!separatorAlreadyCalled) {
+        if (!_separatorAlreadyCalled) {
             ifSeparator();
         }
-        stream.append(LJson.doubleString(number));
+        _stream.append(LJson.doubleString(number));
         return this;
     }
 
     public LJson propertyBoolean(String name, boolean value) {
         ifSeparator();
-        separatorAlreadyCalled = true;
+        _separatorAlreadyCalled = true;
         memberName(name);
         writeBoolean(value);
-        separatorAlreadyCalled = false;
+        _separatorAlreadyCalled = false;
         return this;
     }
 
     public LJson writeBoolean(boolean value) {
-        if (!separatorAlreadyCalled) {
+        if (!_separatorAlreadyCalled) {
             ifSeparator();
         }
-        stream.append(LJson.booleanString(value));
+        _stream.append(LJson.booleanString(value));
         return this;
     }
 
     public LJson propertyString(String name, String text) {
         ifSeparator();
-        separatorAlreadyCalled = true;
+        _separatorAlreadyCalled = true;
         memberName(name);
         writeString(text);
-        separatorAlreadyCalled = false;
+        _separatorAlreadyCalled = false;
         return this;
     }
 
     public LJson writeString(String text) {
-        if (!separatorAlreadyCalled) {
+        if (!_separatorAlreadyCalled) {
             ifSeparator();
         }
-        stream.append(LJson.string(text));
+        _stream.append(LJson.string(text));
         return this;
     }
 
     public LJson propertyObject(String name, Object o) {
-        return this.propertyObject(name, o, false);
-    }
-
-    public LJson propertyObject(String name, Object o, boolean onlyId) {
         ifSeparator();
-        separatorAlreadyCalled = true;
+        _separatorAlreadyCalled = true;
         memberName(name);
-        writeObject(o, onlyId);
-        separatorAlreadyCalled = false;
+        writeObject(o);
+        _separatorAlreadyCalled = false;
         return this;
     }
 
-    public LJson writeObject(Object o, boolean onlyId) {
-        if (!separatorAlreadyCalled) {
+    public LJson writeObject(Object o) {
+        if (!_separatorAlreadyCalled) {
             ifSeparator();
         }
-        objectToJson(this, o, onlyId, tabLevel);
+        _objectToJson(this, o);
         return this;
     }
 
     public LJson propertyMap(String name, Map<String, Object> values) {
         ifSeparator();
-        separatorAlreadyCalled = true;
+        _separatorAlreadyCalled = true;
         memberName(name);
         writeMap(values);
-        separatorAlreadyCalled = false;
+        _separatorAlreadyCalled = false;
         return this;
     }
 
     public LJson writeMap(Map<String, Object> values) {
-        if (!separatorAlreadyCalled) {
+        if (!_separatorAlreadyCalled) {
             ifSeparator();
         }
-        stream.append(SBEGIN);
-        tabLevel++;
+        _stream.append(SBEGIN);
+        _tabLevel++;
         lineBreak();
         var it_c = values.entrySet().iterator();
-        this.firstElement = true;
+        _firstElement = true;
         while (it_c.hasNext()) {
             Entry<String, Object> mi = it_c.next();
             if (String.class.isAssignableFrom(mi.getValue().getClass())) {
@@ -255,14 +253,14 @@ public class LJson {
                 propertyArray(mi.getKey(), (Collection) mi.getValue());
             } else {
                 //2023-04-23 removed, because map items were not separated 
-                //this.firstElement = true;
+                //_firstElement = true;
                 //lineBreak();
                 propertyObject(mi.getKey(), mi.getValue());
             }
         }
-        tabLevel--;
+        _tabLevel--;
         lineBreak();
-        stream.append(SEND);
+        _stream.append(SEND);
         return this;
     }
 
@@ -272,31 +270,34 @@ public class LJson {
 
     public LJson propertyArray(String name, Collection values) {
         ifSeparator();
-        separatorAlreadyCalled = true;
+        _separatorAlreadyCalled = true;
         memberName(name);
+        LLog.test("array name '%s'", name);
         writeArray(values);
-        separatorAlreadyCalled = false;
+        _separatorAlreadyCalled = false;
         return this;
     }
 
     public LJson writeArray(Collection values) {
-        if (!separatorAlreadyCalled) {
+        if (!_separatorAlreadyCalled) {
             ifSeparator();
         }
-        stream.append(BBEGIN);
+        _stream.append(BBEGIN);
+        _tabLevel++;
+        LLog.test("tabLevel: %s", _tabLevel);
         var it_c = values.iterator();
         var it_start = true;
         while (it_c.hasNext()) {
             var ci = it_c.next();
             if (!it_start) {
-                stream.append(COMMA);
-                if (prettyFormatting) {
-                    stream.append(" ");
+                _stream.append(COMMA);
+                if (_prettyFormatting) {
+                    _stream.append(" ");
                 }
             } else {
                 it_start = false;
             }
-            separatorAlreadyCalled = true;
+            _separatorAlreadyCalled = true;
             if (String.class.isAssignableFrom(ci.getClass())) {
                 writeString((String) ci);
             } else if (Integer.class.isAssignableFrom(ci.getClass())) {
@@ -306,63 +307,59 @@ public class LJson {
             } else if (Boolean.class.isAssignableFrom(ci.getClass())) {
                 writeBoolean((Boolean) ci);
             } else {
-                writeObject(ci, (tabLevel != 0));
+                writeObject(ci);
             }
         }
-        stream.append(BEND);
+        _tabLevel--;
+        _stream.append(BEND);
         return this;
     }
 
     public LJson propertyNull(String name) {
         ifSeparator();
-        separatorAlreadyCalled = true;
+        _separatorAlreadyCalled = true;
         memberName(name);
         writeNull();
-        separatorAlreadyCalled = false;
+        _separatorAlreadyCalled = false;
         return this;
     }
 
     public LJson writeNull() {
-        if (!separatorAlreadyCalled) {
+        if (!_separatorAlreadyCalled) {
             ifSeparator();
         }
-        stream.append(LJson.nullString());
+        _stream.append(LJson.nullString());
         return this;
     }
 
     @Override
     public String toString() {
-        return stream.toString();
+        return _stream.toString();
     }
 
     public static LJson empty() {
-        return new LJson();
+        return new LJson(-1);
     }
-
+    
     public static LJson of(Object o) {
-        return _of(o, false, 0);
+        return of(o, -1);
     }
-
-    public static LJson of(Object o, boolean onlyId) {
-        return _of(o, onlyId, 0);
-    }
-
+    
     @SuppressWarnings("unchecked")
-    protected static LJson _of(Object o, boolean onlyId, int tabLevel) {
-        var json = new LJson();
+    public static LJson of(Object o, int onlyIdAfterTablevel) {
+        var json = new LJson(onlyIdAfterTablevel);
         if (o instanceof Collection) {
             json.propertyArray(null, (Collection) o);
         } else if (o instanceof Map) {
             json.propertyMap(null, (Map) o);
         } else {
-            objectToJson(json, o, onlyId, tabLevel);
+            _objectToJson(json, o);
         }
         return json;
     }
 
     @SuppressWarnings("unchecked")
-    protected static void objectToJson(LJson json, Object o, boolean onlyId, int tabLevel) {
-        json.tabLevel = tabLevel;
+    protected static void _objectToJson(LJson json, Object o) {
         if (o instanceof ILParseable) {
             var ps = ((ILParseable) o).toParseableString();            
             if (ps != null) {
@@ -382,9 +379,10 @@ public class LJson {
                 var field = it_fields.next();
                 if (LReflections.existsAnnotation(field, Lazy.class)) {
                     json.propertyString(field.name(), "tbi / link to lazy value");
-                } else if ((!(o instanceof Record)) || (!onlyId)/* && (tabLevel < 1))*/ || (field.isId())) {
-                    //2023-06-15 (tabLevel < 1) added
-                    //2023-07-02 (tabLevel < 1) removed
+                } else if ((!(o instanceof Record)) || (field.isId()) || 
+                           (json._onlyIdAfterTablevel == -1) || (json._tabLevel <= json._onlyIdAfterTablevel)) {
+                    //2023-06-15 (_tabLevel < 1) added
+                    //2023-07-02 (_tabLevel < 1) removed
                     LObservable observable = (field.isObservable() ? LReflections.observable(o, field) : null);
                     Object value = null;
                     try {
@@ -423,7 +421,7 @@ public class LJson {
                     } else if (Map.class.isAssignableFrom(value.getClass())) {
                         json.propertyMap(field.name(), (Map) value);
                     } else {
-                        json.propertyObject(field.name(), value, onlyId);
+                        json.propertyObject(field.name(), value);
                     }
                 }
             }

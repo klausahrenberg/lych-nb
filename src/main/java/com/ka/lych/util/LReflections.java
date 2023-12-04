@@ -103,6 +103,7 @@ public abstract class LReflections {
         for (LField field : fields) {
             var v = values.get(field.name());
             if (field.isObservable()) {
+                LLog.test("field %s", field.name());
                 values.put(field.name(), LRecord.toObservable(field, v));
             } else if ((field.isOptional()) && (v == null)) {
                 values.put(field.name(), Optional.empty());
