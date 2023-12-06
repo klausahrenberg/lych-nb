@@ -46,6 +46,8 @@ import java.util.AbstractList;
 public abstract class LReflections {
 
     public static Class[] DEFAULT_ANNOTATIONS = {Json.class, Id.class, Lazy.class, Index.class};
+    
+    public static String DEFAULT_CLASS_PACKAGE = null;
 
     public static boolean isRecord(Class clazz) {
         return Record.class.isAssignableFrom(clazz);
@@ -120,7 +122,7 @@ public abstract class LReflections {
                             v = LXmlUtils.xmlStrToBoolean((String) v);
                         } else if (Class.class.isAssignableFrom(reqClass)) {
                             try {
-                                v = Class.forName((String) v);
+                                v = Class.forName(DEFAULT_CLASS_PACKAGE != null ? DEFAULT_CLASS_PACKAGE + "." + (String) v : (String) v);
                             } catch (ClassNotFoundException cnfe) {
                                 throw new LParseException(cnfe);
                             }    
@@ -156,7 +158,7 @@ public abstract class LReflections {
                 throw new LParseException("Unknown type of record. Please specify class name with key '" + ILConstants.KEYWORD_CLASS + "' in map.");
             }
             try {
-                classToBeInstanciated = Class.forName((String) clazz);
+                classToBeInstanciated = Class.forName(DEFAULT_CLASS_PACKAGE != null ? DEFAULT_CLASS_PACKAGE + "." + (String) clazz : (String) clazz);                
             } catch (ClassNotFoundException cnfe) {
                 throw new LParseException(cnfe);
             }    
