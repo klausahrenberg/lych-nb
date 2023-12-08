@@ -1426,6 +1426,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     @SuppressWarnings("unchecked")
     public <T extends Record> LFuture<LList<T>, LDataException> fetch(LQuery<T> query) {
         Objects.requireNonNull(query, "Query can't be null.");
+        Objects.requireNonNull(query.recordClass(), "recordClass inside of a query can't be null.");
         return LFuture.<LList<T>, LDataException>execute(task -> {
             if (available()) {
                 var result = new LList<T>();

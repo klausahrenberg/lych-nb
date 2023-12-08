@@ -25,15 +25,7 @@ public class LQuery<R extends Record> {
     LTerm _filter;
     @Json
     String _customSQL;
-    
-    public LQuery() {
         
-    }
-    
-    public LQuery(Class<R> recordClass) {
-        _recordClass = recordClass;
-    }
-
     public Class<R> recordClass() {
         return _recordClass;
     }
@@ -98,7 +90,9 @@ public class LQuery<R extends Record> {
     }
     
     public static <R extends Record> LQuery<R> of(Class<R> recordClass) {
-        return new LQuery<>(recordClass);
+        var query = new LQuery<R>();
+        query.recordClass(recordClass);
+        return query;
     }
     
     public static record LSortOrder(@Json String fieldName, @Json LSortDirection sortDirection) {
