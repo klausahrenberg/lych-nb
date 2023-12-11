@@ -122,7 +122,7 @@ public abstract class LReflections {
                             v = LXmlUtils.xmlStrToBoolean((String) v);
                         } else if (Class.class.isAssignableFrom(reqClass)) {
                             try {
-                                v = Class.forName(DEFAULT_CLASS_PACKAGE != null ? DEFAULT_CLASS_PACKAGE + "." + (String) v : (String) v);
+                                v = Class.forName(DEFAULT_CLASS_PACKAGE != null ? DEFAULT_CLASS_PACKAGE + "." + (String) v : (String) v);                               
                             } catch (ClassNotFoundException cnfe) {
                                 throw new LParseException(cnfe);
                             }    

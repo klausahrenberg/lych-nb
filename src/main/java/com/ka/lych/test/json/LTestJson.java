@@ -24,7 +24,7 @@ public class LTestJson {
             LLog.debug("Template of json settings doesn't exists.");
         } else {
             try {
-                var list = LJsonParser.of(TDevice.class).inputStream(resStream).parseList();
+                var list = LJsonParser.of(TDeviceTest.class).inputStream(resStream).parseList();
                 //var map = LJsonParser.of(TProperty.class).inputStream(resStream).parseMap();
                 //LLog.test("loaded: %s", LArrays.toString(list.values().toArray()));
                 LLog.test("back to json: \n %s", LJson.of(list).toString());
@@ -34,7 +34,7 @@ public class LTestJson {
         }
     }
 
-    public static record TDevice(
+    public static record TDeviceTest(
             @Json
             @Id(256) LString href,
             @Json(128) LString id,

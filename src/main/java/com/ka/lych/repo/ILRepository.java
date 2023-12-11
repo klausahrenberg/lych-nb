@@ -117,7 +117,8 @@ public interface ILRepository<BC extends ILRepository> {
     public default String getTableName(Class parentClass, Class childClass) throws LDataException {
         var result = DATA_SHEME.get(new LRepoParentChild(this, parentClass, childClass));
         if (LString.isEmpty(result)) {
-            throw new LDataException("Can't find tableName for class '" + parentClass.getName() + "'" + (childClass != null ? "(" + childClass.getName() + "'" : ""));
+            DATA_SHEME.entrySet().forEach(item -> LLog.test("getTableName item: '%s' / hash: %s ", item.getKey().parentClass().getName(), item.getKey().parentClass().hashCode()));
+            throw new LDataException("Can't find tableName for class '%s' %s (%s)", parentClass.getName(), (childClass != null ? "('" + childClass.getName() + "')" : ""), DATA_SHEME.size());
         }
         return result;
     }
