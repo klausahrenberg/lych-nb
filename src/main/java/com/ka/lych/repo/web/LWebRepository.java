@@ -236,7 +236,7 @@ public class LWebRepository implements
 
     }
 
-    public record LOdwRequestMap(@Json String data, @Json LMap<String, Object> map) {
+    public record LOdwRequestMap(@Json String data, @Json LMap<String, Object> map, @Json LMap<String, Object> parent) {
 
     }
 
