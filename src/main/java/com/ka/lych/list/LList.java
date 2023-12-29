@@ -176,6 +176,24 @@ public class LList<T> extends ArrayList<T> {
     }
 
     @Override
+    public T removeLast() {
+        if (!isEmpty()) {
+            return remove(size() - 1);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
+    public T removeFirst() {
+        if (!isEmpty()) {
+            return remove(0);
+        } else {
+            return null;
+        }
+    }
+
+    @Override
     public T set(int index, T item) {
         T replaced = super.set(index, item);
         if (replaced != item) {
