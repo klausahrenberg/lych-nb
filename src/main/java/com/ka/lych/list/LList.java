@@ -122,6 +122,16 @@ public class LList<T> extends ArrayList<T> {
         }
         return null;
     }    
+
+    @Override
+    public T getLast() {
+        return (!isEmpty() ? super.getLast() : null);
+    }
+
+    @Override
+    public T getFirst() {
+        return (!isEmpty() ? super.getFirst() : null);
+    }
     
     //Observable code
     
