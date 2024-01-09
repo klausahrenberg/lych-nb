@@ -130,6 +130,8 @@ public abstract class LReflections {
                             var t = LReflections.newInstance(reqClass, (Object) null);
                             ((ILParseable) t).parse((String) v);
                             v = t;
+                        } else if (reqClass.isEnum()) {
+                            v = LXmlUtils.xmlStrToEnum((String) v, reqClass);
                         } else {
                             throw new LParseException("Can not parse value for field '%s'. Unknown field class: %s", field.name(), reqClass.getName());
                         }
