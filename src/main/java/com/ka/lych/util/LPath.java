@@ -12,6 +12,7 @@ import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -21,6 +22,9 @@ import java.util.regex.Pattern;
  * @author klausahrenberg
  */
 public record LPath(Path path, LString displayName) {
+    
+    public static String FILETYPE_EXCEL = ".xlsx";
+    public static String FILETYPE_EXCEL_MACRO = ".xlsm";
 
     private static LPath root;
 
@@ -37,6 +41,34 @@ public record LPath(Path path, LString displayName) {
 
     public static boolean isRoot(LPath path) {
         return (path.path() == null);
+    }
+    
+    public boolean isFiletype(String filetype) {
+        return isFiletype(this, filetype);
+    }
+    
+    public static boolean isFiletype(LPath path, String filetype) {
+        return path.path().toString().toLowerCase().endsWith(filetype.toLowerCase());
+    }
+    
+    public boolean isFiletypeExcel() {
+        return isFiletypeExcel(this);
+    }
+    
+    public FileTime lastModifiedTime() {
+        return lastModifiedTime(this);
+    }
+    
+    public static FileTime lastModifiedTime(LPath path) {
+        try {
+            return Files.getLastModifiedTime(path.path());
+        } catch (IOException ioe) {
+            return null;
+        }
+    }
+    
+    public static boolean isFiletypeExcel(LPath path) {
+        return ((isFiletype(path, FILETYPE_EXCEL)) || (isFiletype(path, FILETYPE_EXCEL_MACRO)));
     }
 
     public boolean isDirectory() {
@@ -136,7 +168,21 @@ public record LPath(Path path, LString displayName) {
         return ((result != null) && (LPath.exists(result)) ? result : null);
     }
 
-    public static LList<LPath> fetch(LPath path, Optional<Filter<? super Path>> filter) throws IOException {
+    public static LFuture<LList<LPath>, IOException> fetch(LPath path, Optional<Filter<? super Path>> filter) {
+        Objects.requireNonNull(path, "Path can't be null");
+        return LFuture.execute(runnable -> {
+            if (isRoot(path)) {
+                return createRoots();
+            } else {
+                var result = new LList<LPath>();
+                var stream = (filter.isPresent() ? Files.newDirectoryStream(path.path(), filter.get()) : Files.newDirectoryStream(path.path()));
+                stream.forEach(p -> result.add(LPath.of(p)));
+                return result;
+            }
+        });
+    }
+
+    /*public static LList<LPath> fetch(LPath path, Optional<Filter<? super Path>> filter) throws IOException {
         Objects.requireNonNull(path, "Path can't be null");
 
         if (isRoot(path)) {
@@ -147,8 +193,7 @@ public record LPath(Path path, LString displayName) {
             stream.forEach(p -> result.add(LPath.of(p)));
             return result;
         }
-    }
-
+    }*/
     public boolean exists() {
         return LPath.exists(this.path());
     }
