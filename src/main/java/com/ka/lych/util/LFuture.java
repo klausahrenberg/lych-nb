@@ -1,6 +1,5 @@
 package com.ka.lych.util;
 
-import com.ka.lych.exception.LUnchecked;
 import com.ka.lych.list.LList;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
