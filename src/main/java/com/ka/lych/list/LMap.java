@@ -56,9 +56,11 @@ public class LMap<K, V> extends ConcurrentHashMap<K, V> {
     @SuppressWarnings("unchecked")
     public static <K, V> LMap<K, V> of(Entry<K, V>... entries) {
         Objects.requireNonNull(entries, "Entries cant be null");
-        var result = new LMap<K, V>();
+        var result = new LMap<K, V>();        
         for (Entry<K, V> entry : entries) {
-            result.put(entry.getKey(), entry.getValue());
+            if (entry.getValue() != null) {
+                result.put(entry.getKey(), entry.getValue());
+            }
         }
         return result;
     }

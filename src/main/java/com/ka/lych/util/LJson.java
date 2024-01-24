@@ -340,11 +340,11 @@ public class LJson {
     public static LJson empty() {
         return new LJson(-1);
     }
-    
+
     public static LJson of(Object o) {
         return of(o, -1);
     }
-    
+
     @SuppressWarnings("unchecked")
     public static LJson of(Object o, int onlyIdAfterTablevel) {
         var json = new LJson(onlyIdAfterTablevel);
@@ -361,12 +361,12 @@ public class LJson {
     @SuppressWarnings("unchecked")
     protected static void _objectToJson(LJson json, Object o) {
         if (o instanceof ILParseable) {
-            var ps = ((ILParseable) o).toParseableString();            
+            var ps = ((ILParseable) o).toParseableString();
             if (ps != null) {
                 json.writeString(ps);
             } else {
                 json.writeNull();
-            }    
+            }
         } else {
             json.beginObject();
             if (o instanceof Record) {
@@ -379,8 +379,8 @@ public class LJson {
                 var field = it_fields.next();
                 if (LReflections.existsAnnotation(field, Lazy.class)) {
                     json.propertyString(field.name(), "tbi / link to lazy value");
-                } else if ((!(o instanceof Record)) || (field.isId()) || 
-                           (json._onlyIdAfterTablevel == -1) || (json._tabLevel <= json._onlyIdAfterTablevel)) {
+                } else if ((!(o instanceof Record)) || (field.isId())
+                        || (json._onlyIdAfterTablevel == -1) || (json._tabLevel <= json._onlyIdAfterTablevel)) {
                     //2023-06-15 (_tabLevel < 1) added
                     //2023-07-02 (_tabLevel < 1) removed
                     LObservable observable = (field.isObservable() ? LReflections.observable(o, field) : null);
@@ -391,7 +391,7 @@ public class LJson {
                         value = null;
                     }
                     if ((value instanceof Optional) && ((Optional) value).isPresent()) {
-                        value = ((value instanceof Optional) ? (((Optional) value).isEmpty() ? null : ((Optional) value).get()) : value);                        
+                        value = ((value instanceof Optional) ? (((Optional) value).isEmpty() ? null : ((Optional) value).get()) : value);
                     } else {
 
                         value = ((value instanceof Optional) ? (((Optional) value).isEmpty() ? null : ((Optional) value).get()) : value);
@@ -432,7 +432,9 @@ public class LJson {
     public static String string(String text) {
         //orginalRecord.replaceAll("[\\\\p{Cntrl}^\\r\\n\\t]+", "")
         //return QUOTE + text.replace("\"", "\\\"") + QUOTE;
-        var result = QUOTE + text.replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "").replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r") + QUOTE;        
+        var result = (text != null
+                ? QUOTE + text.replaceAll("[\\p{Cntrl}&&[^\r\n\t]]", "").replace("\\", "\\\\").replace("\"", "\\\"").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r") + QUOTE
+                : nullString());
         return result;
         //var buffer = StandardCharsets.UTF_8.encode(text); 
         //return QUOTE + StandardCharsets.UTF_8.decode(buffer).toString().replace("\"", "\\\"") + QUOTE;        
