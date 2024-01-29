@@ -109,7 +109,10 @@ public abstract class LReflections {
                 values.put(field.name(), LRecord.toObservable(field, v));
             } else if ((field.isOptional()) && (v == null)) {
                 values.put(field.name(), Optional.empty());
+            } else if ((v != null) && (Map.class.isAssignableFrom(v.getClass()))) {
+                values.put(field.name(), (field.isOptional() ? (v != null ? Optional.of(v) : Optional.empty()) : v));
             } else if (v != null) {
+                LLog.test("field %s / o %s / t %s / r %s", field.name(), field.isOptional(), field.type(), v.getClass().getName());
                 var reqClass = (field.isOptional() ? field.requiredClass().parameterClasses().get().get(0) : field.type());
                 var shouldParsed = ((v instanceof String) && (!String.class.isAssignableFrom(reqClass)));
                 if (shouldParsed) {
@@ -152,6 +155,15 @@ public abstract class LReflections {
     @SuppressWarnings("unchecked")
     public static <T> T of(LRequiredClass requClass, Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {
 
+        
+        /*if ((rClass == null) && (popped.map() != null) && (popped.map().containsKey(ILConstants.KEYWORD_CLASS))) {
+                    try {
+                        rClass = new LRequiredClass(Class.forName((String) popped.map().get(ILConstants.KEYWORD_CLASS)), Optional.empty());
+                    } catch (ClassNotFoundException cnfe) {
+                        throw new LParseException(cnfe);
+                    }
+                }*/
+        
         boolean isOptional = (Optional.class.isAssignableFrom(requClass.requiredClass()));
         Class classToBeInstanciated = (!isOptional ? requClass.requiredClass() : (((requClass.parameterClasses().isPresent()) && (!requClass.parameterClasses().get().isEmpty())) ? (requClass.parameterClasses().get().get(0)) : null));
         if (classToBeInstanciated == Record.class) {
