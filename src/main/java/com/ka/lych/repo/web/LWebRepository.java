@@ -236,7 +236,7 @@ public class LWebRepository implements
 
     }
 
-    public record LOdwRequestMap<R extends Record>(@Json Class<R> recordClass, @Json LMap<String, Object> map, @Json Optional<LMap<String, Object>> parent) {
+    public record LOdwRequestMap<R extends Record>(@Json LMap<String, Object> record, @Json Optional<LMap<String, Object>> parent) {
 
     }
 

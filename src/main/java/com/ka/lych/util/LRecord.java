@@ -184,6 +184,15 @@ public abstract class LRecord {
             throw new UnsupportedOperationException("Field type not supported yet. field: " + field + " / value: " + value);
         }
     }
+    
+    public static <T extends Record> T of(Map<String, Object> values) throws LParseException {
+        return LReflections.of(null, values, false);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T extends Record> T of(Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {
+        return LReflections.of(null, values, acceptIncompleteId);
+    }
 
     @SuppressWarnings("unchecked")
     public static <T extends Record> T of(Class<T> recordClass, Map<String, Object> values) throws LParseException {
@@ -191,8 +200,7 @@ public abstract class LRecord {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Record> T of(Class<T> recordClass, Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {
-        LLog.test("required %s / map %s", recordClass, values);
+    public static <T extends Record> T of(Class<T> recordClass, Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {        
         return LReflections.of(LRequiredClass.of(recordClass), values, acceptIncompleteId);
     }
     

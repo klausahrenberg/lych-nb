@@ -370,7 +370,7 @@ public class LJson {
         } else {
             json.beginObject();
             if (o instanceof Record) {
-                json.propertyString(ILConstants.KEYWORD_CLASS, o.getClass().getSimpleName());
+                json.propertyString(ILConstants.KEYWORD_CLASS, LReflections.nameForClass(o.getClass()));
             }
             var fields = LReflections.getFieldsOfInstance(o, null, Json.class);
             var it_fields = fields.iterator();

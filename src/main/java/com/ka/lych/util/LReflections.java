@@ -46,7 +46,7 @@ import java.util.AbstractList;
 public abstract class LReflections {
 
     public static Class[] DEFAULT_ANNOTATIONS = {Json.class, Id.class, Lazy.class, Index.class};
-    
+
     public static String DEFAULT_CLASS_PACKAGE = null;
 
     public static boolean isRecord(Class clazz) {
@@ -76,7 +76,7 @@ public abstract class LReflections {
                             if (LReflections.isObservable(mi.getValue().getClass())) {
                                 obs.set(((LObservable) mi.getValue()).get());
                             } else {
-                                obs.set(mi.getValue());                                    
+                                obs.set(mi.getValue());
                             }
                         } else if (!isRecord) {
                             field.set(toUpdate, LRecord.toObservable(field, mi.getValue()));
@@ -124,11 +124,7 @@ public abstract class LReflections {
                         } else if ((boolean.class.isAssignableFrom(reqClass)) || (Boolean.class.isAssignableFrom(reqClass))) {
                             v = LXmlUtils.xmlStrToBoolean((String) v);
                         } else if (Class.class.isAssignableFrom(reqClass)) {
-                            try {
-                                v = Class.forName(DEFAULT_CLASS_PACKAGE != null ? DEFAULT_CLASS_PACKAGE + "." + (String) v : (String) v);                               
-                            } catch (ClassNotFoundException cnfe) {
-                                throw new LParseException(cnfe);
-                            }    
+                            v = LReflections.classForName((String) v);
                         } else if (ILParseable.class.isAssignableFrom(reqClass)) {
                             var t = LReflections.newInstance(reqClass, (Object) null);
                             ((ILParseable) t).parse((String) v);
@@ -154,28 +150,17 @@ public abstract class LReflections {
 
     @SuppressWarnings("unchecked")
     public static <T> T of(LRequiredClass requClass, Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {
-
-        
-        /*if ((rClass == null) && (popped.map() != null) && (popped.map().containsKey(ILConstants.KEYWORD_CLASS))) {
-                    try {
-                        rClass = new LRequiredClass(Class.forName((String) popped.map().get(ILConstants.KEYWORD_CLASS)), Optional.empty());
-                    } catch (ClassNotFoundException cnfe) {
-                        throw new LParseException(cnfe);
-                    }
-                }*/
-        
-        boolean isOptional = (Optional.class.isAssignableFrom(requClass.requiredClass()));
-        Class classToBeInstanciated = (!isOptional ? requClass.requiredClass() : (((requClass.parameterClasses().isPresent()) && (!requClass.parameterClasses().get().isEmpty())) ? (requClass.parameterClasses().get().get(0)) : null));
-        if (classToBeInstanciated == Record.class) {
+        boolean isOptional = ((requClass != null) && (Optional.class.isAssignableFrom(requClass.requiredClass())));
+        Class classToBeInstanciated = null;
+        if (requClass != null) {
+            classToBeInstanciated = (!isOptional ? requClass.requiredClass() : (((requClass.parameterClasses().isPresent()) && (!requClass.parameterClasses().get().isEmpty())) ? (requClass.parameterClasses().get().get(0)) : null));
+        }    
+        if ((classToBeInstanciated == null) || (classToBeInstanciated == Record.class)) {
             var clazz = values.get(ILConstants.KEYWORD_CLASS);
             if (clazz == null) {
                 throw new LParseException("Unknown type of record. Please specify class name with key '" + ILConstants.KEYWORD_CLASS + "' in map.");
             }
-            try {
-                classToBeInstanciated = Class.forName(DEFAULT_CLASS_PACKAGE != null ? DEFAULT_CLASS_PACKAGE + "." + (String) clazz : (String) clazz);                
-            } catch (ClassNotFoundException cnfe) {
-                throw new LParseException(cnfe);
-            }    
+            classToBeInstanciated = LReflections.classForName((String) clazz);            
             LLog.test("I have here a record with class: %s", classToBeInstanciated);
         }
         if ((!isRecord(classToBeInstanciated)) && (classToBeInstanciated.isMemberClass()) && (!Modifier.isStatic(classToBeInstanciated.getModifiers()))) {
@@ -204,7 +189,7 @@ public abstract class LReflections {
             }
         }
         if (mf.length() > 0) {
-            throw new LParseException("For record %s id, fields are missing for instanciation: %s",classToBeInstanciated.getName(), mf.toString());
+            throw new LParseException("For record %s id, fields are missing for instanciation: %s", classToBeInstanciated.getName(), mf.toString());
         } else {
             _validateMapValues(classToBeInstanciated, fields, values);
         }
@@ -576,6 +561,22 @@ public abstract class LReflections {
         return new LRequiredClass(requiredClass, Optional.empty());
     }
 
+    public static Class classForName(String className) throws LParseException {
+        try {
+            return Class.forName(DEFAULT_CLASS_PACKAGE != null ? DEFAULT_CLASS_PACKAGE + "." + className : className);
+        } catch (ClassNotFoundException cnfe) {
+            throw new LParseException(cnfe);
+        }
+    }
+
+    public static String nameForClass(Class clazz) {
+        if ((DEFAULT_CLASS_PACKAGE != null) && (clazz.getPackageName().startsWith(DEFAULT_CLASS_PACKAGE))) {
+            return clazz.getName().substring(DEFAULT_CLASS_PACKAGE.length() + 1);
+        } else {
+            return clazz.getName();
+        }
+    }
+
     public static class LFields extends AbstractList<LField> {
 
         private final LField[] keyFields;
@@ -743,11 +744,11 @@ public abstract class LReflections {
             _field.setAccessible(true);
             return _field.get(instance);
         }
-        
+
         public Object value(Object instance) {
             Object result;
             try {
-                result = get(instance);                
+                result = get(instance);
             } catch (SecurityException | IllegalArgumentException | IllegalAccessException ex) {
                 throw new IllegalStateException(ex.getMessage(), ex);
             }
@@ -764,7 +765,7 @@ public abstract class LReflections {
             }
             return result;
         }
-        
+
         public LObservable observable(Object instance) {
             if (!isObservable()) {
                 throw new IllegalStateException("Field '" + name() + "()' is no observable " + type());
