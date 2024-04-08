@@ -20,7 +20,7 @@ public class LDatetime extends LObservable<LocalDateTime, LDatetime> {
 
     @Override
     public void parse(String value) throws LParseException {
-        set(LocalDateTime.parse(value, DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+        set(LocalDateTime.parse(value, DateTimeFormatter.ISO_OFFSET_DATE_TIME));//.ISO_LOCAL_DATE_TIME));
     }
 
     @Override

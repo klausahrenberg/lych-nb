@@ -20,6 +20,7 @@ import java.util.Objects;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.exception.LParseException;
 import com.ka.lych.util.LReflections.LRequiredClass;
+import java.util.Base64;
 import java.util.Optional;
 import java.util.function.Function;
 
@@ -36,6 +37,7 @@ public class LJsonParser<T> {
     final LStack<LMapItem> _stack;
     String _currentKey;
     int _characterCounter;
+    boolean _ignoreUnknownFields = false;
     Function<Void, Collection> _listFactory;
 
     private enum LState {
@@ -92,6 +94,11 @@ public class LJsonParser<T> {
         return this;
     }
     
+    public LJsonParser<T> ignoreUnknownFields(boolean ignoreUnknownFields) {
+        _ignoreUnknownFields = ignoreUnknownFields;
+        return this;
+    }
+    
     public LJsonParser<T> bufferedReader(BufferedReader br) throws LParseException {
         try {
             StringBuilder sb = new StringBuilder();
@@ -122,16 +129,26 @@ public class LJsonParser<T> {
     }
     
     public LJsonParser<T> url(URL url, String payload) throws LParseException, IOException {
+        return url(url, payload, null, null, null);
+    }
+        
+    public LJsonParser<T> url(URL url, String payload, String requestMethod, String user, String password) throws LParseException, IOException {    
         //try {
             InputStream is = null;
             if (LString.isEmpty(payload)) {
                 is = url.openStream();
             } else {
                 HttpURLConnection http = (HttpURLConnection) url.openConnection();
-                http.setRequestMethod("POST");
+                http.setRequestMethod(LString.isEmpty(requestMethod) ? "POST" : requestMethod);
                 http.setDoOutput(true);
                 http.setRequestProperty("Accept", "application/json");
                 http.setRequestProperty("Content-Type", "application/json");
+                if ((!LString.isEmpty(user)) && (!LString.isEmpty(password))) {
+                    String auth = user + ":" + password;
+                    byte[] encodedAuth = Base64.getEncoder().encode(auth.getBytes(StandardCharsets.UTF_8));
+                    String authHeaderValue = "Basic " + new String(encodedAuth);
+                    http.setRequestProperty("Authorization", authHeaderValue);
+                }
                 byte[] out = payload.getBytes(StandardCharsets.UTF_8);
                 OutputStream stream = http.getOutputStream();
                 stream.write(out);
@@ -397,7 +414,6 @@ public class LJsonParser<T> {
                 //Update existing class
                 LReflections.update(_result, popped.map());
             } else {
-                LLog.test("opped %s", popped);
                 var rClass = popped.requiredClass();
                 
                 Object o = ((rClass != null) && (rClass.requiredClass() != Object.class) ?  LReflections.of(rClass, popped.map(), false) : popped.map());
@@ -435,7 +451,7 @@ public class LJsonParser<T> {
             case 'r' -> _buffer.append('\r');
             case 't' -> _buffer.append('\t');
             case 'u' -> _state = LState.UNICODE;
-            default -> throwException("Expected escaped character after backslash. Got:" + charToString(c));            
+            //default -> throwException("Expected escaped character after backslash. Got:" + charToString(c));            
         }    
         if (_state != LState.UNICODE) {
             _state = LState.IN_STRING;
@@ -484,7 +500,11 @@ public class LJsonParser<T> {
         if (_buffer.toString().contains(".")) {
             processKeyValue(_currentKey, Double.valueOf(_buffer.toString()));
         } else {
-            processKeyValue(_currentKey, Integer.valueOf(_buffer.toString()));
+            try {
+                processKeyValue(_currentKey, Integer.valueOf(_buffer.toString()));
+            } catch (NumberFormatException nfe) {
+                processKeyValue(_currentKey, Long.valueOf(_buffer.toString()));
+            }
         }
         _buffer.setLength(0);
         _state = LState.AFTER_VALUE;
@@ -531,8 +551,15 @@ public class LJsonParser<T> {
             requiredClass = new LRequiredClass(_resultClass, null);
         } else if (_stack.peek().type() == LType.OBJECT) {
             var fields = LReflections.getFields(_stack.peek().requiredClass.requiredClass(), null, Json.class);
-            var field = fields.get(_currentKey);
-            requiredClass = field.requiredClass();
+                var field = fields.get(_currentKey);
+                if ((field == null) && (_ignoreUnknownFields)) {
+                    requiredClass = IGNORE_FIELD_CLASS;
+                } else {
+                    if (field == null) {
+                        throw new LParseException("Can't get field for key'%s' %s / %s", _currentKey, _stack.peek().requiredClass().requiredClass(), _resultClass);
+                    }
+                    requiredClass = field.requiredClass();
+                }                            
         } else {
             throw new LParseException("Illegal state at start of object");
         }
@@ -558,11 +585,15 @@ public class LJsonParser<T> {
             } else {
                 var fields = LReflections.getFields(_stack.peek().requiredClass.requiredClass(), null, Json.class);
                 var field = fields.get(_currentKey);
-                if (field == null) {
-                    throw new LParseException("Can't get field for key'%s' %s / %s", _currentKey, _stack.peek().requiredClass().requiredClass(), _resultClass);
+                
+                if ((field == null) && (_ignoreUnknownFields)) {
+                    requiredClass = IGNORE_FIELD_CLASS;
+                } else {
+                    if (field == null) {
+                        throw new LParseException("Can't get field for key'%s' %s / %s", _currentKey, _stack.peek().requiredClass().requiredClass(), _resultClass);
+                    }
+                    requiredClass = field.requiredClass();                
                 }
-                LLog.test("field at startObject %s / %s / %s", field.name(), field.requiredClass(), field.isOptional());
-                requiredClass = field.requiredClass();
             }
         } else {
             throw new LParseException("Illegal state at start of object");
@@ -607,7 +638,6 @@ public class LJsonParser<T> {
         var peeked = _stack.peek();
         if (peeked.map() != null) {               
             if (value != null) {
-                LLog.test("put in map %s / key %s / value %s / class %s" , key, _currentKey, value, value.getClass());
                 peeked.map().put(_currentKey, value);
             }
             _currentKey = null;
@@ -616,7 +646,6 @@ public class LJsonParser<T> {
                 peeked.list().add(value);
             }
         } else if (_result != null) {
-            //LLog.test("key %s / currentKey %s / value %s", key, _currentKey, value);
             LReflections.update(_result, LMap.of(LMap.entry(_currentKey, value)));
         } else {
             throwException("Illegal state" + _state);
@@ -633,6 +662,12 @@ public class LJsonParser<T> {
 
     private void throwException(String message, Throwable cause) throws LParseException {
         throw new LParseException(cause, message + " (json position " + _characterCounter + ", text area: '" + _payload.substring(Math.max(0, _characterCounter - 20), Math.min(_payload.length(), _characterCounter + 5))/*.replace("\n", " ")*/.replace("\t", "") + "')");
+    }
+    
+    public static LRequiredClass IGNORE_FIELD_CLASS = LRequiredClass.of(IgnoreClass.class);
+            
+    public static class IgnoreClass {
+        
     }
 
 }

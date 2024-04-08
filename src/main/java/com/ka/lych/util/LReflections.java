@@ -105,14 +105,12 @@ public abstract class LReflections {
         for (LField field : fields) {
             var v = values.get(field.name());
             if (field.isObservable()) {
-                LLog.test("field %s", field.name());
                 values.put(field.name(), LRecord.toObservable(field, v));
             } else if ((field.isOptional()) && (v == null)) {
                 values.put(field.name(), Optional.empty());
             } else if ((v != null) && (Map.class.isAssignableFrom(v.getClass()))) {
                 values.put(field.name(), (field.isOptional() ? (v != null ? Optional.of(v) : Optional.empty()) : v));
             } else if (v != null) {
-                LLog.test("field %s / o %s / t %s / r %s", field.name(), field.isOptional(), field.type(), v.getClass().getName());
                 var reqClass = (field.isOptional() ? field.requiredClass().parameterClasses().get().get(0) : field.type());
                 var shouldParsed = ((v instanceof String) && (!String.class.isAssignableFrom(reqClass)));
                 if (shouldParsed) {
@@ -160,8 +158,7 @@ public abstract class LReflections {
             if (clazz == null) {
                 throw new LParseException("Unknown type of record. Please specify class name with key '" + ILConstants.KEYWORD_CLASS + "' in map.");
             }
-            classToBeInstanciated = LReflections.classForName((String) clazz);            
-            LLog.test("I have here a record with class: %s", classToBeInstanciated);
+            classToBeInstanciated = LReflections.classForName((String) clazz);        
         }
         if ((!isRecord(classToBeInstanciated)) && (classToBeInstanciated.isMemberClass()) && (!Modifier.isStatic(classToBeInstanciated.getModifiers()))) {
             throw new LParseException("Can't instanciate non-static inner classes. Please make following inner class static: %s", classToBeInstanciated.getName());
