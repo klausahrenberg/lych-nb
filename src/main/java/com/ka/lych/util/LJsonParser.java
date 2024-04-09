@@ -415,8 +415,7 @@ public class LJsonParser<T> {
                 LReflections.update(_result, popped.map());
             } else {
                 var rClass = popped.requiredClass();
-                
-                Object o = ((rClass != null) && (rClass.requiredClass() != Object.class) ?  LReflections.of(rClass, popped.map(), false) : popped.map());
+                Object o = ((rClass != null) && (rClass.requiredClass() != Object.class) && (rClass.requiredClass() != String.class) ?  LReflections.of(rClass, popped.map(), false) : popped.map());
                 if (_stack.isEmpty()) {
                     _result = (T) o;
                 } else if (_stack.peek().map() != null) {

@@ -136,6 +136,9 @@ public abstract class LReflections {
                         v = null;
                     }
                     values.put(field.name(), (field.isOptional() ? (v != null ? Optional.of(v) : Optional.empty()) : v));
+                } else if ((!(v instanceof String)) && (String.class.isAssignableFrom(reqClass))) {
+                    LLog.test("validate %s %s", field.name(), field);
+                    values.put(field.name(), v.toString());
                 } else {
                     values.put(field.name(), v);
                 }

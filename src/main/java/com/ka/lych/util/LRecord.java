@@ -129,9 +129,11 @@ public abstract class LRecord {
         if ((value != null) && (value instanceof LObservable)) {
             result = (LObservable) value;
         } else if (LText.class.isAssignableFrom(field.type())) {
-            result = new LText((String) value);
+            //result = new LString((String) value);
+            result = new LText(value instanceof String ? (String) value : (value != null ? value.toString() : null));
         } else if (LString.class.isAssignableFrom(field.type())) {
-            result = new LString((String) value);
+            //result = new LString((String) value);
+            result = new LString(value instanceof String ? (String) value : (value != null ? value.toString() : null));
         } else if (LDouble.class.isAssignableFrom(field.type())) {
             result = (shouldParsed ? LDouble.of((String) value) : new LDouble((Double) value));
         } else if (LInteger.class.isAssignableFrom(field.type())) {
