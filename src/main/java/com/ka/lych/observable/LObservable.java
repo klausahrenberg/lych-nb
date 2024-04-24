@@ -252,6 +252,11 @@ public abstract class LObservable<T, BC extends ILObservable>
             }
         }
     }
+    
+    public synchronized BC onAccepting(ILValidator<T, BC> changeAcceptor) {
+        this.addAcceptor(changeAcceptor);
+        return (BC) this;
+    }
 
     @Override
     public synchronized ILRegistration addAcceptor(ILValidator<T, BC> changeAcceptor) {
