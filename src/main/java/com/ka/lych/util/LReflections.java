@@ -831,6 +831,10 @@ public abstract class LReflections {
         public boolean isOptional() {
             return Optional.class.isAssignableFrom(_field.getType());
         }
+        
+        public int maxLength() {            
+            return LReflections.getAnnotationIntValue(this, 256, Id.class, Index.class, Json.class, Lazy.class);                    
+        }
 
         @Override
         public String toString() {

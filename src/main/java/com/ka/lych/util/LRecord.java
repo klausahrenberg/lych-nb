@@ -14,7 +14,6 @@ import com.ka.lych.observable.LInteger;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
-import com.ka.lych.observable.LText;
 import com.ka.lych.util.LReflections.LField;
 import com.ka.lych.util.LReflections.LFields;
 import com.ka.lych.util.LReflections.LRequiredClass;
@@ -128,9 +127,6 @@ public abstract class LRecord {
         boolean shouldParsed = (value instanceof String);
         if ((value != null) && (value instanceof LObservable)) {
             result = (LObservable) value;
-        } else if (LText.class.isAssignableFrom(field.type())) {
-            //result = new LString((String) value);
-            result = new LText(value instanceof String ? (String) value : (value != null ? value.toString() : null));
         } else if (LString.class.isAssignableFrom(field.type())) {
             //result = new LString((String) value);
             result = new LString(value instanceof String ? (String) value : (value != null ? value.toString() : null));

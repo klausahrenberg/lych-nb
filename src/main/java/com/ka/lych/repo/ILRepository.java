@@ -198,7 +198,7 @@ public interface ILRepository<BC extends ILRepository> {
     public void setOnError(ILHandler<LErrorEvent> onError);
 
     public default void registerDataFieldName(Class dataClass, String observableName, String dataFieldName) {
-        var columnItems = getColumnsWithoutLinks(dataClass);
+        var columnItems = columnsWithoutLinks(dataClass);
         var columnItem = columnItems.getIf(ci -> ci.getDataFieldName().equals(observableName));
         if (columnItem != null) {
             columnItem.setDataFieldName(dataFieldName);
@@ -208,31 +208,29 @@ public interface ILRepository<BC extends ILRepository> {
     }
 
     @SuppressWarnings("unchecked")
-    public default LList<LColumnItem> getColumnsWithoutLinks(Class dataClass) {
+    public default LList<LColumnItem> columnsWithoutLinks(Class dataClass) {
         LList<LColumnItem> result = this.columnsUnlinked().get(dataClass);
         if (result == null) {
             result = LList.empty();
-            getColumnsWithoutLinks(result, LRecord.example(dataClass), false, "", false, null);
+            _columnsWithoutLinks(result, LRecord.example(dataClass), false, "", false, null);
             this.columnsUnlinked().put(dataClass, result);
         }
         return result;
     }
 
     @SuppressWarnings("unchecked")
-    private static void getColumnsWithoutLinks(List<LColumnItem> result, Record exampleItem, boolean onlyPrimaryKey, String prefix,
+    private static void _columnsWithoutLinks(List<LColumnItem> result, Record exampleItem, boolean onlyPrimaryKey, String prefix,
             boolean parentIsPrimaryKey, LField[] linkColumn) {
         var fields = LRecord.getFields(exampleItem.getClass());
         for (int c = 0; c < fields.size(); c++) {
             //LYoso.evaluateFields(exampleItem.getClass()).forEach(column -> {                    
             LField field = fields.get(c);
             if ((field.isId()) || ((!onlyPrimaryKey) && (LReflections.existsAnnotation(field, Id.class, Index.class, Json.class, Lazy.class)))) {
-                if (!field.isLinked()) {
-                    int maxLength = LReflections.getAnnotationIntValue(field, 256, Id.class, Index.class, Json.class, Lazy.class);
-                    boolean lateLoader = LReflections.existsAnnotation(field, Lazy.class);
+                if (!field.isLinked()) {                    
                     result.add(new LColumnItem(field, c,
                             prefix + field.name(),
                             ((parentIsPrimaryKey) || (LString.isEmpty(prefix) && field.isId())),
-                            maxLength, lateLoader, linkColumn));
+                            linkColumn));
                 } else {
                     LField[] newLinkColumn = new LField[linkColumn == null ? 1 : linkColumn.length + 1];
                     if (linkColumn != null) {
@@ -241,7 +239,7 @@ public interface ILRepository<BC extends ILRepository> {
                         }
                     }
                     newLinkColumn[newLinkColumn.length - 1] = field;
-                    getColumnsWithoutLinks(result,
+                    _columnsWithoutLinks(result,
                             LRecord.example(field.requiredClass().requiredClass()),
                             true,
                             prefix + field.name() + "_",

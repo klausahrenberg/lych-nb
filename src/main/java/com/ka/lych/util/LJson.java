@@ -378,10 +378,8 @@ public class LJson {
             LLog.test("write object'%s' / %s", o, fields.size());
             while (it_fields.hasNext()) {
                 var field = it_fields.next();
-                if (LReflections.existsAnnotation(field, Lazy.class)) {
-                    json.propertyString(field.name(), "tbi / link to lazy value");
-                } else if ((!(o instanceof Record)) || (field.isId())
-                        || (json._onlyIdAfterTablevel == -1) || (json._tabLevel <= json._onlyIdAfterTablevel)) {
+                if ((!field.isLate()) && ((!(o instanceof Record)) || (field.isId())
+                        || (json._onlyIdAfterTablevel == -1) || (json._tabLevel <= json._onlyIdAfterTablevel))) {
                     //2023-06-15 (_tabLevel < 1) added
                     //2023-07-02 (_tabLevel < 1) removed
                     LObservable observable = (field.isObservable() ? LReflections.observable(o, field) : null);

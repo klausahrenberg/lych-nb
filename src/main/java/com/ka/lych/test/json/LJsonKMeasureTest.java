@@ -7,9 +7,9 @@ import com.ka.lych.util.LLog;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Generated;
+import com.ka.lych.annotation.Late;
 import com.ka.lych.observable.LDate;
 import com.ka.lych.observable.LInteger;
-import com.ka.lych.observable.LText;
 import com.ka.lych.repo.LQuery;
 import com.ka.lych.repo.web.LWebRepository.LOdwRequest;
 
@@ -87,11 +87,11 @@ public class LJsonKMeasureTest {
             @Json LInteger id,
             @Json(32) LString chapter,
             @Json(1024) LString caption,
-            @Json LText description,
+            @Json @Late LString description,
             @Json LDate planned,
             @Json LInteger priority,
             @Json LInteger status,
-            @Json LText comment) {
+            @Json @Late LString comment) {
 
     }
 }
