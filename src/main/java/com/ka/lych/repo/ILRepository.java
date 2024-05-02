@@ -162,7 +162,7 @@ public interface ILRepository<BC extends ILRepository> {
 
     public <R extends Record> LFuture<R, LDataException> fetchRoot(Class<R> dataClass, Optional<String> rootName);
 
-    public Object fetchValue(Record record, LObservable observable) throws LDataException;
+    public <O extends Object> LFuture<O, LDataException> fetchValue(Record record, LObservable observable);
 
     /**
      *

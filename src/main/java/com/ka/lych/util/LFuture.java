@@ -17,8 +17,15 @@ public abstract class LFuture<R, T extends Throwable>
     private final CountDownLatch latch;
     private T error;
     private R value;
-    private enum LFutureHandlerType {VALUE, ERROR, CANCEL, COMPLETE};
-    private record LFutureHandler(LFutureHandlerType handlerType, Consumer handler) { };
+
+    private enum LFutureHandlerType {
+        VALUE, ERROR, CANCEL, COMPLETE
+    };
+
+    private record LFutureHandler(LFutureHandlerType handlerType, Consumer handler) {
+
+    }
+    ;
     private final LList<LFutureHandler> handlers;
 
     public LFuture(LTask service) {
@@ -35,21 +42,21 @@ public abstract class LFuture<R, T extends Throwable>
         this.value = (exception == null ? value : null);
         latch.countDown();
         if (!cancelled) {
-            if (hasError()) {   
-                if (this.handlers.getIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR) != null) {                   
+            if (hasError()) {
+                if (this.handlers.getIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR) != null) {
                     this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR, eh -> eh.handler().accept(this.error));
                 } else {
                     //if no handler for errors is there, print stack trace
                     this.error.printStackTrace();
                 }
-            } else {                
+            } else {
                 this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.VALUE, eh -> eh.handler().accept(this.value));
             }
         } else {
             this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.CANCEL, eh -> eh.handler().accept(null));
         }
         this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.COMPLETE, eh -> eh.handler().accept(null));
-        this.handlers.clear();       
+        this.handlers.clear();
     }
 
     public LFuture<R, T> await() {
@@ -62,11 +69,12 @@ public abstract class LFuture<R, T extends Throwable>
     }
 
     /**
-     * onError() mirrors a try-catch. In case of an error, then() will not be called
+     * onError() mirrors a try-catch. In case of an error, then() will not be
+     * called
+     *
      * @param exceptionHandler
-     * @return 
+     * @return
      */
-    
     public LFuture<R, T> onError(Consumer<? super T> exceptionHandler) {
         if (latch.getCount() > 0) {
             this.handlers.add(new LFutureHandler(LFutureHandlerType.ERROR, exceptionHandler));
@@ -76,11 +84,13 @@ public abstract class LFuture<R, T extends Throwable>
         }
         return this;
     }
-    
+
     /**
-     * onCancel() will be called at cancellation of operation, no then() or onError() will be fired
+     * onCancel() will be called at cancellation of operation, no then() or
+     * onError() will be fired
+     *
      * @param cancelHandler
-     * @return 
+     * @return
      */
     public LFuture<R, T> onCancel(Consumer<Void> cancelHandler) {
         if (latch.getCount() > 0) {
@@ -91,17 +101,18 @@ public abstract class LFuture<R, T extends Throwable>
         }
         return this;
     }
-    
+
     /**
-     * whenComplete() is the equivalent of ‘finally’. The callback registered within whenComplete() 
-     * is called when whenComplete()’s receiver completes, whether it does so with a value,
-     * with an error or was cancelled.
+     * whenComplete() is the equivalent of ‘finally’. The callback registered
+     * within whenComplete() is called when whenComplete()’s receiver completes,
+     * whether it does so with a value, with an error or was cancelled.
+     *
      * @param completeHandler
-     * @return 
-     */    
+     * @return
+     */
     public LFuture<R, T> whenComplete(Consumer<Void> completeHandler) {
         if (latch.getCount() > 0) {
-            this.handlers.add(new LFutureHandler(LFutureHandlerType.COMPLETE, completeHandler));            
+            this.handlers.add(new LFutureHandler(LFutureHandlerType.COMPLETE, completeHandler));
         } else if (hasError()) {
             completeHandler.accept(null);
         }
@@ -110,8 +121,9 @@ public abstract class LFuture<R, T extends Throwable>
 
     /**
      * then() will be called, if operation ended normally with a return value.
+     *
      * @param valueHandler handler of result value of operation
-     * @return 
+     * @return
      */
     public LFuture<R, T> then(Consumer<R> valueHandler) {
         if (latch.getCount() > 0) {
@@ -153,13 +165,13 @@ public abstract class LFuture<R, T extends Throwable>
         if (runningTasks == null) {
             runningTasks = new LList<>();
         }
-    }        
+    }
 
     public static <R, T extends Throwable> LFuture<R, T> execute(ILRunnable<R, T> runnable) {
         return LFuture.<R, T>execute(runnable, 0, 0, false);
     }
-    
-    public static <R, T extends Throwable> LFuture<R, T> execute(ILRunnable<R, T> runnable, long delay, long duration, boolean looping) {               
+
+    public static <R, T extends Throwable> LFuture<R, T> execute(ILRunnable<R, T> runnable, long delay, long duration, boolean looping) {
         //create list with services, if necessary
         ensureRunningServices();
         //Create and start service                        
@@ -169,24 +181,24 @@ public abstract class LFuture<R, T extends Throwable>
             public void remove() {
                 runningTasks.remove(task);
             }
-            
+
         };
         task._future = future;
-        runningTasks.add(task);        
+        runningTasks.add(task);
         task.start();
         return future;
-    }    
+    }
 
     public static <R, T extends Throwable> void cancel(LFuture<R, T> future) {
         if (runningTasks != null) {
             runningTasks.forEachIf(s -> s == future.service, s -> s.cancel());
         }
     }
-    
+
     public static <R, T extends Throwable> void restart(LFuture<R, T> future) {
         if (runningTasks != null) {
             runningTasks.forEachIf(s -> s == future.service, s -> {
-                if (s instanceof LTimerTask) {                    
+                if (s instanceof LTimerTask) {
                     ((LTimerTask) s).restart();
                 }
             });
@@ -205,6 +217,22 @@ public abstract class LFuture<R, T extends Throwable>
 
     public static <R, T extends Throwable> boolean isExecuting(LFuture<R, T> future) {
         return runningTasks.getIf(s -> s == future.service) != null;
+    }
+
+    /**
+     * Delays execution, if debugging is enabled. Can be used to simulate slow execution during debugging
+     * @param millis 
+     */
+    public static void delayDebug(long millis) {
+        if (LLog.LOG_LEVEL == LLog.LLogLevel.DEBUGGING) {
+            LLog.debug("...slow down... %s", millis);
+            try {
+                Thread.sleep(millis);
+            } catch (InterruptedException ex) {
+
+            }
+            LLog.debug("...move on...");
+        }
     }
 
 }

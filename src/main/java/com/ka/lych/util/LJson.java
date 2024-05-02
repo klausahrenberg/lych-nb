@@ -361,7 +361,9 @@ public class LJson {
 
     @SuppressWarnings("unchecked")
     protected static void _objectToJson(LJson json, Object o) {
-        if (o instanceof ILParseable) {
+        if (o == null) {
+            json.writeNull();
+        } else if (o instanceof ILParseable) {
             var ps = ((ILParseable) o).toParseableString();
             if (ps != null) {
                 json.writeString(ps);

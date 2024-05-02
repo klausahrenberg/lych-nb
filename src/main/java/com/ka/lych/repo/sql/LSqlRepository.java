@@ -28,6 +28,7 @@ import com.ka.lych.annotation.Index;
 import com.ka.lych.exception.LDataException;
 import com.ka.lych.exception.LParseException;
 import com.ka.lych.repo.LServerRepository;
+import com.ka.lych.util.LLog.LLogLevel;
 import java.util.Objects;
 
 /**
@@ -40,7 +41,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     final static String KEYWORD_SQL_QUOTATIONMARK = "'";
     final static String KEYWORD_COL_COUNT = "numberof";
     final static String KEYWORD_SQL_WILDCARD = "%";
-    
+
     Connection _connection = null;
     Statement _queryStatement = null;
     @Json
@@ -102,7 +103,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     public LString server() {
         return _server;
     }
-    
+
     public LSqlRepository server(String server) {
         server().set(server);
         return this;
@@ -111,7 +112,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     public LString database() {
         return _database;
     }
-    
+
     public LSqlRepository database(String database) {
         database().set(database);
         return this;
@@ -120,7 +121,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     public LString user() {
         return _user;
     }
-    
+
     public LSqlRepository user(String user) {
         user().set(user);
         return this;
@@ -129,7 +130,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     public LString password() {
         return _password;
     }
-    
+
     public LSqlRepository password(String password) {
         password().set(password);
         return this;
@@ -354,7 +355,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected) {
         return LFuture.<LObject<LDataServiceState>, LDataException>execute(task -> {
             if (connected) {
-            //Verbindungsaufbau
+                //Verbindungsaufbau
                 if (state().get() == LDataServiceState.NOT_AVAILABLE) {
                     if (isReadyForConnect()) {
                         _state.set(LDataServiceState.REQUESTING);
@@ -380,14 +381,14 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                         } catch (Exception e) {
                         }
                     }
-                
+
                 }
                 _queryStatement = null;
                 _connection = null;
                 _state.set(LDataServiceState.NOT_AVAILABLE);
             }
             return state();
-        });        
+        });
     }
 
     @Override
@@ -470,7 +471,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     protected String getSQLType(LColumnItem dbItem, boolean referenceLink) {
         var field = dbItem.getField();
-        Class fldc = field.type();        
+        Class fldc = field.type();
         if (LString.class.isAssignableFrom(fldc)) {
             if (field.isLate()) {
                 return dtTEXT[getDatabaseTypeAsInteger()];
@@ -689,12 +690,12 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<? extends Record> parent) {        
+    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<? extends Record> parent) {
         return LFuture.<R, LDataException>execute(task -> {
             try {
                 LObjects.requireNonNull(rcd);
                 var fields = LRecord.getFields(rcd.getClass());
-                LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(rcd);                
+                LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(rcd);
                 if (primaryKeyComplete != LKeyCompleteness.KEY_NOT_COMPLETE) {
                     if (available()) {
                         try {
@@ -1397,32 +1398,46 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     @Override
-    public Object fetchValue(Record rcd, LObservable observable) throws LDataException {
-        StringBuilder sql = new StringBuilder("select ");
-        var columns = columnsWithoutLinks(rcd.getClass());
-        var fieldName = LRecord.getFieldName(rcd, observable);
-        var column = columns.getIf(c -> c.getField().name() == fieldName);
-        sql.append(column.getDataFieldName());
-        sql.append(" from ").append(getTableName(rcd.getClass()));
-        sql.append(" where ").append(buildSqlFilter(rcd, columns, ""));
-        try {
-            LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
-            if (sqlResultSet.next()) {
-                Object d = sqlResultSet.getObject(column.getDataFieldName(), LRecord.getFields(rcd.getClass()).get(fieldName).requiredClass());
-                //dirty fix for LocalDate                    
-                if ((observable instanceof LDate) && (d != null)) {
-                    if (d instanceof LocalDateTime) {
-                        d = ((LocalDateTime) d).toLocalDate();
+    public <O extends Object> LFuture<O, LDataException> fetchValue(Record record, LObservable observable) {
+        return LFuture.<O, LDataException>execute(task -> {
+            LFuture.delayDebug(1500);
+            if (available()) {                
+                LObjects.requireNonNull(record);
+                var fields = LRecord.getFields(record.getClass());
+                LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(record);
+                if (primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE) {
+                    StringBuilder sql = new StringBuilder("select ");
+                    var columns = columnsWithoutLinks(record.getClass());
+                    var fieldName = LRecord.getFieldName(record, observable);
+                    var column = columns.getIf(c -> c.getField().name() == fieldName);
+                    sql.append(column.getDataFieldName());
+                    sql.append(" from ").append(getTableName(record.getClass()));
+                    sql.append(" where ").append(buildSqlFilter(record, columns, ""));
+                    try {
+                        LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
+                        if (sqlResultSet.next()) {
+                            O d = (O) sqlResultSet.getObject(column.getDataFieldName(), LRecord.getFields(record.getClass()).get(fieldName).requiredClass());
+                            //dirty fix for LocalDate                    
+                            if ((observable instanceof LDate) && (d != null)) {
+                                if (d instanceof LocalDateTime) {
+                                    d = (O) ((LocalDateTime) d).toLocalDate();
+                                }
+                            }
+                            return d;
+                        } else {
+                            return null;
+                        }
+                    } catch (LDataException | SQLException e) {
+                        LLog.error(getClass().getSimpleName() + ".fetchValue", e);
+                        return null;
                     }
+                } else {
+                    return null;
                 }
-                return d;
             } else {
-                return null;
+                throw new LDataException("Service is not available. Wrong service state: %s", state().get());
             }
-        } catch (LDataException | SQLException e) {
-            LLog.error(getClass().getSimpleName() + ".fetchValue", e);
-            return null;
-        }
+        });
     }
 
     @Override
@@ -1437,7 +1452,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 if (query.customSQL() != null) {
                     sql.append(query.customSQL());
                 } else {
-                    sql.append(_buildSqlStatementForRequery(query.recordClass(), query.parent(), query.filter(), false));                    
+                    sql.append(_buildSqlStatementForRequery(query.recordClass(), query.parent(), query.filter(), false));
                     if ((query.sortOrders() != null) && (!query.sortOrders().isEmpty())) {
                         sql.append(" order by ");
                         query.sortOrders().forEach(so -> sql.append("a.").append(so.fieldName()).append(" ").append(so.sortDirection() == LSortDirection.ASCENDING ? "ASC" : "DESC").append(", "));
@@ -1451,9 +1466,9 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                             sql.setLength(sql.length() - 2);
                         }
                     }
-                    if (query.limit() > 0) {    
+                    if (query.limit() > 0) {
                         sql.append(" OFFSET ").append(Integer.toString(query.offset()))
-                                .append(" ROWS FETCH NEXT ").append(Integer.toString(query.limit())).append(" ROWS ONLY");                    
+                                .append(" ROWS FETCH NEXT ").append(Integer.toString(query.limit())).append(" ROWS ONLY");
                     }
                 }
                 try {

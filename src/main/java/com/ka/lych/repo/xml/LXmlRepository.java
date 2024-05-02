@@ -302,8 +302,8 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
     }
 
     @Override
-    public Object fetchValue(Record record, LObservable observable) throws LDataException {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public <O> LFuture<O, LDataException> fetchValue(Record record, LObservable observable) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override

@@ -158,7 +158,7 @@ public class LWebRepository implements
     }
 
     @Override
-    public Object fetchValue(Record record, LObservable observable) throws LDataException {
+    public <O> LFuture<O, LDataException> fetchValue(Record record, LObservable observable) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
@@ -237,6 +237,10 @@ public class LWebRepository implements
     }
 
     public record LOdwRequestMap<R extends Record>(@Json LMap<String, Object> record, @Json Optional<LMap<String, Object>> parent) {
+
+    }
+    
+    public record LOdwRequestValue<R extends Record>(@Json LMap<String, Object> record, @Json String fieldName) {
 
     }
 
