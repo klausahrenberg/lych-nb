@@ -3,7 +3,6 @@ package com.ka.lych.test.json;
 import com.ka.lych.observable.LString;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
-import com.ka.lych.util.LArrays;
 import com.ka.lych.util.LJson;
 import com.ka.lych.util.LJsonParser;
 import com.ka.lych.util.LLog;
@@ -28,6 +27,10 @@ public class LTestJson {
                 //var map = LJsonParser.of(TProperty.class).inputStream(resStream).parseMap();
                 //LLog.test("loaded: %s", LArrays.toString(list.values().toArray()));
                 LLog.test("back to json: \n %s", LJson.of(list).toString());
+                LLog.test("simple json string: \n %s", LJson.of("Hello Json").toString());
+                LLog.test("simple json bool: \n %s", LJson.of(Boolean.FALSE).toString());
+                LLog.test("simple json int: \n %s", LJson.of(17).toString());
+                LLog.test("simple json null: \n %s", LJson.of(null).toString());
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
