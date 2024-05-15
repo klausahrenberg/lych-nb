@@ -421,7 +421,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         return executeQuery(sql, 0);
     }
 
-    protected LSqlResultSet executeQuery(String sql, int maxRows) throws LDataException {
+    synchronized protected LSqlResultSet executeQuery(String sql, int maxRows) throws LDataException {
         try {
             LLog.debug("SQL query: %s", sql);
             LSqlResultSet resultSet = new LSqlResultSet(_connection, sql, maxRows);
@@ -1399,7 +1399,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     @Override
     public <O extends Object> LFuture<O, LDataException> fetchValue(Record record, LObservable observable) {
-        return LFuture.<O, LDataException>execute(task -> {
+        return LFuture.<O, LDataException>execute( task -> {
             LFuture.delayDebug(1500);
             if (available()) {                
                 LObjects.requireNonNull(record);
@@ -1414,7 +1414,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     sql.append(" from ").append(getTableName(record.getClass()));
                     sql.append(" where ").append(buildSqlFilter(record, columns, ""));
                     try {
-                        LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
+                        LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);                        
                         if (sqlResultSet.next()) {
                             O d = (O) sqlResultSet.getObject(column.getDataFieldName(), LRecord.getFields(record.getClass()).get(fieldName).requiredClass());
                             //dirty fix for LocalDate                    

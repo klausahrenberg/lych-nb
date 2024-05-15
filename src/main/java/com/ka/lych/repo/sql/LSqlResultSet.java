@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.ILConstants;
+import com.ka.lych.util.LLog;
 import com.ka.lych.util.LReflections.LRequiredClass;
 
 /**
@@ -24,7 +25,7 @@ public class LSqlResultSet {
         rs = qStatement.executeQuery(sql);
         md = rs.getMetaData();
     }
-
+    
     public void close() throws SQLException {
         rs.close();
         rs = null;
@@ -71,6 +72,7 @@ public class LSqlResultSet {
                         cache.put(key, sqlDate.toLocalDate());
                     } else if (Clob.class.isAssignableFrom(o.getClass())) {
                         Clob clob = (Clob) o;
+                        LLog.test("clblob length %s", clob.length());
                         cache.put(key, clob.getSubString(1, (int) clob.length()));
                     } else {
                         cache.put(key, o);
