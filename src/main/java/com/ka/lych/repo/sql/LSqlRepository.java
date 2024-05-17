@@ -406,10 +406,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         if (available()) {
             try {
                 LSqlResultSet rs = this.executeQuery("select count(" + columnName + ") from " + tableName);
-                rs.close();
+                //rs.close();
                 result = true;
-            } catch (SQLException sqle) {
-                throw new IllegalStateException(sqle.getMessage(), sqle);
             } catch (LDataException sqle) {
                 return false;
             }
@@ -901,9 +899,19 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     sb.append(buildSqlFilter(parent, paColumns, ILConstants.PARENT + ILConstants.UNDL));
                     sb.append(")");
                 }
-                try {
+                //try {
                     LSqlResultSet sqlResultSet = executeQuery(sb.toString());
-                    while (sqlResultSet.next()) {
+                    for (var item : sqlResultSet) {
+                        try {
+                            @SuppressWarnings("unchecked")
+                            Record data = LRecord.of(isChild ? sd.parentClass() : sd.childClass(), null);
+                            //fillDatas(data, sqlResultSet, (isChild ? paColumns : chColumns), true, yosoPrefix);
+                            result.add(new LSqlRelationsItem(tableName, isChild, (isChild ? paColumns : chColumns), data));
+                        } catch (LParseException lpe) {                            
+                            throw new LDataException(lpe);
+                        }
+                    }
+                    /*while (sqlResultSet.next()) {
                         try {
                             @SuppressWarnings("unchecked")
                             Record data = LRecord.of(isChild ? sd.parentClass() : sd.childClass(), null);
@@ -918,7 +926,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     sqlResultSet.close();
                 } catch (SQLException sqle) {
                     throw new LDataException(sqle);
-                }
+                }*/
             }
         }
         //Now delete all relations
@@ -1217,12 +1225,18 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 String sql = _buildSqlStatementForRequery(dataClass, parent, filter, true);
                 LSqlResultSet sqlResultSet = executeQuery(sql);
                 int count;
-                if (sqlResultSet.next()) {
+                if (!sqlResultSet.isEmpty()) {
+                    count = sqlResultSet.getInteger(0, KEYWORD_COL_COUNT);
+                } else {
+                    throw new SQLException("Can't request counts");
+                }    
+                                
+                /*if (sqlResultSet.next()) {
                     count = sqlResultSet.getInteger(KEYWORD_COL_COUNT);
                 } else {
                     throw new SQLException("Can't request counts");
                 }
-                sqlResultSet.close();
+                sqlResultSet.close();*/
                 LLog.debug("count: " + count);
                 return count;
             } catch (SQLException sqle) {
@@ -1236,12 +1250,17 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             String sql = "select count(*) as " + KEYWORD_COL_COUNT + " from " + tableName + " where " + sqlFilter;
             LSqlResultSet sqlResultSet = executeQuery(sql);
             int count;
-            if (sqlResultSet.next()) {
+                if (!sqlResultSet.isEmpty()) {
+                    count = sqlResultSet.getInteger(0, KEYWORD_COL_COUNT);
+                } else {
+                    throw new SQLException("Can't request counts");
+                }    
+            /*if (sqlResultSet.next()) {
                 count = sqlResultSet.getInteger(KEYWORD_COL_COUNT);
             } else {
                 throw new SQLException("Can't request counts");
             }
-            sqlResultSet.close();
+            sqlResultSet.close();*/
             LLog.debug("count: " + count);
             return count;
         } catch (SQLException sqle) {
@@ -1320,7 +1339,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Record> T _createRecord(Class<T> rcdClass, LSqlResultSet resultSet, LList<LColumnItem> columns, String prefix, boolean onlyKey) throws LDataException, SQLException {
+    private <T extends Record> T _createRecord(Class<T> rcdClass, LSqlResultSet resultSet, int index, LList<LColumnItem> columns, String prefix, boolean onlyKey) throws LDataException, SQLException {
         var map = new LMap<String, Object>();
         LField lastLinkedColumn = null;
         for (var column : columns) {
@@ -1328,7 +1347,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 Object value = null;
                 if (column.isLinked()) {
                     if (column.getLinkColumn() != lastLinkedColumn) {
-                        value = _createRecord(column.getLinkColumn().requiredClass().requiredClass(), resultSet,
+                        value = _createRecord(column.getLinkColumn().requiredClass().requiredClass(), resultSet, index,
                                 columnsWithoutLinks(column.getLinkColumn().requiredClass().requiredClass()),
                                 prefix + column.getLinkColumn().name() + ILConstants.UNDL, true);
                     }
@@ -1338,7 +1357,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     lastLinkedColumn = column.getLinkColumn();
                 } else {
                     //not linked column
-                    value = resultSet.getObject(prefix + column.getField().name(), column.getField().requiredClass());
+                    value = resultSet.getObject(index, prefix + column.getField().name(), column.getField().requiredClass());
                     if (value != null) {
                         map.put(column.getField().name(), value);
                     }
@@ -1380,13 +1399,19 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             StringBuilder sql = new StringBuilder();
             sql.append(_buildSqlStatementForRequery(rcdClass, null, term, false));
             try {
-                LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
-                if (sqlResultSet.next()) {
+                LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);                
+                if (!sqlResultSet.isEmpty()) {
+                    rcd = _createRecord(rcdClass, sqlResultSet, 0, columns, "", false);
+                } else {
+                    rcd = null;
+                }    
+                
+                /*if (sqlResultSet.next()) {
                     rcd = _createRecord(rcdClass, sqlResultSet, columns, "", false);
                 } else {
                     rcd = null;
                 }
-                sqlResultSet.close();
+                sqlResultSet.close();*/
             } catch (SQLException e) {
                 LLog.error("Fetching record failed: '" + sql.toString() + "'", e);
                 return null;
@@ -1414,9 +1439,9 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     sql.append(" from ").append(getTableName(record.getClass()));
                     sql.append(" where ").append(buildSqlFilter(record, columns, ""));
                     try {
-                        LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);                        
-                        if (sqlResultSet.next()) {
-                            O d = (O) sqlResultSet.getObject(column.getDataFieldName(), LRecord.getFields(record.getClass()).get(fieldName).requiredClass());
+                        LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);     
+                        if (!sqlResultSet.isEmpty()) {
+                            O d = (O) sqlResultSet.getObject(0, column.getDataFieldName(), LRecord.getFields(record.getClass()).get(fieldName).requiredClass());
                             //dirty fix for LocalDate                    
                             if ((observable instanceof LDate) && (d != null)) {
                                 if (d instanceof LocalDateTime) {
@@ -1427,6 +1452,19 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                         } else {
                             return null;
                         }
+                        
+                        /*if (sqlResultSet.next()) {
+                            O d = (O) sqlResultSet.getObject(column.getDataFieldName(), LRecord.getFields(record.getClass()).get(fieldName).requiredClass());
+                            //dirty fix for LocalDate                    
+                            if ((observable instanceof LDate) && (d != null)) {
+                                if (d instanceof LocalDateTime) {
+                                    d = (O) ((LocalDateTime) d).toLocalDate();
+                                }
+                            }
+                            return d;
+                        } else {
+                            return null;
+                        }*/
                     } catch (LDataException | SQLException e) {
                         LLog.error(getClass().getSimpleName() + ".fetchValue", e);
                         return null;
@@ -1474,7 +1512,17 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 try {
                     var columns = columnsWithoutLinks(query.recordClass());
                     LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
-                    while ((!task.isCancelled()) && (sqlResultSet.next())) {
+                    
+                    for (int i = 0; i < sqlResultSet.size(); i++) {
+                        T rcd = _createRecord(query.recordClass(), sqlResultSet, i, columns, "", false);
+                        LLog.test("fetchedRecord: %s", rcd);
+                        if ((query.parent() != null) && (rcd instanceof ILHasParent)) {
+                            ((ILHasParent) rcd).setParent(query.parent());
+                        }
+                        result.add(rcd);
+                    }
+                    
+                    /*while ((!task.isCancelled()) && (sqlResultSet.next())) {
                         LLog.test("fetch...");
                         T rcd = _createRecord(query.recordClass(), sqlResultSet, columns, "", false);
                         LLog.test("fetchedRecord: %s", rcd);
@@ -1484,7 +1532,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
                         result.add(rcd);
                     }
-                    sqlResultSet.close();
+                    sqlResultSet.close();*/
                 } catch (SQLException e) {
                     LLog.error(getClass().getSimpleName() + ".fetch", e);
                 }
