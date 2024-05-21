@@ -28,7 +28,6 @@ import com.ka.lych.annotation.Index;
 import com.ka.lych.exception.LDataException;
 import com.ka.lych.exception.LParseException;
 import com.ka.lych.repo.LServerRepository;
-import com.ka.lych.util.LLog.LLogLevel;
 import java.util.Objects;
 
 /**
@@ -736,30 +735,15 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                                     } else if (!columnItem.getField().isLate()) {
                                         sql = sql + columnItem.getDataFieldName() + ", ";
                                     }
-
-                                    /*if ((columnItem.getLinkColumns() != null) || (!columnItem.isGeneratedValue())) {
-                                    sql = sql + columnItem.getDataFieldName() + ", ";
-                                } else if (generatedColumn == null) {
-                                    generatedColumn = columnItem.getField();
-                                } else {
-                                    throw new UnsupportedOperationException("More than 1 generatedColumn is not supported. 1. generated: " + generatedColumn + " 2. generated: " + columnItem.getField());
-                                }*/
                                 }
                                 sql = sql.substring(0, sql.length() - 2) + ") values (";
                                 for (LColumnItem columnItem : columnItems) {
                                     if ((!columnItem.isGeneratedValue()) && (!columnItem.getField().isLate())) {
                                         //this crashes and burns
                                         var obs = getSubItem(columnItem, rcd);
-
-                                        //LObjects.requireNonNull(obs, "Illegal _state: Observable for field '" + columnItem.getField().name() + "' is null. Record: " + rcd);
                                         sql = sql + toSql(obs);
                                         sql = sql + ", ";
                                     }
-
-                                    /*if ((columnItem.getLinkColumns() != null) || (!columnItem.isGeneratedValue())) {
-                                    sql = sql + toSql(getSubItem(columnItem, rcd));
-                                    sql = sql + ", ";
-                                }*/
                                 }
                                 sql = sql.substring(0, sql.length() - 2) + ")";
                                 int genValue = executeInsert(sql, (generatedColumn != null));
@@ -899,34 +883,16 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     sb.append(buildSqlFilter(parent, paColumns, ILConstants.PARENT + ILConstants.UNDL));
                     sb.append(")");
                 }
-                //try {
-                    LSqlResultSet sqlResultSet = executeQuery(sb.toString());
-                    for (var item : sqlResultSet) {
-                        try {
-                            @SuppressWarnings("unchecked")
-                            Record data = LRecord.of(isChild ? sd.parentClass() : sd.childClass(), null);
-                            //fillDatas(data, sqlResultSet, (isChild ? paColumns : chColumns), true, yosoPrefix);
-                            result.add(new LSqlRelationsItem(tableName, isChild, (isChild ? paColumns : chColumns), data));
-                        } catch (LParseException lpe) {                            
-                            throw new LDataException(lpe);
-                        }
+                LSqlResultSet sqlResultSet = executeQuery(sb.toString());
+                for (var item : sqlResultSet) {
+                    try {
+                        @SuppressWarnings("unchecked")
+                        Record data = LRecord.of(isChild ? sd.parentClass() : sd.childClass(), null);
+                        result.add(new LSqlRelationsItem(tableName, isChild, (isChild ? paColumns : chColumns), data));
+                    } catch (LParseException lpe) {
+                        throw new LDataException(lpe);
                     }
-                    /*while (sqlResultSet.next()) {
-                        try {
-                            @SuppressWarnings("unchecked")
-                            Record data = LRecord.of(isChild ? sd.parentClass() : sd.childClass(), null);
-                            //fillDatas(data, sqlResultSet, (isChild ? paColumns : chColumns), true, yosoPrefix);
-                            result.add(new LSqlRelationsItem(tableName, isChild, (isChild ? paColumns : chColumns), data));
-                        } catch (LParseException lpe) {
-                            sqlResultSet.close();
-                            throw new LDataException(lpe);
-                        }
-
-                    }
-                    sqlResultSet.close();
-                } catch (SQLException sqle) {
-                    throw new LDataException(sqle);
-                }*/
+                }
             }
         }
         //Now delete all relations
@@ -1168,7 +1134,6 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     /**
      * Builds sql where clause for requery for the given filter
      *
-     * @param datas
      * @param filter
      * @param prefix
      * @return
@@ -1176,44 +1141,25 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     protected String _buildSqlFilter(Class<? extends Record> rcdClass, LTerm filter, String prefix) throws LDataException {
         String result;
         StringBuilder sb = new StringBuilder();
-
         switch (filter.getOperation()) {
-            case OR: {
+            case OR -> {
                 for (int i = 0; i < filter.getSubs().size(); i++) {
                     var cond = filter.getSubs().get(i);
                     sb.append("(").append(_buildSqlFilter(rcdClass, cond, prefix)).append(") or  ");
-                }
-                break;
+                }                
             }
-            case AND: {
+            case AND -> {
                 for (int i = 0; i < filter.getSubs().size(); i++) {
                     var cond = filter.getSubs().get(i);
                     sb.append("(").append(_buildSqlFilter(rcdClass, cond, prefix)).append(") and ");
                 }
-                break;
             }
-            case EQUAL: {
-                buildSqlComparison(rcdClass, sb, prefix, "=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());
-                break;
-            }
-            case NOT_EQUAL: {
-                buildSqlComparison(rcdClass, sb, prefix, "<>", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());
-                break;
-            }
-            case EQUAL_OR_LESS: {
-                buildSqlComparison(rcdClass, sb, prefix, "<=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());
-                break;
-            }
-            case EQUAL_OR_MORE: {
-                buildSqlComparison(rcdClass, sb, prefix, ">=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());
-                break;
-            }
-            case LIKE: {
-                buildSqlComparison(rcdClass, sb, "lower(" + prefix, ") like ", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());
-                break;
-            }
-            default:
-                throw new UnsupportedOperationException("Condition not supported for filtering: " + filter);
+            case EQUAL -> buildSqlComparison(rcdClass, sb, prefix, "=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());                
+            case NOT_EQUAL -> buildSqlComparison(rcdClass, sb, prefix, "<>", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());                
+            case EQUAL_OR_LESS -> buildSqlComparison(rcdClass, sb, prefix, "<=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());                
+            case EQUAL_OR_MORE -> buildSqlComparison(rcdClass, sb, prefix, ">=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());                
+            case LIKE -> buildSqlComparison(rcdClass, sb, "lower(" + prefix, ") like ", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());                
+            default -> throw new UnsupportedOperationException("Condition not supported for filtering: " + filter);
         }
         return sb.toString().substring(0, sb.length() - 5);
     }
@@ -1229,15 +1175,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     count = sqlResultSet.getInteger(0, KEYWORD_COL_COUNT);
                 } else {
                     throw new SQLException("Can't request counts");
-                }    
-                                
-                /*if (sqlResultSet.next()) {
-                    count = sqlResultSet.getInteger(KEYWORD_COL_COUNT);
-                } else {
-                    throw new SQLException("Can't request counts");
                 }
-                sqlResultSet.close();*/
-                LLog.debug("count: " + count);
+                LLog.debug("count: %s", count);
                 return count;
             } catch (SQLException sqle) {
                 throw new LDataException(sqle);
@@ -1250,18 +1189,12 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             String sql = "select count(*) as " + KEYWORD_COL_COUNT + " from " + tableName + " where " + sqlFilter;
             LSqlResultSet sqlResultSet = executeQuery(sql);
             int count;
-                if (!sqlResultSet.isEmpty()) {
-                    count = sqlResultSet.getInteger(0, KEYWORD_COL_COUNT);
-                } else {
-                    throw new SQLException("Can't request counts");
-                }    
-            /*if (sqlResultSet.next()) {
-                count = sqlResultSet.getInteger(KEYWORD_COL_COUNT);
+            if (!sqlResultSet.isEmpty()) {
+                count = sqlResultSet.getInteger(0, KEYWORD_COL_COUNT);
             } else {
                 throw new SQLException("Can't request counts");
             }
-            sqlResultSet.close();*/
-            LLog.debug("count: " + count);
+            LLog.debug("count: %s", count);
             return count;
         } catch (SQLException sqle) {
             throw new LDataException(sqle);
@@ -1399,19 +1332,12 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             StringBuilder sql = new StringBuilder();
             sql.append(_buildSqlStatementForRequery(rcdClass, null, term, false));
             try {
-                LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);                
+                LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
                 if (!sqlResultSet.isEmpty()) {
                     rcd = _createRecord(rcdClass, sqlResultSet, 0, columns, "", false);
                 } else {
                     rcd = null;
-                }    
-                
-                /*if (sqlResultSet.next()) {
-                    rcd = _createRecord(rcdClass, sqlResultSet, columns, "", false);
-                } else {
-                    rcd = null;
                 }
-                sqlResultSet.close();*/
             } catch (SQLException e) {
                 LLog.error("Fetching record failed: '" + sql.toString() + "'", e);
                 return null;
@@ -1424,9 +1350,9 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     @Override
     public <O extends Object> LFuture<O, LDataException> fetchValue(Record record, LObservable observable) {
-        return LFuture.<O, LDataException>execute( task -> {
+        return LFuture.<O, LDataException>execute(task -> {
             LFuture.delayDebug(1500);
-            if (available()) {                
+            if (available()) {
                 LObjects.requireNonNull(record);
                 var fields = LRecord.getFields(record.getClass());
                 LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(record);
@@ -1439,7 +1365,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     sql.append(" from ").append(getTableName(record.getClass()));
                     sql.append(" where ").append(buildSqlFilter(record, columns, ""));
                     try {
-                        LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);     
+                        LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
                         if (!sqlResultSet.isEmpty()) {
                             O d = (O) sqlResultSet.getObject(0, column.getDataFieldName(), LRecord.getFields(record.getClass()).get(fieldName).requiredClass());
                             //dirty fix for LocalDate                    
@@ -1452,19 +1378,6 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                         } else {
                             return null;
                         }
-                        
-                        /*if (sqlResultSet.next()) {
-                            O d = (O) sqlResultSet.getObject(column.getDataFieldName(), LRecord.getFields(record.getClass()).get(fieldName).requiredClass());
-                            //dirty fix for LocalDate                    
-                            if ((observable instanceof LDate) && (d != null)) {
-                                if (d instanceof LocalDateTime) {
-                                    d = (O) ((LocalDateTime) d).toLocalDate();
-                                }
-                            }
-                            return d;
-                        } else {
-                            return null;
-                        }*/
                     } catch (LDataException | SQLException e) {
                         LLog.error(getClass().getSimpleName() + ".fetchValue", e);
                         return null;
@@ -1512,27 +1425,14 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 try {
                     var columns = columnsWithoutLinks(query.recordClass());
                     LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
-                    
+
                     for (int i = 0; i < sqlResultSet.size(); i++) {
                         T rcd = _createRecord(query.recordClass(), sqlResultSet, i, columns, "", false);
-                        LLog.test("fetchedRecord: %s", rcd);
                         if ((query.parent() != null) && (rcd instanceof ILHasParent)) {
                             ((ILHasParent) rcd).setParent(query.parent());
                         }
                         result.add(rcd);
                     }
-                    
-                    /*while ((!task.isCancelled()) && (sqlResultSet.next())) {
-                        LLog.test("fetch...");
-                        T rcd = _createRecord(query.recordClass(), sqlResultSet, columns, "", false);
-                        LLog.test("fetchedRecord: %s", rcd);
-                        if ((query.parent() != null) && (rcd instanceof ILHasParent)) {
-                            ((ILHasParent) rcd).setParent(query.parent());
-                        }
-
-                        result.add(rcd);
-                    }
-                    sqlResultSet.close();*/
                 } catch (SQLException e) {
                     LLog.error(getClass().getSimpleName() + ".fetch", e);
                 }

@@ -1,6 +1,5 @@
 package com.ka.lych.repo.sql;
 
-import com.ka.lych.exception.LException;
 import com.ka.lych.exception.LParseException;
 import com.ka.lych.exception.LUnchecked;
 import com.ka.lych.list.LList;
@@ -13,7 +12,6 @@ import com.ka.lych.util.LLog;
 import com.ka.lych.util.LReflections;
 import com.ka.lych.util.LReflections.LRequiredClass;
 import com.ka.lych.xml.LXmlUtils;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
