@@ -779,61 +779,72 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         });
     }
 
-    public void persistValue(Record rcd, LObservable obs) throws LDataException {
-        var fields = LRecord.getFields(rcd.getClass());
-        LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(rcd);
-        if ((available()) && (primaryKeyComplete != LKeyCompleteness.KEY_NOT_COMPLETE)) {
+    public <R extends Record> LFuture<R, LDataException> persistValue(R rcd, LObservable obs) {
+        return LFuture.<R, LDataException>execute(task -> {
             try {
-                var columns = columnsWithoutLinks(rcd.getClass());
-                var fieldName = LRecord.getFieldName(rcd, obs);
-                var column = columns.getIf(c -> c.getField().name() == fieldName);
-                String sqlFilter = null;
-                String dbTableName = getTableName(rcd.getClass());
-                boolean exists = ((primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE)) && (this.existsData(getTableName(rcd.getClass()), (sqlFilter = buildSqlFilter(rcd, columns, ""))));
-                startTransaction();
-                var sb = new StringBuilder();
-                if (exists) {
-                    sb.append("UPDATE ").append(dbTableName).append(" SET ");
-                    sb.append(column.getDataFieldName()).append("= ? ");
-                    sb.append("WHERE ").append(sqlFilter);
-                } else {
-                    sb.append("INSERT INTO ").append(dbTableName).append("(");
-                    //primary key
-                    columns.forEachIf(c -> c.isFieldPrimaryKey(), c -> sb.append(c.getDataFieldName()).append(", "));
-                    //datafield
-                    sb.append(column.getDataFieldName());
-                    sb.append(") VALUES (");
-                    columns.forEachIf(c -> c.isFieldPrimaryKey(), c -> sb.append("?, "));
-                    sb.append("?)");
-                }
-                try {
-                    var ps = _connection.prepareStatement(sb.toString());
-                    var i = 1;
-                    if (!exists) {
-                        for (var col : columns) {
-                            if (col.isFieldPrimaryKey()) {
-                                ps.setObject(i, LSqlConverter.toSqlValue(getSubItem(col, rcd), _connection));
-                                i++;
-                            }
+                var fields = LRecord.getFields(rcd.getClass());
+                LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(rcd);
+                if ((available()) && (primaryKeyComplete != LKeyCompleteness.KEY_NOT_COMPLETE)) {
+                    try {
+                        var columns = columnsWithoutLinks(rcd.getClass());
+                        var fieldName = LRecord.getFieldName(rcd, obs);
+                        var column = columns.getIf(c -> c.getField().name() == fieldName);
+                        String sqlFilter = null;
+                        String dbTableName = getTableName(rcd.getClass());
+                        boolean exists = ((primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE)) && (this.existsData(getTableName(rcd.getClass()), (sqlFilter = buildSqlFilter(rcd, columns, ""))));
+                        startTransaction();
+                        var sb = new StringBuilder();
+                        if (exists) {
+                            sb.append("UPDATE ").append(dbTableName).append(" SET ");
+                            sb.append(column.getDataFieldName()).append("= ? ");
+                            sb.append("WHERE ").append(sqlFilter);
+                        } else {
+                            sb.append("INSERT INTO ").append(dbTableName).append("(");
+                            //primary key
+                            columns.forEachIf(c -> c.isFieldPrimaryKey(), c -> sb.append(c.getDataFieldName()).append(", "));
+                            //datafield
+                            sb.append(column.getDataFieldName());
+                            sb.append(") VALUES (");
+                            columns.forEachIf(c -> c.isFieldPrimaryKey(), c -> sb.append("?, "));
+                            sb.append("?)");
                         }
+                        try {
+                            var ps = _connection.prepareStatement(sb.toString());
+                            var i = 1;
+                            if (!exists) {
+                                for (var col : columns) {
+                                    if (col.isFieldPrimaryKey()) {
+                                        ps.setObject(i, LSqlConverter.toSqlValue(getSubItem(col, rcd), _connection));
+                                        i++;
+                                    }
+                                }
+                            }
+                            var sqlValue = LSqlConverter.toSqlValue(obs, _connection);
+                            ps.setObject(i, sqlValue);
+                            ps.execute();
+                            if (sqlValue instanceof Blob) {
+                                ((Blob) sqlValue).free();
+                            }
+                            ps.close();
+                        } catch (Exception sqle) {
+                            //LLog.error(this, sqle.getMessage());
+                            throw new LDataException(sqle);
+                        }
+                        commitTransaction();
+                    } catch (LDataException lde) {
+                        rollbackTransaction();
+                        throw lde;
                     }
-                    var sqlValue = LSqlConverter.toSqlValue(obs, _connection);
-                    ps.setObject(i, sqlValue);
-                    ps.execute();
-                    if (sqlValue instanceof Blob) {
-                        ((Blob) sqlValue).free();
-                    }
-                    ps.close();
-                } catch (Exception sqle) {
-                    //LLog.error(this, sqle.getMessage());
-                    throw new LDataException(sqle);
                 }
-                commitTransaction();
-            } catch (LDataException lde) {
-                rollbackTransaction();
-                throw lde;
+            } catch (Exception ex) {
+                if (ex instanceof LDataException) {
+                    throw ex;
+                } else {
+                    throw new LDataException(ex);
+                }
             }
-        }
+            return rcd;
+        });
     }
 
     static class LSqlRelationsItem {
@@ -1146,7 +1157,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 for (int i = 0; i < filter.getSubs().size(); i++) {
                     var cond = filter.getSubs().get(i);
                     sb.append("(").append(_buildSqlFilter(rcdClass, cond, prefix)).append(") or  ");
-                }                
+                }
             }
             case AND -> {
                 for (int i = 0; i < filter.getSubs().size(); i++) {
@@ -1154,12 +1165,18 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     sb.append("(").append(_buildSqlFilter(rcdClass, cond, prefix)).append(") and ");
                 }
             }
-            case EQUAL -> buildSqlComparison(rcdClass, sb, prefix, "=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());                
-            case NOT_EQUAL -> buildSqlComparison(rcdClass, sb, prefix, "<>", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());                
-            case EQUAL_OR_LESS -> buildSqlComparison(rcdClass, sb, prefix, "<=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());                
-            case EQUAL_OR_MORE -> buildSqlComparison(rcdClass, sb, prefix, ">=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());                
-            case LIKE -> buildSqlComparison(rcdClass, sb, "lower(" + prefix, ") like ", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());                
-            default -> throw new UnsupportedOperationException("Condition not supported for filtering: " + filter);
+            case EQUAL ->
+                buildSqlComparison(rcdClass, sb, prefix, "=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());
+            case NOT_EQUAL ->
+                buildSqlComparison(rcdClass, sb, prefix, "<>", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());
+            case EQUAL_OR_LESS ->
+                buildSqlComparison(rcdClass, sb, prefix, "<=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());
+            case EQUAL_OR_MORE ->
+                buildSqlComparison(rcdClass, sb, prefix, ">=", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());
+            case LIKE ->
+                buildSqlComparison(rcdClass, sb, "lower(" + prefix, ") like ", filter.getSubs().get(0).getValueConstant(), filter.getSubs().get(1).getValueConstant());
+            default ->
+                throw new UnsupportedOperationException("Condition not supported for filtering: " + filter);
         }
         return sb.toString().substring(0, sb.length() - 5);
     }
@@ -1374,6 +1391,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                                     d = (O) ((LocalDateTime) d).toLocalDate();
                                 }
                             }
+                            observable.set(d);
                             return d;
                         } else {
                             return null;
