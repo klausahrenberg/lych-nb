@@ -7,6 +7,7 @@ import com.ka.lych.util.LArrays;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -35,6 +36,13 @@ public class LList<T> extends ArrayList<T> {
 
     public LList(Collection<? extends T> values) {
         super(values);
+    }
+    
+    public LList(Enumeration<T> entries) {
+        super();
+        while (entries.hasMoreElements()) {
+            this.add(entries.nextElement());
+        }
     }
     
     public ILRegistration addListener(ILConsumer<LListChange<T>> listener) {
@@ -87,6 +95,11 @@ public class LList<T> extends ArrayList<T> {
     
     @SuppressWarnings("unchecked")
     public static <T> LList<T> of(T... entries) {
+        Objects.requireNonNull(entries, "Entries cant be null");
+        return new LList<>(entries);
+    }
+    
+    public static <T> LList<T> of(Enumeration<T> entries) {
         Objects.requireNonNull(entries, "Entries cant be null");
         return new LList<>(entries);
     }

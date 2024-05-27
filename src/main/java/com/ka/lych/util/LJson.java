@@ -194,7 +194,7 @@ public class LJson {
         _tabLevel++;
         lineBreak();        
         _firstElement = true;
-        values.entrySet().forEach(mi -> _objectToJson(this, mi.getValue(), mi.getKey()));        
+        values.entrySet().forEach(mi -> _objectToJson(this, mi.getValue(), mi.getKey(), null));        
         _tabLevel--;
         lineBreak();
         _stream.append(SEND);
@@ -222,7 +222,7 @@ public class LJson {
         _firstElement = true;
         _tabLevel++;
         var it_start = true;      
-        values.forEach(ci -> _objectToJson(this, ci, null));        
+        values.forEach(ci -> _objectToJson(this, ci, null, null));        
         _tabLevel--;
         _stream.append(BEND);
         return this;
@@ -255,22 +255,26 @@ public class LJson {
     }
 
     public static LJson of(Object o) {
-        return of(o, -1);
+        return of(o, -1, null);
+    }
+    
+    public static LJson of(Object o, Collection<String> onlyFields) {
+        return of(o, -1, onlyFields);
     }
 
     @SuppressWarnings("unchecked")
-    public static LJson of(Object o, int onlyIdAfterTablevel) {
+    public static LJson of(Object o, int onlyIdAfterTablevel, Collection<String> onlyFields) {
         var json = new LJson(onlyIdAfterTablevel);
-        _objectToJson(json, o, null);
+        _objectToJson(json, o, null, onlyFields);
         return json;
     }
     
     public LJson propertyObject(String name, Object o) {
-        _objectToJson(this, o, name);
+        _objectToJson(this, o, name, null);
         return this;
     }    
 
-    protected static void _objectToJson(LJson json, Object value, String fieldName) {
+    protected static void _objectToJson(LJson json, Object value, String fieldName, Collection<String> onlyFields) {
         if (value == null) {
             json.propertyNull(fieldName);
         } else if (value instanceof Collection c) {
@@ -321,8 +325,9 @@ public class LJson {
             var it_fields = fields.iterator();
             while (it_fields.hasNext()) {
                 var field = it_fields.next();
-                if ((!field.isLate()) && ((!(value instanceof Record)) || (field.isId())
-                        || (json._onlyIdAfterTablevel == -1) || (json._tabLevel <= json._onlyIdAfterTablevel))) {
+                if (((!field.isLate()) && ((!(value instanceof Record)) || (field.isId())
+                        || (json._onlyIdAfterTablevel == -1) || (json._tabLevel <= json._onlyIdAfterTablevel))) ||
+                    ((onlyFields != null) && (onlyFields.contains(field.name())))){
                     //2023-06-15 (_tabLevel < 1) added
                     //2023-07-02 (_tabLevel < 1) removed
                     LObservable observable = (field.isObservable() ? LReflections.observable(value, field) : null);
@@ -337,7 +342,7 @@ public class LJson {
                     } else {
                         subValue = ((subValue instanceof Optional) ? (((Optional) subValue).isEmpty() ? null : ((Optional) subValue).get()) : subValue);
                     }
-                    _objectToJson(json, subValue, field.name());                    
+                    _objectToJson(json, subValue, field.name(), null);                    
                 }
             }
             json.endObject();

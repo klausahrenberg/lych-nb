@@ -35,6 +35,7 @@ import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Late;
 import com.ka.lych.annotation.Lazy;
 import com.ka.lych.exception.LParseException;
+import com.ka.lych.list.LMap;
 import com.ka.lych.xml.LXmlUtils;
 import java.lang.reflect.Modifier;
 import java.util.AbstractList;
@@ -156,6 +157,7 @@ public abstract class LReflections {
         if (requClass != null) {
             classToBeInstanciated = (!isOptional ? requClass.requiredClass() : (((requClass.parameterClasses().isPresent()) && (!requClass.parameterClasses().get().isEmpty())) ? (requClass.parameterClasses().get().get(0)) : null));
         }    
+        values = LMap.of(values);
         if ((classToBeInstanciated == null) || (classToBeInstanciated == Record.class)) {
             var clazz = values.get(ILConstants.KEYWORD_CLASS);
             if (clazz == null) {

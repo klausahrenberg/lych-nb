@@ -134,7 +134,7 @@ public class LWebRepository implements
     public <R extends Record> LFuture<LList<R>, LDataException> fetch(LQuery<R> query) {
         return LFuture.<LList<R>, LDataException>execute(task -> {
             try {
-                var request = LJson.of(query, 0).toString();
+                var request = LJson.of(query, 0, null).toString();
                 LLog.test("request %s", request);
 
                 return (LList<R>) LJsonParser.of(query.recordClass()).listFactory(_listFactory).url(new URL(_url + "/fetch"), request).parseList();
