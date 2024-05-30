@@ -240,6 +240,14 @@ public class LWebRepository implements
 
     }
     
+    public record LOdwRequestValue<R extends Record>(@Json LMap<String, Object> record, @Json String field) {
+
+    }
+    
+    public record LOdwRequestValueResult<R extends Record>(@Json LMap<String, Object> record, @Json String field, @Json Object value) {
+
+    }
+
     public record LOdwRequestRecord(@Json String data, @Json Record map) {
 
     }
