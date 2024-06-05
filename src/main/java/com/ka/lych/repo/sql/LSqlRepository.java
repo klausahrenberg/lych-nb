@@ -814,6 +814,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                             if (!exists) {
                                 for (var col : columns) {
                                     if (col.isFieldPrimaryKey()) {
+                                        //gehtschief bei string / fugt quotationmark hinzu.
                                         ps.setObject(i, LSqlConverter.toSqlValue(getSubItem(col, rcd), _connection));
                                         i++;
                                     }

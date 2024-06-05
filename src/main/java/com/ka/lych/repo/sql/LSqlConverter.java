@@ -139,18 +139,18 @@ public abstract class LSqlConverter {
         if (source != null) {
             if ((Boolean.class.isAssignableFrom(requiredClass.requiredClass()))
                     && (Integer.class.isAssignableFrom(source.getClass()))) {
-                return Boolean.valueOf(((Integer) source).intValue() != 0);
+                return ((Integer) source) != 0;
             } else if (String.class.isAssignableFrom(source.getClass())) {
                 if (Integer.class.isAssignableFrom(requiredClass.requiredClass())) {
                     try {
-                        result = Integer.parseInt((String) source);
+                        result = Integer.valueOf((String) source);
                         //result = new Integer(Integer.parseInt((String) source));
                     } catch (NumberFormatException nfe) {
                         result = null;
                     }
                 } else if (Double.class.isAssignableFrom(requiredClass.requiredClass())) {
                     try {
-                        result = Double.parseDouble((String) source);
+                        result = Double.valueOf((String) source);
                         //result = new Double(Double.parseDouble((String) source));
                     } catch (NumberFormatException nfe) {
                         result = null;
@@ -173,7 +173,7 @@ public abstract class LSqlConverter {
                         throw new IllegalStateException("Array class has no class parameter");
                     }
                     try {
-                        var toUpdate = LList.empty();
+                        //var toUpdate = LList.empty();
                         throw new UnsupportedOperationException("tbi");                        
                         //LJsonParser.parse(toUpdate, requiredClass.parameterClasses().get().get(0), (String) source);                                                
                         //result = toUpdate;
@@ -186,7 +186,7 @@ public abstract class LSqlConverter {
                         throw new IllegalStateException("Map needs 2 class parameters. List is empty or less than 2");
                     }
                     try {              
-                        var toUpdate = LJsonParser.of(requiredClass.parameterClasses().get().get(1)).payload((String) source).parseMap();
+                        //var toUpdate = LJsonParser.of(requiredClass.parameterClasses().get().get(1)).payload((String) source).parseMap();
                         //var toUpdate = LJsonParser.parseMap(requiredClass.parameterClasses().get().get(1), (String) source);
                         //throw new UnsupportedOperationException("tbi");                        
                         //LJsonParser.parse(toUpdate, requiredClass.parameterClasses().get().get(1), (String) source);                                                                        
@@ -199,7 +199,7 @@ public abstract class LSqlConverter {
                 }
             } else if (Double.class.isAssignableFrom(source.getClass())) {
                 if (Integer.class.isAssignableFrom(requiredClass.requiredClass())) {
-                    result = Integer.valueOf(((Double) source).intValue());
+                    result = ((Double) source).intValue();
                 }
             } else if ((Blob.class.isAssignableFrom(source.getClass())) && (ILBlobable.class.isAssignableFrom(requiredClass.requiredClass()))) {
                 try {
