@@ -35,20 +35,20 @@ import java.util.function.BiFunction;
  */
 public abstract class LSqlConverter {
 
-    public static Object toSqlValue(LObservable obs, Connection con) {
-        return obsToSqlValueConverter.apply(obs, con);
+    public static Object toSqlValue(LObservable obs, Connection con, String quote) {
+        return obsToSqlValueConverter.apply(obs, con, quote);
     }
 
     public static Object toObservableValue(Object source, LReflections.LRequiredClass requiredClass) {
-        return sqlToObsValueConverter.apply(source, requiredClass);
+        return sqlToObsValueConverter.apply(source, requiredClass, null);
     }
 
-    protected static BiFunction<LObservable, Connection, Object> obsToSqlValueConverter = (LObservable value, Connection con) -> {
+    protected static ILSqlConverter<LObservable, Connection, String, Object> obsToSqlValueConverter = (LObservable value, Connection con, String quote) -> {
         Object result = null;
         if ((value != null) && (value.isPresent())) {
             Class valueClass = value.get().getClass();
             if (String.class.isAssignableFrom(valueClass)) {
-                result = stringtoSql((String) value.get());
+                result = stringtoSql((String) value.get(), quote);
             } else if (Double.class.isAssignableFrom(valueClass)) {
                 result = doubleToSql((Double) value.get());
             } else if (Integer.class.isAssignableFrom(valueClass)) {
@@ -56,21 +56,21 @@ public abstract class LSqlConverter {
             } else if (Boolean.class.isAssignableFrom(valueClass)) {
                 result = booleanToSql((Boolean) value.get());
             } else if (LocalDate.class.isAssignableFrom(valueClass)) {
-                result = dateToSql((LocalDate) value.get());
+                result = dateToSql((LocalDate) value.get(), quote);
             } else if (LocalDateTime.class.isAssignableFrom(valueClass)) {
-                result = datetimeToSql((LocalDateTime) value.get());
+                result = datetimeToSql((LocalDateTime) value.get(), quote);
             } else if (valueClass.isEnum()) {
-                result = enumToSql(value.get());
+                result = enumToSql(value.get(), quote);
             } else if (Path.class.isAssignableFrom(valueClass)) {
                 try {
-                    result = stringtoSql(((Path) value.get()).toUri().toURL().toString());
+                    result = stringtoSql(((Path) value.get()).toUri().toURL().toString(), quote);
                 } catch (MalformedURLException ex) {
                     result = null;
                 }
             } else if (LList.class.isAssignableFrom(valueClass)) {
-                result = LSqlRepository.KEYWORD_SQL_QUOTATIONMARK + LJson.of(value.get()).toString() + LSqlRepository.KEYWORD_SQL_QUOTATIONMARK;                
+                result = quote + LJson.of(value.get()).toString() + quote;
             } else if (LMap.class.isAssignableFrom(valueClass)) {
-                result = LSqlRepository.KEYWORD_SQL_QUOTATIONMARK + LJson.of(value.get()).toString() + LSqlRepository.KEYWORD_SQL_QUOTATIONMARK;                    
+                result = quote + LJson.of(value.get()).toString() + quote;
             } else if (ILBlobable.class.isAssignableFrom(valueClass)) {
                 //create Blob
                 try {
@@ -88,39 +88,41 @@ public abstract class LSqlConverter {
         }
         return result;
     };
-    
-    private static String stringtoSql(String value) {
-        if (value == null) {
-            value = "";
-        }
-        value = value.replaceAll("'", LSqlRepository.KEYWORD_SQL_QUOTATIONMARK);
-        value = value.replaceAll(LSqlRepository.KEYWORD_SQL_QUOTATIONMARK, LSqlRepository.KEYWORD_SQL_QUOTATIONMARK + LSqlRepository.KEYWORD_SQL_QUOTATIONMARK);
-        if (value.equals("")) {
-            value = "NULL";
-        } else {
-            value = LSqlRepository.KEYWORD_SQL_QUOTATIONMARK + value + LSqlRepository.KEYWORD_SQL_QUOTATIONMARK;
+
+    private static String stringtoSql(String value, String quote) {
+        if (!LString.isEmpty(quote)) {
+            if (value == null) {
+                value = "";
+            }
+            value = value.replaceAll("'", quote);
+            value = value.replaceAll(quote, quote + quote);
+            if (LString.isEmpty(value)) {
+                value = "NULL";
+            } else {
+                value = quote + value + quote;
+            }
         }
         return value;
     }
-    
+
     private static String booleanToSql(Boolean value) {
-        return (value ? "1" : "0");        
+        return (value ? "1" : "0");
     }
-    
-    private static String doubleToSql(Double value) {        
+
+    private static String doubleToSql(Double value) {
         return LDouble.toParseableString(value);
     }
 
     private static String integerToSql(Integer value) {
         return LInteger.toParseableString(value);
     }
-    
-    private static String datetimeToSql(LocalDateTime value) {     
-        return LSqlRepository.KEYWORD_SQL_QUOTATIONMARK + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(value) + LSqlRepository.KEYWORD_SQL_QUOTATIONMARK;
+
+    private static String datetimeToSql(LocalDateTime value, String quote) {
+        return quote + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(value) + quote;
     }
-    
-    private static String dateToSql(LocalDate value) {
-        return LSqlRepository.KEYWORD_SQL_QUOTATIONMARK + DateTimeFormatter.ofPattern("yyyy-MM-dd").format(value) + " 00:00:00" + LSqlRepository.KEYWORD_SQL_QUOTATIONMARK;
+
+    private static String dateToSql(LocalDate value, String quote) {
+        return quote + DateTimeFormatter.ofPattern("yyyy-MM-dd").format(value) + " 00:00:00" + quote;
         //MARIADB: DateTimeFormatter.ofPattern("yyyy-MM-dd").format(gregCal) + ss;
         //MSSQL: DateTimeFormatter.ofPattern("yyyy-MM-dd").format(gregCal) + ss;
         //MSACCESS: "#" + DateTimeFormatter.ofPattern("yyyy-MM-dd").format(gregCal) + "#";
@@ -128,13 +130,13 @@ public abstract class LSqlConverter {
         //DERBY_CLIENT: DateTimeFormatter.ofPattern("yyyy-MM-dd").format(gregCal) + " 00:00:00" + ss;
         //default: DateTimeFormatter.ofPattern("yyyy-MM-dd").format(gregCal) + " 00:00:00" + ss;           
     }
-    
-    private static String enumToSql(Object value) {
-        return stringtoSql(value.toString());
+
+    private static String enumToSql(Object value, String quote) {
+        return stringtoSql(value.toString(), quote);
     }
 
     @SuppressWarnings("unchecked")
-    protected static BiFunction<Object, LRequiredClass, Object> sqlToObsValueConverter = (Object source, LRequiredClass requiredClass) -> {
+    protected static ILSqlConverter<Object, LRequiredClass, Void, Object> sqlToObsValueConverter = (Object source, LRequiredClass requiredClass, Void nope) -> {
         Object result = source;
         if (source != null) {
             if ((Boolean.class.isAssignableFrom(requiredClass.requiredClass()))
@@ -155,12 +157,12 @@ public abstract class LSqlConverter {
                     } catch (NumberFormatException nfe) {
                         result = null;
                     }
-                } else if (requiredClass.requiredClass().isEnum()) {     
+                } else if (requiredClass.requiredClass().isEnum()) {
                     try {
                         result = LXmlUtils.xmlStrToEnum((String) source, requiredClass.requiredClass());
                     } catch (LParseException ex) {
                         throw new LUnchecked(ex);
-                    }    
+                    }
                 } else if (Path.class.isAssignableFrom(requiredClass.requiredClass())) {
                     try {
                         URL url = new URL((String) source);
@@ -174,18 +176,18 @@ public abstract class LSqlConverter {
                     }
                     try {
                         //var toUpdate = LList.empty();
-                        throw new UnsupportedOperationException("tbi");                        
+                        throw new UnsupportedOperationException("tbi");
                         //LJsonParser.parse(toUpdate, requiredClass.parameterClasses().get().get(0), (String) source);                                                
                         //result = toUpdate;
                     } catch (Exception ex) {
                         throw new IllegalArgumentException(ex.getMessage(), ex);
                     }
                 } else if (Map.class.isAssignableFrom(requiredClass.requiredClass())) {
-                    
+
                     if ((requiredClass.parameterClasses().isEmpty()) || (requiredClass.parameterClasses().get().size() < 2)) {
                         throw new IllegalStateException("Map needs 2 class parameters. List is empty or less than 2");
                     }
-                    try {              
+                    try {
                         //var toUpdate = LJsonParser.of(requiredClass.parameterClasses().get().get(1)).payload((String) source).parseMap();
                         //var toUpdate = LJsonParser.parseMap(requiredClass.parameterClasses().get().get(1), (String) source);
                         //throw new UnsupportedOperationException("tbi");                        
@@ -193,7 +195,7 @@ public abstract class LSqlConverter {
                         //result = toUpdate;                        
                     } catch (Exception ex) {
                         throw new IllegalArgumentException(ex.getMessage(), ex);
-                    }    
+                    }
                 } else if (!requiredClass.requiredClass().isAssignableFrom(source.getClass())) {
                     throw new IllegalStateException("datatypeClass " + requiredClass.requiredClass().toString() + " doesn't fit to source class " + source.getClass().toString());
                 }
@@ -204,10 +206,10 @@ public abstract class LSqlConverter {
             } else if ((Blob.class.isAssignableFrom(source.getClass())) && (ILBlobable.class.isAssignableFrom(requiredClass.requiredClass()))) {
                 try {
                     var blob = (Blob) source;
-                    int blobLength = (int) blob.length();                    
+                    int blobLength = (int) blob.length();
                     //byte[] blobAsBytes = blob.getBytes(1, blobLength);
                     //ByteArrayInputStream in = new ByteArrayInputStream(blobAsBytes);
-                    ObjectInputStream is = new ObjectInputStream(blob.getBinaryStream());      
+                    ObjectInputStream is = new ObjectInputStream(blob.getBinaryStream());
                     LLog.test("create blobable %s / %s", requiredClass.requiredClass(), blobLength);
                     ILBlobable b = (ILBlobable) LReflections.newInstance(requiredClass.requiredClass());
                     b.read(is);
@@ -215,7 +217,7 @@ public abstract class LSqlConverter {
                 } catch (Exception sqle) {
                     LLog.error(sqle.getMessage(), sqle);
                 }
-            } else if ((source.getClass().isArray()) && (ILBlobable.class.isAssignableFrom(requiredClass.requiredClass()))) {                 
+            } else if ((source.getClass().isArray()) && (ILBlobable.class.isAssignableFrom(requiredClass.requiredClass()))) {
                 /*try {
                     var bais = new ByteArrayInputStream((byte[]) source); 
                     ILBlobable b = (ILBlobable) LReflections.newInstance(requiredClass.requiredClass());
@@ -223,10 +225,10 @@ public abstract class LSqlConverter {
                     result = b;
                 } catch (Exception sqle) {
                     LLog.error(LSqlConverter.class, sqle.getMessage(), sqle);
-                } */               
+                } */
             } else if ((LocalDateTime.class.isAssignableFrom(source.getClass())) && (LocalDate.class.isAssignableFrom(requiredClass.requiredClass()))) {
                 result = ((LocalDateTime) source).toLocalDate();
-            } else if (!requiredClass.requiredClass().isAssignableFrom(source.getClass())) {                
+            } else if (!requiredClass.requiredClass().isAssignableFrom(source.getClass())) {
                 throw new IllegalStateException("datatypeClass " + requiredClass.requiredClass().toString() + " doesn't fit to source class " + source.getClass());
             }
         }

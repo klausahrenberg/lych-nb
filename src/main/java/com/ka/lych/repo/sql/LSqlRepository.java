@@ -37,7 +37,7 @@ import java.util.Objects;
 public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     final LoSqlDatabaseType DEFAULT_DATABASE_TYPE = LoSqlDatabaseType.DERBY_EMBEDDED;
-    final static String KEYWORD_SQL_QUOTATIONMARK = "'";
+    private final static String KEYWORD_SQL_QUOTATIONMARK = "'";
     final static String KEYWORD_COL_COUNT = "numberof";
     final static String KEYWORD_SQL_WILDCARD = "%";
 
@@ -463,7 +463,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     public String toSql(LObservable value) {
-        return (((value != null) && (value.isPresent())) ? (String) LSqlConverter.toSqlValue(value, _connection) : "NULL");
+        return (((value != null) && (value.isPresent())) ? (String) LSqlConverter.toSqlValue(value, _connection, LSqlRepository.KEYWORD_SQL_QUOTATIONMARK) : "NULL");
     }
 
     protected String getSQLType(LColumnItem dbItem, boolean referenceLink) {
@@ -815,12 +815,12 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                                 for (var col : columns) {
                                     if (col.isFieldPrimaryKey()) {
                                         //gehtschief bei string / fugt quotationmark hinzu.
-                                        ps.setObject(i, LSqlConverter.toSqlValue(getSubItem(col, rcd), _connection));
+                                        ps.setObject(i, LSqlConverter.toSqlValue(getSubItem(col, rcd), _connection, ""));
                                         i++;
                                     }
                                 }
                             }
-                            var sqlValue = LSqlConverter.toSqlValue(obs, _connection);
+                            var sqlValue = LSqlConverter.toSqlValue(obs, _connection, "");
                             ps.setObject(i, sqlValue);
                             ps.execute();
                             if (sqlValue instanceof Blob) {
