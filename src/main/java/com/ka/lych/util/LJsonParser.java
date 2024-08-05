@@ -199,12 +199,12 @@ public class LJsonParser<T> {
     
     void _parseAll() throws LParseException {
         for (int i = 0; i < _payload.length(); i++) {
-            parseChar(_payload.charAt(i));
+            _parseChar(_payload.charAt(i));
             _characterCounter++;
         }
     }
 
-    protected void parseChar(char c) throws LParseException {
+    void _parseChar(char c) throws LParseException {
         if ((c == ' ' || c == '\t' || c == '\n' || c == '\r')
                 && !(_state == LState.IN_STRING || _state == LState.UNICODE
                 || _state == LState.START_ESCAPE
@@ -215,50 +215,50 @@ public class LJsonParser<T> {
         switch (_state) {
             case IN_STRING:
                 if (c == QUOTE) {
-                    endString();
+                    _endString();
                 } else if (c == '\\') {
                     _state = LState.START_ESCAPE;
                 } else if ((c < 0x1f) || (c == 0x7f)) {
-                    throwException("Unescaped control character encountered:" + charToString(c));
+                    _throwException("Unescaped control character encountered:" + _charToString(c));
                 } else {
                     _buffer.append(c);
                 }
                 break;
             case IN_ARRAY:
                 if (c == LJson.BEND) {
-                    endArray();
+                    _endArray();
                 } else {
-                    startValue(c);
+                    _startValue(c);
                 }
                 break;
             case IN_OBJECT:
                 if (c == LJson.SEND) {
-                    endObject();
+                    ?endObject();
                 } else if (c == QUOTE) {
-                    startKey();
+                    _startKey();
                 } else {
-                    throwException("Start of string expected for object key. Instead got:" + charToString(c));
+                    _throwException("Start of string expected for object key. Instead got:" + _charToString(c));
                 }
                 break;
             case END_KEY:
                 if (c != LJson.DPOINT) {
-                    throwException("Expected ':' after key. Instead got" + charToString(c));
+                    _throwException("Expected ':' after key. Instead got" + _charToString(c));
                 }
                 _state = LState.AFTER_KEY;
                 break;
             case AFTER_KEY:
-                startValue(c);
+                _startValue(c);
                 break;
             case START_ESCAPE:
-                processEscapeCharacters(c);
+                _processEscapeCharacters(c);
                 break;
             case UNICODE:
-                processUnicodeCharacter(c);
+                _processUnicodeCharacter(c);
                 break;
             case UNICODE_SURROGATE:
                 _unicodeEscapeBuffer.append(c);
                 if (_unicodeEscapeBuffer.length() == 2) {
-                    endUnicodeSurrogateInterstitial();
+                    _endUnicodeSurrogateInterstitial();
                 }
                 break;
             case AFTER_VALUE: {
@@ -266,22 +266,22 @@ public class LJsonParser<T> {
                 LType within = _stack.peek().type();
                 if (within == LType.OBJECT) {
                     if (c == LJson.SEND) {
-                        endObject();
+                        ?endObject();
                     } else if (c == LJson.COMMA) {
                         _state = LState.IN_OBJECT;
                     } else {
-                        throwException("Expected ',' or '}' while parsing object. Got:" + charToString(c));
+                        _throwException("Expected ',' or '}' while parsing object. Got:" + _charToString(c));
                     }
                 } else if (within == LType.ARRAY) {
                     if (c == LJson.BEND) {
-                        endArray();
+                        _endArray();
                     } else if (c == LJson.COMMA) {
                         _state = LState.IN_ARRAY;
                     } else {
-                        throwException("Expected ',' or ']' while parsing array. Got:" + charToString(c));
+                        _throwException("Expected ',' or ']' while parsing array. Got:" + _charToString(c));
                     }
                 } else {
-                    throwException("Finished a literal, but unclear what state to move to.");
+                    _throwException("Finished a literal, but unclear what state to move to.");
                 }
             }
             break;
@@ -290,58 +290,58 @@ public class LJsonParser<T> {
                     _buffer.append(c);
                 } else if (c == '.') {
                     if (_buffer.indexOf(".") > -1) {
-                        throwException("Cannot have multiple decimal points in a number.");
+                        _throwException("Cannot have multiple decimal points in a number.");
                     } else if (_buffer.indexOf("e") > -1) {
-                        throwException("Cannot have a decimal point in an exponent.");
+                        _throwException("Cannot have a decimal point in an exponent.");
                     }
                     _buffer.append(c);
                 } else if (c == 'e' || c == 'E') {
                     if (_buffer.indexOf("e") > -1) {
-                        throwException("Cannot have multiple exponents in a number.");
+                        _throwException("Cannot have multiple exponents in a number.");
                     }
                     _buffer.append(c);
                 } else if (c == '+' || c == '-') {
                     char last = _buffer.charAt(_buffer.length() - 1);
                     if (!(last == 'e' || last == 'E')) {
-                        throwException("Can only have '+' or '-' after the 'e' or 'E' in a number.");
+                        _throwException("Can only have '+' or '-' after the 'e' or 'E' in a number.");
                     }
                     _buffer.append(c);
                 } else {
-                    endNumber();
+                    _endNumber();
                     // we have consumed one beyond the end of the number
-                    parseChar(c);
+                    _parseChar(c);
                 }
                 break;
             case IN_TRUE:
                 _buffer.append(c);
                 if (_buffer.length() == 4) {
-                    endTrue();
+                    _endTrue();
                 }
                 break;
             case IN_FALSE:
                 _buffer.append(c);
                 if (_buffer.length() == 5) {
-                    endFalse();
+                    _endFalse();
                 }
                 break;
             case IN_NULL:
                 _buffer.append(c);
                 if (_buffer.length() == 4) {
-                    endNull();
+                    _endNull();
                 }
                 break;
             case START_DOCUMENT:
                 //myListener->startDocument();
                 if (c == LJson.BBEGIN) {
-                    startArray();
+                    _startArray();
                 } else if (c == LJson.SBEGIN) {
-                    startObject();
+                    _startObject();
                 }
                 break;
         }
     }
 
-    private void endString() throws LParseException {
+    void _endString() throws LParseException {
         LMapItem popped = _stack.pop();
         
         if (popped.type() == LType.KEY) {
@@ -354,39 +354,39 @@ public class LJsonParser<T> {
             }
             _state = LState.END_KEY;
         } else if (popped.type() == LType.STRING) {            
-            processKeyValue(_currentKey, _buffer.toString());
+            _processKeyValue(_currentKey, _buffer.toString());
             _state = LState.AFTER_VALUE;
         } else {
-            throwException("Unexpected end of string.");
+            _throwException("Unexpected end of string.");
         }
         _buffer.setLength(0);
     }
 
-    private void endArray() throws LParseException {
+    void _endArray() throws LParseException {
         LMapItem popped = _stack.pop();
         if (popped.type() != LType.ARRAY) {
-            throwException("Unexpected end of array encountered.");
+            _throwException("Unexpected end of array encountered.");
         }
         _state = LState.AFTER_VALUE;
         if (_stack.isEmpty()) {
             _result = popped.list();
-            endDocument();
+            _endDocument();
         } else if ((_stack.peek().map() != null) && (!LString.isEmpty(popped.objectKey()))) {
             _stack.peek().map().put(popped.objectKey(), popped.list());
         } else {
-            throwException("Illegal state. Popped stack is: " + popped);
+            _throwException("Illegal state. Popped stack is: " + popped);
         }
     }
 
-    private void startValue(char c) throws LParseException {
+    void _startValue(char c) throws LParseException {
         if (c == LJson.BBEGIN) {
-            startArray();
+            _startArray();
         } else if (c == LJson.SBEGIN) {
-            startObject();
+            _startObject();
         } else if (c == LJson.QUOTE) {
-            startString();
-        } else if (isDigit(c)) {
-            startNumber(c);
+            _startString();
+        } else if (_isDigit(c)) {
+            _startNumber(c);
         } else if ((c == 't') || (c == 'T')) {
             _state = LState.IN_TRUE;
             _buffer.append(c);
@@ -397,15 +397,15 @@ public class LJsonParser<T> {
             _state = LState.IN_NULL;
             _buffer.append(c);
         } else {
-            throwException("Unexpected character for value:" + charToString(c));
+            _throwException("Unexpected character for value:" + _charToString(c));
         }
     }
 
     @SuppressWarnings("unchecked")
-    private void endObject() throws LParseException {
+    void _endObject() throws LParseException {
         LMapItem popped = _stack.pop();
         if (popped.type() != LType.OBJECT) {
-            throwException("Unexpected end of object encountered.");
+            _throwException("Unexpected end of object encountered.");
         }
         //add to collection
         if (popped.map() != null) {
@@ -423,7 +423,7 @@ public class LJsonParser<T> {
                 } else if (_stack.peek().list() != null) {
                     _stack.peek().list().add(o);
                 } else {
-                    throwException("Illegal state");
+                    _throwException("Illegal state");
                 }
             }
         } else {
@@ -431,16 +431,16 @@ public class LJsonParser<T> {
         }
         _state = LState.AFTER_VALUE;
         if (_stack.isEmpty()) {
-            endDocument();
+            _endDocument();
         }
     }
 
-    private void startKey() {
+    void _startKey() {
         _stack.push(new LMapItem(LType.KEY, null, null, null, null));
         _state = LState.IN_STRING;
     }
 
-    private void processEscapeCharacters(char c) throws LParseException {
+    void _processEscapeCharacters(char c) throws LParseException {
         switch (c) {
             case '"' -> _buffer.append('"');
             case '\\' -> _buffer.append('\\');
@@ -457,33 +457,33 @@ public class LJsonParser<T> {
         }
     }
 
-    private void processUnicodeCharacter(char c) throws LParseException {
-        if (!isHexCharacter(c)) {
-            throwException("Expected hex character for escaped Unicode character. Unicode parsed: " + _unicodeBuffer.toString() + " and got:" + charToString(c));
+    void _processUnicodeCharacter(char c) throws LParseException {
+        if (!_isHexCharacter(c)) {
+            _throwException("Expected hex character for escaped Unicode character. Unicode parsed: " + _unicodeBuffer.toString() + " and got:" + _charToString(c));
         }
         _unicodeBuffer.append(c);
         if (_unicodeBuffer.length() == 4) {
-            int codepoint = getHexArrayAsDecimal(_unicodeBuffer.toString());
-            endUnicodeCharacter(codepoint);
+            int codepoint = _getHexArrayAsDecimal(_unicodeBuffer.toString());
+            _endUnicodeCharacter(codepoint);
             return;
         }
     }
-
-    private void endUnicodeCharacter(int codepoint) {
-        _buffer.append(convertCodepointToCharacter(codepoint));
+    
+    void _endUnicodeCharacter(int codepoint) {
+        _buffer.append(_convertCodepointToCharacter(codepoint));
         _unicodeBuffer.setLength(0);        
         _state = LState.IN_STRING;
     }
 
-    private int getHexArrayAsDecimal(String hexString) {
+    int _getHexArrayAsDecimal(String hexString) {
         try {
             return LNumberSystem.digitsToInt(hexString, LNumberSystem.DIGITS_HEXA_DECIMAL);
         } catch (LParseException ex) {
             return 0;
         }
     }
-
-    private void endUnicodeSurrogateInterstitial() {
+    
+    void _endUnicodeSurrogateInterstitial() {
         char unicodeEscape = _unicodeEscapeBuffer.charAt(_unicodeEscapeBuffer.length() - 1);
         if (unicodeEscape != 'u') {
             // throw new ParsingError($this->_line_number, $this->_char_number,
@@ -495,39 +495,39 @@ public class LJsonParser<T> {
         _state = LState.UNICODE;
     }
 
-    private void endNumber() throws LParseException {
+    void _endNumber() throws LParseException {
         if (_buffer.toString().contains(".")) {
-            processKeyValue(_currentKey, Double.valueOf(_buffer.toString()));
+            _processKeyValue(_currentKey, Double.valueOf(_buffer.toString()));
         } else {
             try {
-                processKeyValue(_currentKey, Integer.valueOf(_buffer.toString()));
+                _processKeyValue(_currentKey, Integer.valueOf(_buffer.toString()));
             } catch (NumberFormatException nfe) {
-                processKeyValue(_currentKey, Long.valueOf(_buffer.toString()));
+                _processKeyValue(_currentKey, Long.valueOf(_buffer.toString()));
             }
         }
         _buffer.setLength(0);
         _state = LState.AFTER_VALUE;
     }
 
-    private void endTrue() throws LParseException {
+    void _endTrue() throws LParseException {
         if ("true".equals(_buffer.toString().toLowerCase())) {
-            processKeyValue(_currentKey, Boolean.TRUE);
+            _processKeyValue(_currentKey, Boolean.TRUE);
         }
         _buffer.setLength(0);
         _state = LState.AFTER_VALUE;
     }
 
-    private void endFalse() throws LParseException {
+    void _endFalse() throws LParseException {
         if ("false".equals(_buffer.toString().toLowerCase())) {
-            processKeyValue(_currentKey, Boolean.FALSE);
+            _processKeyValue(_currentKey, Boolean.FALSE);
         }
         _buffer.setLength(0);
         _state = LState.AFTER_VALUE;
     }
 
-    private void endNull() throws LParseException {
+    void _endNull() throws LParseException {
         if ("null".equals(_buffer.toString().toLowerCase())) {            
-            processKeyValue(_currentKey, null);
+            _processKeyValue(_currentKey, null);
         }
         _buffer.setLength(0);
         _state = LState.AFTER_VALUE;
@@ -541,8 +541,8 @@ public class LJsonParser<T> {
     Collection _factoredList() {
         return (_listFactory != null ? _listFactory.apply(null) : LList.empty());
     }
-
-    private void startArray() throws LParseException {
+    
+    void _startArray() throws LParseException {
         //myListener->startArray();
         _state = LState.IN_ARRAY;
         LRequiredClass requiredClass = null;
@@ -567,7 +567,7 @@ public class LJsonParser<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private void startObject() throws LParseException {
+    void _startObject() throws LParseException {
         _state = LState.IN_OBJECT;                        
         LRequiredClass requiredClass = null;
         if (_stack.isEmpty()) {
@@ -597,43 +597,43 @@ public class LJsonParser<T> {
         } else {
             throw new LParseException("Illegal state at start of object");
         }
-        _stack.push(new LMapItem(LType.OBJECT, requiredClass, _currentKey, new LMap<String, Object>(), null));            
+        _stack.push(new LMapItem(LType.OBJECT, requiredClass, _currentKey, new LMap<>(), null));            
         _currentKey = null;
     }
 
-    private void startString() {
+    void _startString() {
         _state = LState.IN_STRING;
         _stack.push(new LMapItem(LType.STRING, null, null, null, null));
     }
 
-    private void startNumber(char c) {
+    void _startNumber(char c) {
         _state = LState.IN_NUMBER;
         _buffer.append(c);
     }
 
-    private void endDocument() {
-        //myListener->endDocument();
+    void _endDocument() {
+        //myListener->_endDocument();
         _state = LState.DONE;
     }
 
-    private char convertCodepointToCharacter(int num) {
+    char _convertCodepointToCharacter(int num) {
         if (num <= 0x7F) {
             return (char) (num);
         }
         return ' ';
     }
 
-    private boolean isDigit(char c) {
+    boolean _isDigit(char c) {
         // Only concerned with the first character in a number.        
         return (Character.isDigit(c)) || c == '-';
     }
 
-    private boolean isHexCharacter(char c) {
+    boolean _isHexCharacter(char c) {
         return LNumberSystem.isValidDigit(c, LNumberSystem.DIGITS_HEXA_DECIMAL);
     }
 
     @SuppressWarnings("unchecked")
-    private void processKeyValue(String key, Object value) throws LParseException {
+    void _processKeyValue(String key, Object value) throws LParseException {
         var peeked = _stack.peek();
         if (peeked.map() != null) {               
             if (value != null) {
@@ -647,19 +647,19 @@ public class LJsonParser<T> {
         } else if (_result != null) {
             LReflections.update(_result, LMap.of(LMap.entry(_currentKey, value)));
         } else {
-            throwException("Illegal state" + _state);
+            _throwException("Illegal state" + _state);
         }
     }
 
-    private String charToString(char c) {
+    String _charToString(char c) {
         return ((c == '\t') || (c == '\n') ? " '<>'" : " '" + c + "'");
     }
 
-    private void throwException(String message) throws LParseException {
-        throwException(message, null);
+    void _throwException(String message) throws LParseException {
+        _throwException(message, null);
     }
 
-    private void throwException(String message, Throwable cause) throws LParseException {
+    void _throwException(String message, Throwable cause) throws LParseException {
         throw new LParseException(cause, message + " (json position " + _characterCounter + ", text area: '" + _payload.substring(Math.max(0, _characterCounter - 20), Math.min(_payload.length(), _characterCounter + 5))/*.replace("\n", " ")*/.replace("\t", "") + "')");
     }
     

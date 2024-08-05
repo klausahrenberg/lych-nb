@@ -10,13 +10,14 @@ import java.util.Stack;
 /**
  *
  * @author klausahrenberg
+ * @param <E>
  */
 public class LStack<E> extends Stack<E> {
 
-    private boolean lifo;
+    private final boolean _lifo;
 
     public LStack(boolean useLIFO) {
-        this.lifo = useLIFO;
+        this._lifo = useLIFO;
     }
 
     @Override
@@ -25,7 +26,7 @@ public class LStack<E> extends Stack<E> {
         if (len == 0) {
             throw new EmptyStackException();
         }
-        if (lifo) {
+        if (_lifo) {
             return elementAt(len - 1);
         } else {
             return elementAt(0);
@@ -35,7 +36,7 @@ public class LStack<E> extends Stack<E> {
     @Override
     public synchronized E pop() {
         E obj = peek();
-        if (lifo) {
+        if (_lifo) {
             removeElementAt(size() - 1);
         } else {
             removeElementAt(0);
