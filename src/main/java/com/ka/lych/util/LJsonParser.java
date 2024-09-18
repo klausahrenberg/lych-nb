@@ -233,7 +233,7 @@ public class LJsonParser<T> {
                 break;
             case IN_OBJECT:
                 if (c == LJson.SEND) {
-                    ?endObject();
+                    _endObject();
                 } else if (c == QUOTE) {
                     _startKey();
                 } else {
@@ -266,7 +266,7 @@ public class LJsonParser<T> {
                 LType within = _stack.peek().type();
                 if (within == LType.OBJECT) {
                     if (c == LJson.SEND) {
-                        ?endObject();
+                        _endObject();
                     } else if (c == LJson.COMMA) {
                         _state = LState.IN_OBJECT;
                     } else {
