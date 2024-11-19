@@ -567,7 +567,11 @@ public abstract class LReflections {
         try {
             return Class.forName(DEFAULT_CLASS_PACKAGE != null ? DEFAULT_CLASS_PACKAGE + "." + className : className);
         } catch (ClassNotFoundException cnfe) {
-            throw new LParseException(cnfe);
+            try {
+                return Class.forName(className);
+            } catch (ClassNotFoundException cnfe2) {
+                throw new LParseException(cnfe);
+            }
         }
     }
 
