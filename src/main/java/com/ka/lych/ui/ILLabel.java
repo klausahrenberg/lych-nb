@@ -1,6 +1,7 @@
 package com.ka.lych.ui;
 
 import com.ka.lych.graphics.LCanvas;
+import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LString;
 import com.ka.lych.ui.observable.ILHasEnabled;
 import com.ka.lych.ui.observable.ILHasId;
@@ -26,6 +27,6 @@ public interface ILLabel<T, BC> extends ILHasTitle<BC>, ILHasId<BC>, ILHasVisibi
     
     public LString tooltip();
     
-    //public void setTooltip(String tooltip);
+    public LBoolean showValue();
     
 }

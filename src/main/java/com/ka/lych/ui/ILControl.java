@@ -7,6 +7,7 @@ import com.ka.lych.ui.observable.ILHasEnabled;
 /**
  *
  * @author klausahrenberg
+ * @param <BC> base class
  */
 public interface ILControl<BC> 
         extends ILHasId<BC>, ILHasVisibility<BC>, ILHasEnabled<BC> {            
