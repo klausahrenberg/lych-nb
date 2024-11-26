@@ -12,6 +12,7 @@ import java.nio.file.DirectoryStream.Filter;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.util.Objects;
 import java.util.Optional;
@@ -28,6 +29,10 @@ public record LPath(Path path, LString displayName) {
 
     private static LPath root;
 
+    public static LPath of(String pathName) {
+        return of(Paths.get(pathName));
+    }
+    
     public static LPath of(Path path) {
         return new LPath(path, new LString(path.toString()));
     }
