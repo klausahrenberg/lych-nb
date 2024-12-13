@@ -8,7 +8,6 @@ import com.ka.lych.repo.LQuery;
 import com.ka.lych.repo.LQuery.LSortDirection;
 import com.ka.lych.repo.LQuery.LSortOrder;
 import com.ka.lych.repo.web.LWebRepository;
-import java.util.Optional;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Lazy;
@@ -45,7 +44,7 @@ public class LWebRepositoryTest extends LBase {
 
         if (array.size() > 0) {
             var rcd = array.get(0);
-            repository.persist(rcd, Optional.empty()).await().then(e -> LLog.test("ok")).onError(e -> LLog.error(e.getMessage(), e, true));
+            repository.persist(rcd).await().then(e -> LLog.test("ok")).onError(e -> LLog.error(e.getMessage(), e, true));
         }
 
     }

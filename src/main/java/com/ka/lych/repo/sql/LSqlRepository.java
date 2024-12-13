@@ -687,7 +687,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<? extends Record> parent) {
+    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
         return LFuture.<R, LDataException>execute(task -> {
             try {
                 LObjects.requireNonNull(rcd);
@@ -704,6 +704,9 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                             String dbTableName = getTableName(rcd.getClass());
                             LList<LSqlRelationsItem> relations = null;
                             if (exists) {
+                                if ((overrideExisting.isEmpty()) || (overrideExisting.get() == false)) {
+                                    throw new LDataException("Item already exists: %s", rcd);
+                                }
                                 //TreeDatas  
                                 if ((parent.isPresent()) && hasPrimaryKeyChanged(rcd, columnItems)) {
                                     //if ((datas != null) && (datas.getParent() != null) && hasPrimaryKeyChanged(data, columnItems)) {                        

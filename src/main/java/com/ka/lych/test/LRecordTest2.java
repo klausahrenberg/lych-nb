@@ -47,9 +47,9 @@ public class LRecordTest2 extends LBase {
         
         try {
             KPart p1 = LRecord.of(KPart.class, LMap.of(LMap.entry("id", "p001")));
-            repository.persist(p1, Optional.empty()).await();
+            repository.persist(p1).await();
             KPart p2 = LRecord.of(KPart.class, LMap.of(LMap.entry("id", "p002")));
-            repository.persist(p2, Optional.empty()).await();
+            repository.persist(p2).await();
             
             repository.<KPart>fetch(LQuery.of(KPart.class))
                     .await()
@@ -62,7 +62,7 @@ public class LRecordTest2 extends LBase {
                                                         LMap.entry("child", p2),
                                                         LMap.entry("position", 10)
                                                 ));            
-            repository.persist(ppr, Optional.empty()).await();
+            repository.persist(ppr).await();
             
             repository.<KPartKPartRelation>fetch(LQuery.of(KPartKPartRelation.class))
                     .await()

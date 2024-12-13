@@ -41,11 +41,11 @@ public class LRecordTest extends LBase {
         try {
             KContact c = LRecord.of(KContact.class, LMap.of(LMap.entry("id", "hey"), LMap.entry("boundTo", "nothing"), LMap.entry("testInt", 17), LMap.entry("testBool", true)));
             LLog.test("contact: %s", c);
-            repository.persist(c, Optional.empty()).await();
+            repository.persist(c).await();
 
             KPpap p = LRecord.of(KPpap.class, LMap.of(LMap.entry("id", "E21-004"), LMap.entry("revision", "01"), LMap.entry("supplier", c)));
             LLog.test("ppap: %s", p);
-            repository.persist(p, Optional.empty()).await();
+            repository.persist(p).await();
 
             LLog.test("Finished");
         } catch (LParseException ex) {

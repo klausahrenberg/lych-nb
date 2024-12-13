@@ -12,7 +12,7 @@ import com.ka.lych.util.ILHandler;
  * @author klausahrenberg
  * @param <T>
  */
-public interface ILListView<T> extends ILControl, ILObsOnAction<T> {
+public interface ILListView<BC, T> extends ILControl, ILObsOnAction<T> {
     
     //public LObservable<LxItems<T>> observableYosos();
     
@@ -24,11 +24,9 @@ public interface ILListView<T> extends ILControl, ILObsOnAction<T> {
     
     public LObject<T> observableSelectedYoso();
     
-    public LObject<ELActionTrigger> observableActionTrigger();
+    public ELActionTrigger actionTrigger();
     
-    public ELActionTrigger getActionTrigger();
-    
-    public void setActionTrigger(ELActionTrigger actionTrigger);
+    public BC actionTrigger(ELActionTrigger actionTrigger);           
     
     public T getSelectedYoso();
     

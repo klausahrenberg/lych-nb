@@ -276,10 +276,13 @@ public class LJson {
     public LJson propertyObject(String name, Object o, boolean onlyId) {
         _objectToJson(this, o, onlyId, name, null);
         return this;
-    }    
+    }
 
     protected static void _objectToJson(LJson json, Object value, boolean onlyId, String fieldName, Collection<String> onlyFields) {
-        if (value == null) {
+        if (value instanceof Optional) {
+            value = (((Optional) value).isPresent() ? ((Optional) value).get() : null);
+        }
+        if (value == null)  {
             json.propertyNull(fieldName);
         } else if (value instanceof Collection c) {
             json.propertyArray(fieldName, c);

@@ -179,10 +179,10 @@ public interface ILRepository<BC extends ILRepository> {
     public void removeColumn(Class dataClass, LField column) throws LDataException;
 
     public default <R extends Record> LFuture<R, LDataException> persist(R rcd) {
-        return persist(rcd, Optional.empty());
+        return persist(rcd, Optional.empty(), Optional.of(Boolean.FALSE));
     }
 
-    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<? extends Record> parent);
+    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<? extends Record> parent, Optional<Boolean> overrideExisting);
 
     public <R extends Record> LFuture<R, LDataException> remove(R rcd, Optional<? extends Record> parent);
 

@@ -184,10 +184,17 @@ public class LWebRepository implements
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<? extends Record> parent) {
+    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
         return LFuture.<T, LDataException>execute(task -> {
             try {
-                var request = LJson.of(new LOdwRequestRecord(rcd.getClass().getSimpleName(), rcd)).toString();
+                //var request = LJson.of(new LOdwRequestRecord(rcd.getClass().getSimpleName(), rcd)).toString();
+                var request = LJson.empty()
+                                .beginObject()
+                                    .propertyObject("record", rcd)
+                                    .propertyObject("parent", parent, true)
+                                    .propertyObject("override", overrideExisting)
+                                .endObject().toString();
+                LLog.test("persist: %s", request);
                 @SuppressWarnings("deprecation")
                 var map = LJsonParser.of(LMap.class).url(new URL(_url + "/persist"), request).parse();
                 LReflections.update(rcd, map);
@@ -236,7 +243,10 @@ public class LWebRepository implements
 
     }
 
-    public record LOdwRequestMap<R extends Record>(@Json LMap<String, Object> record, @Json Optional<LMap<String, Object>> parent) {
+    public record LOdwRequestMap<R extends Record>(
+            @Json LMap<String, Object> record, 
+            @Json Optional<LMap<String, Object>> parent,
+            @Json Optional<Boolean> overrideExisting) {
 
     }
     

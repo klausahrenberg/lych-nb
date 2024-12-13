@@ -265,7 +265,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<? extends Record> parent) {        
+    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {        
         return LFuture.execute(t -> {
             modified = true;
             return rcd;
