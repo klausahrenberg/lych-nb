@@ -4,8 +4,6 @@ import com.ka.lych.exception.LParseException;
 import com.ka.lych.exception.LUnchecked;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
-import com.ka.lych.observable.ILChangeListener;
-import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LDate;
 import com.ka.lych.observable.LDatetime;
@@ -31,7 +29,7 @@ import java.util.Map;
 public abstract class LRecord {
 
     private static LMap<Class<? extends Record>, LFields> RCD_FIELDS;
-    private static LMap<Record, LObservable[]> RCD_OLD_IDS;
+    private static LMap<Record, Map<String, Object>> RCD_OLD_IDS;
 
     public static boolean isRecord(Object record) {
         return ((record == null) || (record instanceof Record));
@@ -88,6 +86,12 @@ public abstract class LRecord {
         LFields fields = getFields(record.getClass());
         LField f = fields.get(observable, record);
         return (f != null ? f.name() : null);
+    }
+    
+    public static boolean isId(Record record, LObservable observable) {
+        var fields = getFields(record.getClass());
+        LField f = fields.get(observable, record);
+        return (f != null ? f.isId() : false);
     }
 
     public static LField getField(Class<Record> recordClass, String fieldName) {
@@ -228,7 +232,7 @@ public abstract class LRecord {
         }    
     }
    
-    public static LObservable[] getOldIdObjects(Record rcd) {
+    public static Map<String, Object> getOldIdObjects(Record rcd) {
         return (RCD_OLD_IDS != null ? RCD_OLD_IDS.get(rcd) : null);
     }
 
@@ -238,7 +242,7 @@ public abstract class LRecord {
         }
     }
 
-    private static void setOldIdObjects(Record rcd, LObservable[] oldIds) {
+    public static void setOldIdObjects(Record rcd, Map<String, Object> oldIds) {
         if (RCD_OLD_IDS == null) {
             RCD_OLD_IDS = new LMap<>();
         }
@@ -258,44 +262,5 @@ public abstract class LRecord {
         }
         return null;
     }
-
-    @SuppressWarnings("unchecked")
-    private static final ILChangeListener<Object, ILObservable> recordIdListener = change -> {        
-        Record rcd = null;// (Record) change.source().getBean();
-        var fields = LRecord.getFields(rcd.getClass());
-        var oldIdObjects = getOldIdObjects(rcd);
-        //Update oldIds, if necessary
-        if ((oldIdObjects == null) && (change.oldValue() != null)) {
-            boolean complete = true;
-            LObservable[] oldIds = new LObservable[fields.sizeKey()];
-            for (int i = 0; (complete) && (i < fields.sizeKey()); i++) {
-                LField field = fields.get(i);
-                LObservable obs = LRecord.observable(rcd, field);
-                if (!field.isLinked()) {
-                    complete = complete && (obs.isPresent());
-                    //clone not linked fields
-                    if (complete) {
-                        try {
-                            LObservable cloneObs = (LObservable) obs.clone();
-                            if (obs == change.source()) {
-                                cloneObs.set(change.oldValue());
-                            }
-                            oldIds[i] = cloneObs;
-                        } catch (CloneNotSupportedException cnse) {
-                            LLog.error("Storing oldKey failed: " + rcd, cnse);
-                        }
-                    }
-                } else {
-                    //linked fields are not cloned
-                    //tbi
-                    //complete = complete && (obs.isPresent()) && (((LYoso) obs.get()).getFields().getKeyCompleteness((LYoso) obs.get()) == LKeyCompleteness.KEY_COMPLETE);
-                    oldIds[i] = obs;
-                }
-            }
-            if (complete) {                
-                setOldIdObjects(rcd, oldIds);
-            }
-        }
-    };
 
 }
