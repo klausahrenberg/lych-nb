@@ -1052,7 +1052,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 if ((!result) && (columnItem.isFieldPrimaryKey())) {
                     if (columnItem.getLinkColumns() == null) {
                         //old key values exists    
-                        result = result || (!oldIds[columnItem.getKeyIndex()].equals(getSubItem(columnItem, rcd)));
+                        result = result || (!oldIds.get(columnItem.getDataFieldName()).equals(getSubItem(columnItem, rcd)));
                     }
                 }
             }
@@ -1078,8 +1078,9 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 //private LObservable getSubItem(ColumnDbItem columnItem, LYoso data) {
                 LObservable value;
                 if ((column.getLinkColumns() == null) && (oldIds != null)) {
-                    //old key values exists       
-                    value = oldIds[column.getKeyIndex()];
+                    //old key values exists
+                    value = (LObservable) oldIds.get(column.getDataFieldName());
+                    //value = oldIds[column.getKeyIndex()];
                 } else {
                     //linked column - always take actual value
                     value = getSubItem(column, rcd);

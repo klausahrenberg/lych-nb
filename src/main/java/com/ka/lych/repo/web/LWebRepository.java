@@ -23,6 +23,7 @@ import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.repo.LColumnItem;
+import com.ka.lych.util.LRecord;
 import com.ka.lych.util.LReflections.LField;
 import java.io.IOException;
 import java.util.Collection;
@@ -134,7 +135,7 @@ public class LWebRepository implements
     public <R extends Record> LFuture<LList<R>, LDataException> fetch(LQuery<R> query) {
         return LFuture.<LList<R>, LDataException>execute(task -> {
             try {
-                var request = LJson.of(query, 0, null).toString();
+                var request = LJson.of(query, 0, null, false).toString();
                 LLog.test("request %s", request);
 
                 return (LList<R>) LJsonParser.of(query.recordClass()).listFactory(_listFactory).url(new URL(_url + "/fetch"), request).parseList();
@@ -187,16 +188,30 @@ public class LWebRepository implements
     public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
         return LFuture.<T, LDataException>execute(task -> {
             try {
+                Optional<? extends Record> update = Optional.empty();
+                var oldIds = LRecord.getOldIdObjects(rcd);
+                if (oldIds != null) {
+                    LLog.test("old Ids exists %s", oldIds.size());
+                    oldIds.forEach((String key, Object value) -> LLog.test("old id %s / value %s", key, value));                    
+                    update = Optional.of(LRecord.of(oldIds));
+                } else {
+                    LLog.test("old Ids exists");
+                    
+                }
+                
                 //var request = LJson.of(new LOdwRequestRecord(rcd.getClass().getSimpleName(), rcd)).toString();
                 var request = LJson.empty()
                                 .beginObject()
                                     .propertyObject("record", rcd)
+                                    .propertyObject("update", update, true)
                                     .propertyObject("parent", parent, true)
                                     .propertyObject("override", overrideExisting)
                                 .endObject().toString();
                 LLog.test("persist: %s", request);
                 @SuppressWarnings("deprecation")
-                var map = LJsonParser.of(LMap.class).url(new URL(_url + "/persist"), request).parse();
+                var map = LJsonParser.of(LMap.class).url(new URL(_url + "/persist"), request).parse();       
+                //tbi: no error handling so far
+                LRecord.removeOldIdObjects(rcd);
                 LReflections.update(rcd, map);
                 return rcd;
             } catch (LParseException | IOException ex) {

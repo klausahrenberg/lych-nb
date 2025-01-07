@@ -237,7 +237,7 @@ public abstract class LObservable<T, BC extends ILObservable>
     @Override
     public synchronized ILRegistration addListener(ILChangeListener<T, BC> changeListener) {
         if (_listeners == null) {
-            _listeners = LList.empty();
+            _listeners = LList.<ILChangeListener<T, BC>>empty().allowDuplicates(false);
         }
         _listeners.add(changeListener);
         return () -> removeListener(changeListener);

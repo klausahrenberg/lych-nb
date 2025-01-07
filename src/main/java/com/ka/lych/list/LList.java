@@ -22,6 +22,7 @@ import java.util.function.Predicate;
 public class LList<T> extends ArrayList<T> {
     
     protected LList<ILConsumer<LListChange<T>>> _listeners;
+    protected boolean _allowDuplicates = true;
 
     public LList() {
     }
@@ -156,8 +157,10 @@ public class LList<T> extends ArrayList<T> {
 
     @Override
     public void add(int index, T item) {
-        super.add(index, item);
-        _notifyAdd(index, item);
+        if ((_allowDuplicates) || (!this.contains(item))) {
+            super.add(index, item);
+            _notifyAdd(index, item);
+        }
     }
 
     @Override
@@ -257,5 +260,12 @@ public class LList<T> extends ArrayList<T> {
         }
         return result;
     }    
+    
+    public boolean allowDuplicates() { return _allowDuplicates; }
+    
+    public LList<T> allowDuplicates(boolean allowDuplicates) {
+        _allowDuplicates = allowDuplicates;
+        return this;
+    }
     
 }

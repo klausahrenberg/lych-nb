@@ -11,6 +11,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import com.ka.lych.annotation.Json;
+import com.ka.lych.exception.LParseException;
 import com.ka.lych.observable.LDate;
 import com.ka.lych.observable.LDatetime;
 import java.time.LocalDate;
@@ -255,19 +256,31 @@ public class LJson {
     }
 
     public static LJson of(Object o) {
-        return of(o, -1, null);
+        return of(o, -1, null, false);
+    }
+    
+    public static LJson of(Object o, boolean onlyId) {
+        return of(o, -1, null, onlyId);
+    }
+    
+    public static Map<String, Object> mapOf(Object o, boolean onlyId) {
+        try {
+            return LJsonParser.<Object>of((Class<Object>) o.getClass()).payload(LJson.of(o, onlyId).toString()).parseMap();
+        } catch (LParseException lpe) {
+            return null;
+        }    
     }
     
     public static LJson of(Object o, Collection<String> onlyFields) {
-        return of(o, -1, onlyFields);
+        return of(o, -1, onlyFields, false);
     }
 
     @SuppressWarnings("unchecked")
-    public static LJson of(Object o, int onlyIdAfterTablevel, Collection<String> onlyFields) {
+    public static LJson of(Object o, int onlyIdAfterTablevel, Collection<String> onlyFields, boolean onlyId) {
         var json = new LJson(onlyIdAfterTablevel);
-        _objectToJson(json, o, false, null, onlyFields);
+        _objectToJson(json, o, onlyId, null, onlyFields);
         return json;
-    }
+    }        
     
     public LJson propertyObject(String name, Object o) {
         return propertyObject(name, o, false);
