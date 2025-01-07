@@ -27,6 +27,7 @@ import com.ka.lych.repo.LColumnItem;
 import com.ka.lych.repo.LServerRepository;
 import com.ka.lych.util.LRecord;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -265,7 +266,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {        
+    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<Map<String, Object>> oldIds, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {        
         return LFuture.execute(t -> {
             modified = true;
             return rcd;

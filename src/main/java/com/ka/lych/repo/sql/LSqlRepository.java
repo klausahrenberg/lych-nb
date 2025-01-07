@@ -28,6 +28,7 @@ import com.ka.lych.annotation.Index;
 import com.ka.lych.exception.LDataException;
 import com.ka.lych.exception.LParseException;
 import com.ka.lych.repo.LServerRepository;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -680,14 +681,19 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     public <R extends Record> LFuture<Boolean, LDataException> existsData(R rcd) {
         return LFuture.<Boolean, LDataException>execute(task -> {
             var columnItems = columnsWithoutLinks(rcd.getClass());
-            String sqlFilter = buildSqlFilter(rcd, columnItems, "");
+            String sqlFilter = buildSqlFilter(rcd, Optional.empty(), columnItems, "");
             return this.existsData(getTableName(rcd.getClass(), null), sqlFilter);
         });
+    }
+    
+    private <R extends Record> boolean _hasPrimaryKeyChanged(R rcd, Optional<Map<String, Object>> oldIds) {
+        //tbi
+        return false;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
+    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> oldIds, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
         return LFuture.<R, LDataException>execute(task -> {
             try {
                 LObjects.requireNonNull(rcd);
@@ -698,7 +704,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                         try {
                             var columnItems = columnsWithoutLinks(rcd.getClass());
                             String sqlFilter = null;
-                            boolean exists = ((primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE)) && (this.existsData(getTableName(rcd.getClass()), (sqlFilter = buildSqlFilter(rcd, columnItems, ""))));
+                            boolean exists = ((primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE)) && (this.existsData(getTableName(rcd.getClass()), (sqlFilter = buildSqlFilter(rcd, oldIds, columnItems, ""))));
                             startTransaction();
                             String sql;
                             String dbTableName = getTableName(rcd.getClass());
@@ -708,7 +714,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                                     throw new LDataException("Item already exists: %s", rcd);
                                 }
                                 //TreeDatas  
-                                if ((parent.isPresent()) && hasPrimaryKeyChanged(rcd, columnItems)) {
+                                if ((parent.isPresent()) && _hasPrimaryKeyChanged(rcd, oldIds)) {
                                     //if ((datas != null) && (datas.getParent() != null) && hasPrimaryKeyChanged(data, columnItems)) {                        
                                     relations = relationsDelete(parent.get(), rcd, columnItems);
                                 }
@@ -760,7 +766,6 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                                 relationsInsert(parent.get(), rcd, columnItems, relations);
                             }
                             commitTransaction();
-                            LRecord.removeOldIdObjects(rcd);
                         } catch (LDataException lde) {
                             rollbackTransaction();
                             throw lde;
@@ -794,7 +799,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                         var column = columns.getIf(c -> c.getField().name() == fieldName);
                         String sqlFilter = null;
                         String dbTableName = getTableName(rcd.getClass());
-                        boolean exists = ((primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE)) && (this.existsData(getTableName(rcd.getClass()), (sqlFilter = buildSqlFilter(rcd, columns, ""))));
+                        boolean exists = ((primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE)) && (this.existsData(getTableName(rcd.getClass()), (sqlFilter = buildSqlFilter(rcd, Optional.empty(),  columns, ""))));
                         startTransaction();
                         var sb = new StringBuilder();
                         if (exists) {
@@ -877,7 +882,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         sb.append(" from ");
         sb.append(tableName);
         sb.append(" where ");
-        sb.append(buildSqlFilter(child, childColumns, filterPrefix));
+        sb.append(buildSqlFilter(child, Optional.empty(), childColumns, filterPrefix));
         return sb;
     }
 
@@ -895,7 +900,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 StringBuilder sb = getRelationSelectStatement(tableName, paColumns, chColumns, child, filterPrefix);
                 if ((isChild) && (sd.parentClass() == parent.getClass())) {
                     sb.append(" and not (");
-                    sb.append(buildSqlFilter(parent, paColumns, ILConstants.PARENT + ILConstants.UNDL));
+                    sb.append(buildSqlFilter(parent, Optional.empty(), paColumns, ILConstants.PARENT + ILConstants.UNDL));
                     sb.append(")");
                 }
                 LSqlResultSet sqlResultSet = executeQuery(sb.toString());
@@ -926,9 +931,9 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         StringBuilder sb = new StringBuilder("delete from ");
         sb.append(tableName);
         sb.append("  where ");
-        sb.append(buildSqlFilter(parent, parentColumns, ILConstants.PARENT + ILConstants.UNDL));
+        sb.append(buildSqlFilter(parent, Optional.empty(), parentColumns, ILConstants.PARENT + ILConstants.UNDL));
         sb.append(" and ");
-        sb.append(buildSqlFilter(child, childColumns, ILConstants.CHILD + ILConstants.UNDL));
+        sb.append(buildSqlFilter(child, Optional.empty(), childColumns, ILConstants.CHILD + ILConstants.UNDL));
         return sb.toString();
     }
 
@@ -954,9 +959,9 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     private void relationsInsert(Record parent, Record child, LList<LColumnItem> childColumns, LList<LSqlRelationsItem> relations) throws LDataException {
         //Update relation for current child<>parent relation
         var parentColumns = (parent.getClass() == child.getClass() ? childColumns : columnsWithoutLinks(parent.getClass()));
-        String sqlFilter = buildSqlFilter(parent, parentColumns, ILConstants.PARENT + ILConstants.UNDL)
+        String sqlFilter = buildSqlFilter(parent, Optional.empty(), parentColumns, ILConstants.PARENT + ILConstants.UNDL)
                 + " and "
-                + buildSqlFilter(child, childColumns, ILConstants.CHILD + ILConstants.UNDL);
+                + buildSqlFilter(child, Optional.empty(), childColumns, ILConstants.CHILD + ILConstants.UNDL);
         String dbTableName = getTableName(parent.getClass(), child.getClass());
         if (!existsData(dbTableName, sqlFilter)) {
             executeUpdate(getRelationInsertStatement(dbTableName, parentColumns, childColumns, parent, child));
@@ -985,7 +990,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 if (parent.isPresent()) {
                     relations = relationsDelete(parent.get(), rcd, columnItems);
                 }
-                String sql = "delete from " + getTableName(rcd.getClass()) + " where " + buildSqlFilter(rcd, columnItems, "");
+                String sql = "delete from " + getTableName(rcd.getClass()) + " where " + buildSqlFilter(rcd, Optional.empty(), columnItems, "");
                 try {
                     executeUpdate(sql);
                 } catch (LDataException lde) {
@@ -1044,22 +1049,6 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         }
     }
 
-    protected boolean hasPrimaryKeyChanged(Record rcd, List<LColumnItem> columnItems) {
-        var result = false;
-        var oldIds = LRecord.getOldIdObjects(rcd);
-        if (oldIds != null) {
-            for (LColumnItem columnItem : columnItems) {
-                if ((!result) && (columnItem.isFieldPrimaryKey())) {
-                    if (columnItem.getLinkColumns() == null) {
-                        //old key values exists    
-                        result = result || (!oldIds.get(columnItem.getDataFieldName()).equals(getSubItem(columnItem, rcd)));
-                    }
-                }
-            }
-        }
-        return result;
-    }
-
     /**
      * Builds sql where clause for a single item based on primary key
      *
@@ -1068,18 +1057,17 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
      * @param prefix
      * @return
      */
-    protected String buildSqlFilter(Record rcd, List<LColumnItem> columnItems, String prefix) {
-        String result = "";
-        var oldIds = LRecord.getOldIdObjects(rcd);
+    protected String buildSqlFilter(Record rcd, Optional<Map<String, Object>> oldIds, List<LColumnItem> columnItems, String prefix) {
+        String result = "";        
         for (LColumnItem column : columnItems) {
             if (column.isFieldPrimaryKey()) {
                 result += prefix + column.getDataFieldName();
                 result += "=";
                 //private LObservable getSubItem(ColumnDbItem columnItem, LYoso data) {
                 LObservable value;
-                if ((column.getLinkColumns() == null) && (oldIds != null)) {
+                if ((column.getLinkColumns() == null) && (oldIds.isPresent())) {
                     //old key values exists
-                    value = (LObservable) oldIds.get(column.getDataFieldName());
+                    value = (LObservable) oldIds.get().get(column.getDataFieldName());
                     //value = oldIds[column.getKeyIndex()];
                 } else {
                     //linked column - always take actual value
@@ -1385,7 +1373,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     var column = columns.getIf(c -> c.getField().name() == fieldName);
                     sql.append(column.getDataFieldName());
                     sql.append(" from ").append(getTableName(record.getClass()));
-                    sql.append(" where ").append(buildSqlFilter(record, columns, ""));
+                    sql.append(" where ").append(buildSqlFilter(record, Optional.empty(), columns, ""));
                     try {
                         LSqlResultSet sqlResultSet = executeQuery(sql.toString(), 0);
                         if (!sqlResultSet.isEmpty()) {

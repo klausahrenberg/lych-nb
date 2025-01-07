@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.exception.LParseException;
+import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LDate;
 import com.ka.lych.observable.LDatetime;
 import java.time.LocalDate;
@@ -264,11 +265,16 @@ public class LJson {
     }
     
     public static Map<String, Object> mapOf(Object o, boolean onlyId) {
-        try {
-            return LJsonParser.<Object>of((Class<Object>) o.getClass()).payload(LJson.of(o, onlyId).toString()).parseMap();
+        var json = new LJson(-1);
+        return _objectToJson(json, o, onlyId, null, null);
+        
+        /*try {
+            var mapString = LJson.of(o, onlyId).toString();
+            LLog.test("mapString %s", mapString);
+            return LJsonParser.<Object>of((Class<Object>) o.getClass()).payload(mapString).parseMap();
         } catch (LParseException lpe) {
             return null;
-        }    
+        }*/    
     }
     
     public static LJson of(Object o, Collection<String> onlyFields) {
@@ -289,47 +295,64 @@ public class LJson {
     public LJson propertyObject(String name, Object o, boolean onlyId) {
         _objectToJson(this, o, onlyId, name, null);
         return this;
-    }
+    }    
 
-    protected static void _objectToJson(LJson json, Object value, boolean onlyId, String fieldName, Collection<String> onlyFields) {
+    protected static Map<String, Object> _objectToJson(LJson json, Object value, boolean onlyId, String fieldName, Collection<String> onlyFields) {  
+        var result = new LMap<String, Object>();
         if (value instanceof Optional) {
             value = (((Optional) value).isPresent() ? ((Optional) value).get() : null);
         }
         if (value == null)  {
             json.propertyNull(fieldName);
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, Optional.empty());
         } else if (value instanceof Collection c) {
             json.propertyArray(fieldName, c);
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, c);
         } else if (value instanceof Map m) {
             json.propertyMap(fieldName, m);
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, m);
         } else if (value instanceof ILParseable ilp) {
             var ps = ilp.toParseableString();
             if (ps != null) {
                 json.propertyString(fieldName, ps);
+                if (!LString.isEmpty(fieldName)) result.put(fieldName, ps);
             } else {
                 json.propertyNull(fieldName);
+                if (!LString.isEmpty(fieldName)) result.put(fieldName, Optional.empty());
             }
         } else if (String.class.isAssignableFrom(value.getClass())) {
             json.propertyString(fieldName, (String) value);
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, value);
         } else if (Integer.class.isAssignableFrom(value.getClass())) {
             json.propertyInteger(fieldName, (Integer) value);
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, value);
         } else if (Double.class.isAssignableFrom(value.getClass())) {
             json.propertyDouble(fieldName, (Double) value);
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, value);
         } else if (Boolean.class.isAssignableFrom(value.getClass())) {
             json.propertyBoolean(fieldName, (Boolean) value);
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, value);
         } else if (Path.class.isAssignableFrom(value.getClass())) {
             json.propertyString(fieldName, ((Path) value).toAbsolutePath().toString());
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, value);
         } else if (LocalDate.class.isAssignableFrom(value.getClass())) {
             json.propertyString(fieldName, LJson.dateString((LocalDate) value));
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, value);
         } else if (LocalDateTime.class.isAssignableFrom(value.getClass())) {
             json.propertyString(fieldName, LJson.datetimeString((LocalDateTime) value));
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, value);
         } else if (Class.class.isAssignableFrom(value.getClass())) {
             json.propertyString(fieldName, ((Class) value).getName());
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, ((Class) value).getName());
         } else if (value.getClass().isEnum()) {
-            json.propertyString(fieldName, value.toString().toUpperCase());//.toLowerCase());
+            json.propertyString(fieldName, value.toString().toUpperCase());
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, value.toString().toUpperCase());
         } else if (Collection.class.isAssignableFrom(value.getClass())) {
             json.propertyArray(fieldName, (Collection) value);
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, value);
         } else if (Map.class.isAssignableFrom(value.getClass())) {
             json.propertyMap(fieldName, (Map) value);
+            if (!LString.isEmpty(fieldName)) result.put(fieldName, value);
         } else {
             json.ifSeparator();
             json._separatorAlreadyCalled = true;
@@ -340,6 +363,7 @@ public class LJson {
             json.beginObject();
             if (value instanceof Record) {
                 json.propertyString(ILConstants.KEYWORD_CLASS, LReflections.nameForClass(value.getClass()));
+                result.put(ILConstants.KEYWORD_CLASS, LReflections.nameForClass(value.getClass()));
             }
             var fields = LReflections.getFieldsOfInstance(value, null, Json.class);
             var it_fields = fields.iterator();
@@ -362,12 +386,13 @@ public class LJson {
                     } else {
                         subValue = ((subValue instanceof Optional) ? (((Optional) subValue).isEmpty() ? null : ((Optional) subValue).get()) : subValue);
                     }
-                    _objectToJson(json, subValue, onlyId, field.name(), null);                    
+                    result.putAll(_objectToJson(json, subValue, onlyId, field.name(), null));                    
                 }
             }
             json.endObject();
             json._separatorAlreadyCalled = false;                    
         }
+        return result;
     }
 
     public static String string(String text) {

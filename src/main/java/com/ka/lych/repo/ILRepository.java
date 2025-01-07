@@ -23,6 +23,7 @@ import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
 import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *
@@ -179,10 +180,14 @@ public interface ILRepository<BC extends ILRepository> {
     public void removeColumn(Class dataClass, LField column) throws LDataException;
 
     public default <R extends Record> LFuture<R, LDataException> persist(R rcd) {
-        return persist(rcd, Optional.empty(), Optional.of(Boolean.FALSE));
+        return persist(rcd, Optional.empty(), Optional.empty(), Optional.of(Boolean.FALSE));
+    }
+    
+    public default <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> oldIds) {
+        return persist(rcd, oldIds, Optional.empty(), Optional.of(Boolean.FALSE));
     }
 
-    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<? extends Record> parent, Optional<Boolean> overrideExisting);
+    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> oldIds,  Optional<? extends Record> parent, Optional<Boolean> overrideExisting);
 
     public <R extends Record> LFuture<R, LDataException> remove(R rcd, Optional<? extends Record> parent);
 

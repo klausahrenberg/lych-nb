@@ -27,6 +27,7 @@ import com.ka.lych.util.LRecord;
 import com.ka.lych.util.LReflections.LField;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.function.Function;
 
 /**
@@ -185,25 +186,21 @@ public class LWebRepository implements
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
+    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<Map<String, Object>> oldIds, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
         return LFuture.<T, LDataException>execute(task -> {
-            try {
-                Optional<? extends Record> update = Optional.empty();
-                var oldIds = LRecord.getOldIdObjects(rcd);
-                if (oldIds != null) {
-                    LLog.test("old Ids exists %s", oldIds.size());
-                    oldIds.forEach((String key, Object value) -> LLog.test("old id %s / value %s", key, value));                    
-                    update = Optional.of(LRecord.of(oldIds));
+            try {                
+                if (oldIds.isPresent()) {
+                    LLog.test("old Ids exists %s", oldIds.get().size());
+                    oldIds.get().forEach((String key, Object value) -> LLog.test("old id %s / value %s", key, value));                                        
                 } else {
-                    LLog.test("old Ids exists");
-                    
+                    LLog.test("old Ids exists");                    
                 }
                 
                 //var request = LJson.of(new LOdwRequestRecord(rcd.getClass().getSimpleName(), rcd)).toString();
                 var request = LJson.empty()
                                 .beginObject()
                                     .propertyObject("record", rcd)
-                                    .propertyObject("update", update, true)
+                                    .propertyObject("currentId", (LRecord.currentIdsChanged(rcd, oldIds) ? oldIds : Optional.empty()), true)
                                     .propertyObject("parent", parent, true)
                                     .propertyObject("override", overrideExisting)
                                 .endObject().toString();
@@ -211,7 +208,6 @@ public class LWebRepository implements
                 @SuppressWarnings("deprecation")
                 var map = LJsonParser.of(LMap.class).url(new URL(_url + "/persist"), request).parse();       
                 //tbi: no error handling so far
-                LRecord.removeOldIdObjects(rcd);
                 LReflections.update(rcd, map);
                 return rcd;
             } catch (LParseException | IOException ex) {

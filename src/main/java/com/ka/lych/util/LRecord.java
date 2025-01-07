@@ -14,6 +14,7 @@ import com.ka.lych.observable.LObservable;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.LReflections.LField;
 import com.ka.lych.util.LReflections.LFields;
+import com.ka.lych.util.LReflections.LKeyCompleteness;
 import com.ka.lych.util.LReflections.LRequiredClass;
 import com.ka.lych.xml.LXmlUtils;
 import java.nio.file.Path;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  *
@@ -29,7 +31,6 @@ import java.util.Map;
 public abstract class LRecord {
 
     private static LMap<Class<? extends Record>, LFields> RCD_FIELDS;
-    private static LMap<Record, Map<String, Object>> RCD_OLD_IDS;
 
     public static boolean isRecord(Object record) {
         return ((record == null) || (record instanceof Record));
@@ -92,6 +93,31 @@ public abstract class LRecord {
         var fields = getFields(record.getClass());
         LField f = fields.get(observable, record);
         return (f != null ? f.isId() : false);
+    }
+    
+    public static LKeyCompleteness keyCompleteness(Record record) {
+        return getFields(record.getClass()).getKeyCompleteness(record);
+    }
+    
+    public static Optional<Map<String, Object>> currentIds(Record record) {
+        if (keyCompleteness(record) == LKeyCompleteness.KEY_COMPLETE) {
+            return Optional.of(LJson.mapOf(record, true));
+        } else {
+            return Optional.empty();
+        }
+    }
+    
+    public static boolean currentIdsChanged(Record record, Optional<Map<String, Object>> currentIds) {
+        if (currentIds.isPresent()) {
+            var it = currentIds.get().entrySet().iterator();
+            while (it.hasNext()) {
+                var e = it.next();
+                if ((!ILConstants.KEYWORD_CLASS.equals(e.getKey())) && (!LRecord.observable(record, e.getKey()).equals(e.getValue()))) {
+                    return true;
+                }
+            }
+        }
+        return false;        
     }
 
     public static LField getField(Class<Record> recordClass, String fieldName) {
@@ -230,23 +256,6 @@ public abstract class LRecord {
         } catch (LParseException lpe) {
             throw new IllegalArgumentException("Can't be possible.", lpe);
         }    
-    }
-   
-    public static Map<String, Object> getOldIdObjects(Record rcd) {
-        return (RCD_OLD_IDS != null ? RCD_OLD_IDS.get(rcd) : null);
-    }
-
-    public static void removeOldIdObjects(Record rcd) {
-        if (RCD_OLD_IDS != null) {
-            RCD_OLD_IDS.remove(rcd);
-        }
-    }
-
-    public static void setOldIdObjects(Record rcd, Map<String, Object> oldIds) {
-        if (RCD_OLD_IDS == null) {
-            RCD_OLD_IDS = new LMap<>();
-        }
-        RCD_OLD_IDS.put(rcd, oldIds);
     }
 
     public static String toLocalizedString(Record rcd) {
