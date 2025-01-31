@@ -256,6 +256,7 @@ public class LWebRepository implements
 
     public record LOdwRequestMap<R extends Record>(
             @Json LMap<String, Object> record, 
+            @Json Optional<Map<String, Object>> currentId,
             @Json Optional<LMap<String, Object>> parent,
             @Json Optional<Boolean> overrideExisting) {
 

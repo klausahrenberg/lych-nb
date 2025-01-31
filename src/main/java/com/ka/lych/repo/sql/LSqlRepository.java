@@ -693,7 +693,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> oldIds, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
+    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> currentId, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
         return LFuture.<R, LDataException>execute(task -> {
             try {
                 LObjects.requireNonNull(rcd);
@@ -704,7 +704,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                         try {
                             var columnItems = columnsWithoutLinks(rcd.getClass());
                             String sqlFilter = null;
-                            boolean exists = ((primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE)) && (this.existsData(getTableName(rcd.getClass()), (sqlFilter = buildSqlFilter(rcd, oldIds, columnItems, ""))));
+                            boolean exists = ((primaryKeyComplete == LKeyCompleteness.KEY_COMPLETE)) && (this.existsData(getTableName(rcd.getClass()), (sqlFilter = buildSqlFilter(rcd, currentId, columnItems, ""))));
                             startTransaction();
                             String sql;
                             String dbTableName = getTableName(rcd.getClass());
@@ -714,7 +714,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                                     throw new LDataException("Item already exists: %s", rcd);
                                 }
                                 //TreeDatas  
-                                if ((parent.isPresent()) && _hasPrimaryKeyChanged(rcd, oldIds)) {
+                                if ((parent.isPresent()) && _hasPrimaryKeyChanged(rcd, currentId)) {
                                     //if ((datas != null) && (datas.getParent() != null) && hasPrimaryKeyChanged(data, columnItems)) {                        
                                     relations = relationsDelete(parent.get(), rcd, columnItems);
                                 }
@@ -1067,7 +1067,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 LObservable value;
                 if ((column.getLinkColumns() == null) && (oldIds.isPresent())) {
                     //old key values exists
-                    value = (LObservable) oldIds.get().get(column.getDataFieldName());
+                    
+                    value = LObservable.create(oldIds.get().get(column.getDataFieldName()));
                     //value = oldIds[column.getKeyIndex()];
                 } else {
                     //linked column - always take actual value

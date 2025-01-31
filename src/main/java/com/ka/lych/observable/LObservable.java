@@ -480,7 +480,9 @@ public abstract class LObservable<T, BC extends ILObservable>
     public static LObservable create(Object value) {
         if (value != null) {
             var valueClass = value.getClass();
-            if (String.class.isAssignableFrom(valueClass)) {
+            if (value instanceof LObservable) {
+                return (LObservable) value;
+            } else if (String.class.isAssignableFrom(valueClass)) {
                 return new LString((String) value);
             } else if (Double.class.isAssignableFrom(valueClass)) {
                 return new LDouble((Double) value);
