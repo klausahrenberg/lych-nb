@@ -189,6 +189,10 @@ public interface ILRepository<BC extends ILRepository> {
 
     public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> oldIds,  Optional<? extends Record> parent, Optional<Boolean> overrideExisting);
 
+    public default <R extends Record> LFuture<R, LDataException> remove(R rcd) {
+        return remove(rcd, Optional.empty());
+    }
+    
     public <R extends Record> LFuture<R, LDataException> remove(R rcd, Optional<? extends Record> parent);
 
     public void removeRelation(Record record, Record parent) throws LDataException;

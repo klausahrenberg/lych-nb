@@ -3,6 +3,7 @@ package com.ka.lych.util;
 import com.ka.lych.list.LList;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  *
@@ -26,37 +27,51 @@ public abstract class LFuture<R, T extends Throwable>
 
     }
     ;
-    private final LList<LFutureHandler> handlers;
+    
+    final LList<LFutureHandler> _handlers = LList.empty();
+    LList<Function<R, Boolean>> _verifiers = null;
 
     public LFuture(LTask service) {
         this.service = service;
         this.latch = new CountDownLatch(1);
         this.error = null;
         this.value = null;
-        this.handlers = LList.empty();
     }
 
     @SuppressWarnings("unchecked")
-    protected void finish(T exception, R value, boolean cancelled) {
+    void _finish(T exception, R value, boolean cancelled) {
         this.error = exception;
         this.value = (exception == null ? value : null);
         latch.countDown();
         if (!cancelled) {
             if (hasError()) {
-                if (this.handlers.getIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR) != null) {
-                    this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR, eh -> eh.handler().accept(this.error));
+                if (_handlers.getIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR) != null) {
+                    _handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR, eh -> eh.handler().accept(this.error));
                 } else {
                     //if no handler for errors is there, print stack trace
                     this.error.printStackTrace();
                 }
             } else {
-                this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.VALUE, eh -> eh.handler().accept(this.value));
+                _handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.VALUE, eh -> eh.handler().accept(this.value));
             }
         } else {
-            this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.CANCEL, eh -> eh.handler().accept(null));
+            _handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.CANCEL, eh -> eh.handler().accept(null));
         }
-        this.handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.COMPLETE, eh -> eh.handler().accept(null));
-        this.handlers.clear();
+        _handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.COMPLETE, eh -> eh.handler().accept(null));
+        _handlers.clear();
+    }
+
+    public boolean verifyResult(R value) {
+        if (_verifiers != null) {
+            var itv = _verifiers.iterator();
+            while (itv.hasNext()) {
+                var v = itv.next();
+                if (!v.apply(value)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public LFuture<R, T> await() {
@@ -77,8 +92,7 @@ public abstract class LFuture<R, T extends Throwable>
      */
     public LFuture<R, T> onError(Consumer<? super T> exceptionHandler) {
         if (latch.getCount() > 0) {
-            this.handlers.add(new LFutureHandler(LFutureHandlerType.ERROR, exceptionHandler));
-            //this.exceptionHandlers.add(exceptionHandler);
+            _handlers.add(new LFutureHandler(LFutureHandlerType.ERROR, exceptionHandler));
         } else if (hasError()) {
             exceptionHandler.accept(this.error);
         }
@@ -94,8 +108,7 @@ public abstract class LFuture<R, T extends Throwable>
      */
     public LFuture<R, T> onCancel(Consumer<Void> cancelHandler) {
         if (latch.getCount() > 0) {
-            this.handlers.add(new LFutureHandler(LFutureHandlerType.CANCEL, cancelHandler));
-            //this.exceptionHandlers.add(exceptionHandler);
+            _handlers.add(new LFutureHandler(LFutureHandlerType.CANCEL, cancelHandler));
         } else if (hasError()) {
             cancelHandler.accept(null);
         }
@@ -112,7 +125,7 @@ public abstract class LFuture<R, T extends Throwable>
      */
     public LFuture<R, T> whenComplete(Consumer<Void> completeHandler) {
         if (latch.getCount() > 0) {
-            this.handlers.add(new LFutureHandler(LFutureHandlerType.COMPLETE, completeHandler));
+            _handlers.add(new LFutureHandler(LFutureHandlerType.COMPLETE, completeHandler));
         } else if (hasError()) {
             completeHandler.accept(null);
         }
@@ -127,10 +140,21 @@ public abstract class LFuture<R, T extends Throwable>
      */
     public LFuture<R, T> then(Consumer<R> valueHandler) {
         if (latch.getCount() > 0) {
-            this.handlers.add(new LFutureHandler(LFutureHandlerType.VALUE, valueHandler));
-            //this.valueHandlers.add(valueHandler);
+            _handlers.add(new LFutureHandler(LFutureHandlerType.VALUE, valueHandler));
         } else if (!hasError()) {
             valueHandler.accept(this.value);
+        }
+        return this;
+    }
+
+    public LFuture<R, T> verify(Function<R, Boolean> valueVerifier) {
+        if (latch.getCount() > 0) {
+            if (_verifiers == null) {
+                _verifiers = LList.empty();
+            }
+            _verifiers.add(valueVerifier);
+        } else if (!hasError()) {
+            valueVerifier.apply(value);
         }
         return this;
     }
@@ -172,10 +196,13 @@ public abstract class LFuture<R, T extends Throwable>
     }
 
     public static <R, T extends Throwable> LFuture<R, T> execute(ILRunnable<R, T> runnable, long delay, long duration, boolean looping) {
+        return LFuture.<R, T>executeTask(((delay > 0) || (duration > 0) ? new LTimerTask<R, T>(runnable, delay, duration, looping) : new LTask<R, T>(runnable)));
+    }
+
+    public static <R, T extends Throwable> LFuture<R, T> executeTask(LTask<R, T> task) {
         //create list with services, if necessary
         ensureRunningServices();
-        //Create and start service                        
-        LTask<R, T> task = ((delay > 0) || (duration > 0) ? new LTimerTask<R, T>(runnable, delay, duration, looping) : new LTask<R, T>(runnable));
+        //Create and start service 
         LFuture<R, T> future = new LFuture<>(task) {
             @Override
             public void remove() {
@@ -220,8 +247,10 @@ public abstract class LFuture<R, T extends Throwable>
     }
 
     /**
-     * Delays execution, if debugging is enabled. Can be used to simulate slow execution during debugging
-     * @param millis 
+     * Delays execution, if debugging is enabled. Can be used to simulate slow
+     * execution during debugging
+     *
+     * @param millis
      */
     public static void delayDebug(long millis) {
         if (LLog.LOG_LEVEL == LLog.LLogLevel.DEBUGGING) {

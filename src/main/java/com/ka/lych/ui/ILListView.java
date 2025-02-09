@@ -16,9 +16,9 @@ public interface ILListView<BC, T> extends ILControl, ILObsOnAction<T> {
     
     //public LObservable<LxItems<T>> observableYosos();
     
-    public LList<T> yosos();
+    public LList<T> items();
             
-    public void yosos(LList<T> yosos);
+    public void items(LList<T> yosos);
     
     public void addAcceptedFileExtension(String... extensions);
     

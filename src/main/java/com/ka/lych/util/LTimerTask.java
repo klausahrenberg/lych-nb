@@ -51,7 +51,7 @@ public class LTimerTask<R, T extends Throwable> extends LTask<R, T> {
                     error = (T) e;
                 }
                 if (_future != null) {
-                    _future.finish(error, (!_cancelled ? result : null), _cancelled);
+                    _future._finish(error, (!_cancelled ? result : null), _cancelled);
                 }
                 if ((!isCancelled()) && (_duration > 0)) {
                     try {
