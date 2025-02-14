@@ -26,6 +26,5 @@ module lych {
     opens com.ka.lych.list;
     opens com.ka.lych.util;
     
-    
     uses com.ka.lych.util.LPlugin;
 }

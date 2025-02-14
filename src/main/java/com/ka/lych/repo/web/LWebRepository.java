@@ -195,26 +195,20 @@ public class LWebRepository implements
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<Map<String, Object>> oldIds, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
+    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<Map<String, Object>> initialId, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
         return LFuture.<T, LDataException>execute(task -> {
             try {                
-                if (oldIds.isPresent()) {
-                    LLog.test("old Ids exists %s", oldIds.get().size());
-                    oldIds.get().forEach((String key, Object value) -> LLog.test("old id %s / value %s", key, value));                                        
+                if (initialId.isPresent()) {
+                    LLog.test("old Ids exists %s", initialId.get().size());
+                    initialId.get().forEach((String key, Object value) -> LLog.test("old id %s / value %s", key, value));                                        
                 } else {
                     LLog.test("old Ids exists");                    
                 }
                 
-                //var request = LJson.of(new LOdwRequestRecord(rcd.getClass().getSimpleName(), rcd)).toString();
-                var request = LJson.empty()
-                                .beginObject()
-                                    .propertyObject("record", rcd)
-                                    .propertyObject("currentId", (LRecord.currentIdsChanged(rcd, oldIds) ? oldIds : Optional.empty()), true)
-                                    .propertyObject("parent", parent, true)
-                                    .propertyObject("override", overrideExisting)
-                                .endObject().toString();
-                LLog.test("persist: %s", request);
-                var map = LJsonParser.of(LMap.class).url(new URL(_webServer + _persistCommand), request).parse();       
+                var request = new LOdwRequestMap<T>(rcd, initialId, parent, overrideExisting);
+                
+                LLog.test("persist: %s", request.toString());
+                var map = LJsonParser.of(LMap.class).url(new URL(_webServer + _persistCommand), LJson.of(request).toString()).parse();       
                 //tbi: no error handling so far
                 LReflections.update(rcd, map);
                 return rcd;
@@ -276,9 +270,11 @@ public class LWebRepository implements
     }
 
     public record LOdwRequestMap<R extends Record>(
-            @Json LMap<String, Object> record, 
-            @Json Optional<Map<String, Object>> currentId,
-            @Json Optional<LMap<String, Object>> parent,
+            //@Json Map<String, Object> record,
+            @Json R record, 
+            @Json Optional<Map<String, Object>> initialId,
+            //@Json Optional<LMap<String, Object>> parent,
+            @Json Optional<? extends Record> parent,
             @Json Optional<Boolean> overrideExisting) {
 
     }

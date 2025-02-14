@@ -264,6 +264,10 @@ public class LJson {
         return of(o, -1, null, onlyId);
     }
     
+    public static Map<String, Object> mapOf(Object o) {
+        return mapOf(o, false);
+    }
+    
     public static Map<String, Object> mapOf(Object o, boolean onlyId) {
         var json = new LJson(-1);
         return _objectToJson(json, o, onlyId, null, null);

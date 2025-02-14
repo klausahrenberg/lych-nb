@@ -141,7 +141,7 @@ public abstract class LReflections {
                     LLog.test("validate %s %s", field.name(), field);
                     values.put(field.name(), v.toString());
                 } else {
-                    values.put(field.name(), v);
+                    values.put(field.name(), (field.isOptional() ? Optional.of(v) : v));
                 }
             }
         }
@@ -202,10 +202,12 @@ public abstract class LReflections {
             var consParams = cons.getParameters();
             var consValues = new Object[consParams.length];
             for (int i = 0; i < consParams.length; i++) {
+                LLog.test("cons param '%s' / class %s", consParams[i].getName(), consParams[i].getType());
                 if (!values.containsKey(consParams[i].getName())) {
                     throw new LParseException("Can't create '%s'. Required value for key '%s' is missing.", requClass, consParams[i].getName());
                 }
                 consValues[i] = values.get(consParams[i].getName());
+                LLog.test("cons param '%s', class %s / value '%s'", consParams[i].getName(), consParams[i].getType(), consValues[i]);
                 values.remove(consParams[i].getName());
             }
             var result = cons.newInstance(consValues);
