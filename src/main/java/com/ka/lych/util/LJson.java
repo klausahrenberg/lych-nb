@@ -368,6 +368,11 @@ public class LJson {
             if (value instanceof Record) {
                 json.propertyString(ILConstants.KEYWORD_CLASS, LReflections.nameForClass(value.getClass()));
                 result.put(ILConstants.KEYWORD_CLASS, LReflections.nameForClass(value.getClass()));
+            } else if (value instanceof Throwable) {
+                json.propertyString(ILConstants.KEYWORD_CLASS, LReflections.nameForClass(value.getClass()));
+                result.put(ILConstants.KEYWORD_CLASS, LReflections.nameForClass(value.getClass()));                
+                json.propertyString("message", ((Throwable) value).getMessage());
+                result.put("message", ((Throwable) value).getMessage());
             }
             var fields = LReflections.getFieldsOfInstance(value, null, Json.class);
             var it_fields = fields.iterator();

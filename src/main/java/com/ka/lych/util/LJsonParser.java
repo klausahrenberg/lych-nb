@@ -108,7 +108,8 @@ public class LJsonParser<T> {
                 sb.append(System.lineSeparator());
                 line = br.readLine();
             }
-            _payload = sb.toString();                        
+            _payload = sb.toString();  
+            LLog.test("Received inputStream: %s", _payload);
             br.close();
             return this;
         } catch (IOException ex) {

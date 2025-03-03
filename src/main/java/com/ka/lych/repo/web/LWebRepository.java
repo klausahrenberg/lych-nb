@@ -196,22 +196,16 @@ public class LWebRepository implements
     @SuppressWarnings("unchecked")
     public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<Map<String, Object>> initialId, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
         return LFuture.<T, LDataException>execute(task -> {
-            try {                
-                if (initialId.isPresent()) {
-                    LLog.test("old Ids exists %s", initialId.get().size());
-                    initialId.get().forEach((String key, Object value) -> LLog.test("old id %s / value %s", key, value));                                        
-                } else {
-                    LLog.test("old Ids exists");                    
-                }
-                
+            try {                                                
                 var request = new LOdwRequestMap<T>(rcd, initialId, parent, overrideExisting);
+                var map = LHttp.post(_webServer + _persistCommand, request).awaitOrElseThrow();
                 
-                LLog.test("persist: %s", request.toString());
-                var map = LJsonParser.of(LMap.class).url(new URL(_webServer + _persistCommand), LJson.of(request).toString()).parse();       
+                //LLog.test("persist: %s", request.toString());
+                //var map = LJsonParser.of(LMap.class).url(new URL(_webServer + _persistCommand), LJson.of(request).toString()).parse();       
                 //tbi: no error handling so far
                 LReflections.update(rcd, map);
                 return rcd;
-            } catch (LParseException | IOException ex) {
+            } catch (LParseException | LHttpException ex) {
                 throw new LDataException(ex);
             }
         });

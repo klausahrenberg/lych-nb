@@ -9,9 +9,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.Base64;
 
 /**
@@ -20,10 +18,18 @@ import java.util.Base64;
  */
 public abstract class LHttp {
 
+    public static LFuture<LMap, LHttpException> post(String url, Object request) {
+        return post(url, LJson.of(request));
+    }
+    
     public static LFuture<LMap, LHttpException> post(String url, LJson request) {
         return post(url, request, null, null);
     }
-            
+    
+    public static LFuture<LMap, LHttpException> post(String url, Object request, String user, String password) {
+        return post(url, LJson.of(request), user, password);
+    }
+    
     public static LFuture<LMap, LHttpException> post(String url, LJson request, String user, String password) {
         return LFuture.<LMap, LHttpException>execute((LTask<LMap, LHttpException> task) -> {
             try {
@@ -42,13 +48,15 @@ public abstract class LHttp {
                     String authHeaderValue = "Basic " + new String(encodedAuth);
                     http.setRequestProperty("Authorization", authHeaderValue);
                 }
-                byte[] out = request.toString().getBytes(StandardCharsets.UTF_8);
+                var r = request.toString();
+                LLog.test("http request: %s ", r);
+                byte[] out = r.getBytes(StandardCharsets.UTF_8);
                 OutputStream stream = http.getOutputStream();
                 stream.write(out);
                 if (http.getResponseCode() == LHttpStatus.OK.value()) {
                     return (LMap) LJsonParser.of(LMap.class).inputStream(http.getInputStream()).parse();
                 } else {
-                    throw new LHttpException("Server returned failure response code: %s / Reason: %s", http.getResponseCode(), LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase());
+                    throw new LHttpException("Server returned failure response code: %s / Reason: %s / %s", http.getResponseCode(), LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase(), http.getInputStream());
                 }
             } catch (URISyntaxException use) {
                 throw new LHttpException(use);
