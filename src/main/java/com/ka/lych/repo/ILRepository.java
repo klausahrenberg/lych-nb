@@ -183,11 +183,11 @@ public interface ILRepository<BC extends ILRepository> {
         return persist(rcd, Optional.empty(), Optional.empty(), Optional.of(Boolean.FALSE));
     }
     
-    public default <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> oldIds) {
-        return persist(rcd, oldIds, Optional.empty(), Optional.of(Boolean.FALSE));
+    public default <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> initialId) {
+        return persist(rcd, initialId, Optional.empty(), Optional.of(Boolean.FALSE));
     }
 
-    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> oldIds,  Optional<? extends Record> parent, Optional<Boolean> overrideExisting);
+    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> initialId,  Optional<? extends Record> parent, Optional<Boolean> overrideExisting);
 
     public default <R extends Record> LFuture<R, LDataException> remove(R rcd) {
         return remove(rcd, Optional.empty());

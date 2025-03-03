@@ -25,7 +25,6 @@ import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.repo.LColumnItem;
 import com.ka.lych.util.LHttp;
-import com.ka.lych.util.LRecord;
 import com.ka.lych.util.LReflections.LField;
 import java.io.IOException;
 import java.util.Collection;
