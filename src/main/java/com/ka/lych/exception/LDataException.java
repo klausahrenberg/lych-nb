@@ -6,16 +6,16 @@ package com.ka.lych.exception;
  */
 public class LDataException extends LException {
 
-    public LDataException(final String message, final Object... arguments) {
-        this((Throwable) null, message, arguments);
-    }
-    
-    public LDataException(final Throwable cause) {
-        this(cause, null, null);
+    public LDataException(String key, Object... arguments) {
+        super(key, arguments);
     }
 
-    public LDataException(final Throwable cause, final String message, final Object... arguments) {       
-        super(cause, message, arguments);        
+    public LDataException(Throwable cause) {
+        super(cause);
     }    
+
+    public LDataException(Throwable cause, String key, Object... arguments) {
+        super(cause, key, arguments);
+    }
 
 }

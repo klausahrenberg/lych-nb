@@ -146,7 +146,7 @@ public abstract class LReflections {
             }
         }
         if (mf.length() > 0) {
-            throw new LParseException("For record %s id, fields are missing for instanciation: %s", classToBeInstanciated.getName(), mf.toString());
+            throw new LParseException("For record %s id fields are missing for instanciation: %s", classToBeInstanciated.getName(), mf.toString());
         }
     }
 

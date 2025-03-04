@@ -13,7 +13,7 @@ public class LUnchecked extends RuntimeException {
     }
     
     public LUnchecked(final Throwable cause) {
-        this(cause, null, null);
+        this(cause, null);
     }
 
     public LUnchecked(final Throwable cause, final String message, final Object... arguments) {       
