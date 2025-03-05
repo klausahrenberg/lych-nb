@@ -224,18 +224,7 @@ public class LString extends LObservable<String, LString>
         } else {
             return null;
         }
-    }
-
-    public static String format(String format, LList<Object> list) {
-        return format(format, key -> {
-            var i = 0;
-            try {
-                i = Integer.valueOf(key);
-            } catch (NumberFormatException nfe) {
-            }
-            return (list != null && i < list.size() ? list.get(i) : ILConstants.BRACKET_SQUARE_OPEN + key + ILConstants.BRACKET_SQUARE_CLOSE);
-        });
-    }
+    }    
 
     public static String format(String format, LMap<String, Object> map) {
         return format(format, key -> (map != null ? map.get(key) : null));
@@ -340,6 +329,18 @@ public class LString extends LObservable<String, LString>
         } catch (Exception ex) {
             return message + " " + ILConstants.BRACKET_SQUARE_OPEN + ex.getMessage() + ILConstants.BRACKET_SQUARE_CLOSE;
         }
+    }
+    
+    public static String format(String message, LList<Object> arguments) {
+        return format(message, arguments.toArray());
+        /*return format(format, key -> {
+            var i = 0;
+            try {
+                i = Integer.valueOf(key);
+            } catch (NumberFormatException nfe) {
+            }
+            return (list != null && i < list.size() ? list.get(i) : ILConstants.BRACKET_SQUARE_OPEN + key + ILConstants.BRACKET_SQUARE_CLOSE);
+        });*/
     }
 
     @Override

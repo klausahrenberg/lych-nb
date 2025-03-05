@@ -52,14 +52,14 @@ public class LResources
         if (bundle == null) {
             try {
                 //bundle = ResourceBundle.getBundle("language" , getLocale());
-                bundle = ResourceBundle.getBundle("languages.language" , getLocale());
+                bundle = ResourceBundle.getBundle("languages.language", getLocale());
             } catch (MissingResourceException mre) {
                 mre.printStackTrace();
-                bundle = ResourceBundle.getBundle(sender.getPackageName().concat(".res.language") , getLocale());
-            }    
+                bundle = ResourceBundle.getBundle(sender.getPackageName().concat(".res.language"), getLocale());
+            }
         }
         return bundle;
-    }    
+    }
 
     @Override
     public LObject<Locale> observableLocale() {
@@ -91,7 +91,7 @@ public class LResources
             throw new UnsupportedOperationException("class '" + ressourceClass.getName() + "' not supported yet");
         }
     }
-    
+
     @Override
     @SuppressWarnings("unchecked")
     public String localize(Object source, String key, Object values) {
@@ -100,29 +100,31 @@ public class LResources
         ResourceBundle bundle = this.getBundle(source != null ? ((source instanceof Class ? (Class) source : source.getClass())) : null);
         boolean isTooltip = extKey.endsWith(ILConstants.DOT + ILConstants.TOOLTIP);
         if (bundle != null) {
+            String s = null;
             try {
-                String s = bundle.getString(extKey);
-                if (s != null) {                    
-                    try {
-                        if (values instanceof LMap) {
-                            return LString.format(s, (LMap) values);
-                        } else if (values instanceof LList) {
-                            return LString.format(s, (LList) values);
-                        } else {
-                            return LString.format(s, values);
-                        }
-                    } catch (IllegalFormatException ife) {
-                        LLog.error("String format exception for '" + extKey + "': " + ife.getMessage());
-                    }    
-                }                    
+                s = bundle.getString(extKey);
             } catch (MissingResourceException mre) {
                 if (!isTooltip) {
                     LLog.debug("Language item for key '" + extKey + "' not found.");
                 }
             }
-        } 
-        return (!isTooltip ? key : null);        
-    }        
+            s = (s != null ? s : key);
+            if (s != null) {
+                try {
+                    if (values instanceof LMap) {
+                        return LString.format(s, (LMap) values);
+                    } else if (values instanceof LList) {
+                        return LString.format(s, (LList) values);
+                    } else {
+                        return LString.format(s, values);
+                    }
+                } catch (IllegalFormatException ife) {
+                    LLog.error("String format exception for '" + extKey + "': " + ife.getMessage());
+                }
+            }
+        }
+        return (!isTooltip ? key : null);
+    }
 
     /*public String format(Object sender, String ressourceKey, Object... placeHolderValues) {
         String result = localize(sender, ressourceKey, null, true);
@@ -131,7 +133,6 @@ public class LResources
         }
         return result;
     }*/
-
     @Override
     public List<Locale> getSupportedLocales() {
         return supportedLocales;

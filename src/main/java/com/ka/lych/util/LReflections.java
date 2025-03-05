@@ -157,7 +157,7 @@ public abstract class LReflections {
         if (requClass != null) {
             classToBeInstanciated = (!isOptional ? requClass.requiredClass() : (((requClass.parameterClasses().isPresent()) && (!requClass.parameterClasses().get().isEmpty())) ? (requClass.parameterClasses().get().get(0)) : null));
         }    
-        values = LMap.of(values);
+        values = LMap.of(values);             
         if ((classToBeInstanciated == null) || (classToBeInstanciated == Record.class)) {
             var clazz = values.get(ILConstants.KEYWORD_CLASS);
             if (clazz == null) {
@@ -204,7 +204,7 @@ public abstract class LReflections {
             for (int i = 0; i < consParams.length; i++) {
                 LLog.test("cons param '%s' / class %s", consParams[i].getName(), consParams[i].getType());
                 if (!values.containsKey(consParams[i].getName())) {
-                    throw new LParseException("Can't create '%s'. Required value for key '%s' is missing.", requClass, consParams[i].getName());
+                    throw new LParseException("REQUIRED_VALUE_FOR_KEY_MISSING", requClass, consParams[i].getName());
                 }
                 consValues[i] = values.get(consParams[i].getName());
                 LLog.test("cons param '%s', class %s / value '%s'", consParams[i].getName(), consParams[i].getType(), consValues[i]);

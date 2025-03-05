@@ -711,7 +711,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                             LList<LSqlRelationsItem> relations = null;
                             if (exists) {
                                 if ((overrideExisting.isEmpty()) || (overrideExisting.get() == false)) {
-                                    throw new LDataException("Item already exists: %s", rcd);
+                                    throw new LDataException("ITEM_ALREADY_EXISTS", rcd);
                                 }
                                 //TreeDatas  
                                 if ((parent.isPresent()) && _hasPrimaryKeyChanged(rcd, currentId)) {

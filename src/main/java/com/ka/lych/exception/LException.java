@@ -1,5 +1,6 @@
 package com.ka.lych.exception;
 
+import com.ka.lych.LBase;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LString;
@@ -41,7 +42,11 @@ public class LException extends Exception {
     
     @Override
     public String getMessage() {
-        return (_key != null ? LString.format(_key, _arguments) : super.getMessage());
+        if (_key != null) {
+            return LBase.getResources().localize(this, _key, _arguments);            
+        } else {
+            return super.getMessage();
+        }
     }
 
     public static <T> Consumer<T> throwing(ILConsumer<T> throwingConsumer) {

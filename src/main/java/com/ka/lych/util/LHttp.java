@@ -1,5 +1,6 @@
 package com.ka.lych.util;
 
+import com.ka.lych.exception.LException;
 import com.ka.lych.exception.LHttpException;
 import com.ka.lych.exception.LParseException;
 import com.ka.lych.list.LMap;
@@ -52,10 +53,16 @@ public abstract class LHttp {
                 LLog.test("http request: %s ", r);
                 byte[] out = r.getBytes(StandardCharsets.UTF_8);
                 OutputStream stream = http.getOutputStream();
+                LLog.test("http request - b");
                 stream.write(out);
+                LLog.test("http request - c");
                 if (http.getResponseCode() == LHttpStatus.OK.value()) {
+                    LLog.test("http request - d");
                     return (LMap) LJsonParser.of(LMap.class).inputStream(http.getInputStream()).parse();
                 } else {
+                    LLog.test("http request - e");
+                    var e = LJsonParser.of(LMap.class).inputStream(http.getErrorStream()).parse();
+                    LLog.test("http request - f: %s", e);
                     throw new LHttpException("Server returned failure response code: %s / Reason: %s / %s", http.getResponseCode(), LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase(), http.getInputStream());
                 }
             } catch (URISyntaxException use) {
