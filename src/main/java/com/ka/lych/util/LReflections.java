@@ -210,15 +210,21 @@ public abstract class LReflections {
                 LLog.test("cons param '%s', class %s / value '%s'", consParams[i].getName(), consParams[i].getType(), consValues[i]);
                 values.remove(consParams[i].getName());
             }
+            LLog.test("a");
             var result = cons.newInstance(consValues);
+            LLog.test("b");
             if ((!values.isEmpty()) && (!(result instanceof Record))) {
                 //Some values were not part of constructor. Update class with these
                 LReflections.update(result, values);
             }
             return (T) (isOptional ? Optional.of(result) : result);
-        } catch (InvocationTargetException | InstantiationException | IllegalAccessException ex) {
+        } catch (Exception ex) {
+            LLog.test("fehl %s / %s", ex.getClass().getName(), ex.getMessage());
             ex.printStackTrace();
             throw new IllegalStateException(ex);
+        } catch (Throwable ex2) {
+            LLog.test("fehl2 %s / %s", ex2.getClass().getName(), ex2.getMessage());
+            throw new IllegalStateException(ex2);
         }
     }
 

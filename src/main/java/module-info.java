@@ -23,6 +23,7 @@ module lych {
     exports com.ka.lych.util;
     exports com.ka.lych.xml;
     
+    opens com.ka.lych.exception;
     opens com.ka.lych.list;
     opens com.ka.lych.util;
     

@@ -18,15 +18,13 @@ import java.net.URL;
 import java.util.Optional;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.exception.LDataException;
-import com.ka.lych.exception.LHttpException;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.repo.LColumnItem;
 import com.ka.lych.util.LHttp;
 import com.ka.lych.util.LReflections.LField;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Function;
@@ -205,7 +203,7 @@ public class LWebRepository implements
                 //tbi: no error handling so far
                 LReflections.update(rcd, map);
                 return rcd;
-            } catch (LParseException | LHttpException ex) {
+            } catch (LException ex) {
                 throw new LDataException(ex);
             }
         });
@@ -222,7 +220,7 @@ public class LWebRepository implements
             try {
                 LHttp.post(_webServer + _removeCommand, recordJson).awaitOrElseThrow();
                 return record;
-            } catch (LHttpException lhe) {
+            } catch (LException lhe) {
                 _state.set(LDataServiceState.NOT_AVAILABLE);
                 throw new LDataException(lhe);
             }    

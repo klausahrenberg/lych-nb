@@ -1,7 +1,6 @@
 package com.ka.lych.util;
 
 import com.ka.lych.exception.LException;
-import com.ka.lych.exception.LHttpException;
 import com.ka.lych.exception.LParseException;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LString;
@@ -19,20 +18,20 @@ import java.util.Base64;
  */
 public abstract class LHttp {
 
-    public static LFuture<LMap, LHttpException> post(String url, Object request) {
+    public static LFuture<LMap, LException> post(String url, Object request) {
         return post(url, LJson.of(request));
     }
     
-    public static LFuture<LMap, LHttpException> post(String url, LJson request) {
+    public static LFuture<LMap, LException> post(String url, LJson request) {
         return post(url, request, null, null);
     }
     
-    public static LFuture<LMap, LHttpException> post(String url, Object request, String user, String password) {
+    public static LFuture<LMap, LException> post(String url, Object request, String user, String password) {
         return post(url, LJson.of(request), user, password);
     }
     
-    public static LFuture<LMap, LHttpException> post(String url, LJson request, String user, String password) {
-        return LFuture.<LMap, LHttpException>execute((LTask<LMap, LHttpException> task) -> {
+    public static LFuture<LMap, LException> post(String url, LJson request, String user, String password) {
+        return LFuture.<LMap, LException>execute((LTask<LMap, LException> task) -> {
             try {
                 var uri = new URI(url);
                 //var ur = Path.of(url).toUri().toURL();
@@ -61,16 +60,16 @@ public abstract class LHttp {
                     return (LMap) LJsonParser.of(LMap.class).inputStream(http.getInputStream()).parse();
                 } else {
                     LLog.test("http request - e");
-                    var e = LJsonParser.of(LMap.class).inputStream(http.getErrorStream()).parse();
+                    var e = LJsonParser.of(LException.class).inputStream(http.getErrorStream()).parse();
                     LLog.test("http request - f: %s", e);
-                    throw new LHttpException("Server returned failure response code: %s / Reason: %s / %s", http.getResponseCode(), LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase(), http.getInputStream());
+                    throw e;// new LHttpException("Server returned failure response code: %s / Reason: %s / %s", http.getResponseCode(), LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase(), http.getInputStream());
                 }
             } catch (URISyntaxException use) {
-                throw new LHttpException(use);
+                throw new LException(use);
             } catch (IOException ioe) {
-                throw new LHttpException(ioe);
+                throw new LException(ioe);
             } catch (LParseException lpe) {
-                throw new LHttpException(lpe);
+                throw new LException(lpe);
             }
         });
     }
