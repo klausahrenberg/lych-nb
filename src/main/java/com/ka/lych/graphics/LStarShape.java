@@ -1,6 +1,6 @@
 package com.ka.lych.graphics;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.geometry.LPoint;
 import com.ka.lych.util.LReflections.LMethod;
 import org.w3c.dom.Node;
@@ -15,7 +15,7 @@ public class LStarShape extends LShape {
         this(0, 0, 0, 0);
     }
 
-    public LStarShape(Object parent, LMethod[] parentMethods, Node n) throws LParseException {
+    public LStarShape(Object parent, LMethod[] parentMethods, Node n) throws LException {
         this(0, 0, 0, 0);
         parseXml(n, null);
     }

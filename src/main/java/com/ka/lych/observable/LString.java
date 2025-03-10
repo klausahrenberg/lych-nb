@@ -1,6 +1,6 @@
 package com.ka.lych.observable;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
 import com.ka.lych.util.ILConstants;
@@ -80,12 +80,12 @@ public class LString extends LObservable<String, LString>
     }
 
     @Override
-    public void parse(String value) throws LParseException {
+    public void parse(String value) throws LException {
         this.set(value);
     }
 
     @Override
-    public void parseLocalized(String value) throws LParseException {
+    public void parseLocalized(String value) throws LException {
         if (localized != null) {
             localized = value;
         }

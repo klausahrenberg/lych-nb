@@ -1,6 +1,6 @@
 package com.ka.lych.graphics;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.xml.LXmlUtils;
 import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
 import org.w3c.dom.Document;
@@ -18,13 +18,13 @@ public class LCircle extends LEllipse {
         neededShapeAttributes = new String[]{"cx", "cy", "r"};
     }
 
-    public LCircle(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public LCircle(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         super(n, xmlParseInfo);        
         neededShapeAttributes = new String[]{"cx", "cy", "r"};
     }
 
     @Override
-    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         this.parseXmlCommonAttributes(n, xmlParseInfo);
         //<circle cx="50" cy="50" r="40"
         if (LXmlUtils.countExistingAttributes(n, neededShapeAttributes) == 3) {

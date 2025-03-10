@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import com.ka.lych.annotation.Json;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LDate;
 import com.ka.lych.observable.LDatetime;
@@ -276,7 +276,7 @@ public class LJson {
             var mapString = LJson.of(o, onlyId).toString();
             LLog.test("mapString %s", mapString);
             return LJsonParser.<Object>of((Class<Object>) o.getClass()).payload(mapString).parseMap();
-        } catch (LParseException lpe) {
+        } catch (LException lpe) {
             return null;
         }*/    
     }

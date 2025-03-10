@@ -3,7 +3,7 @@ package com.ka.lych.event;
 /**
  *
  * @author klausahrenberg
- * @param <T> type of exception, e.g. LParseException
+ * @param <T> type of exception, e.g. LException
  */
 public class LErrorEvent<T extends Throwable> extends LNotificationEvent {
      

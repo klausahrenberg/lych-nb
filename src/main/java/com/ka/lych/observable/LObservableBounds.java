@@ -1,6 +1,6 @@
 package com.ka.lych.observable;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.geometry.ILBounds;
 import com.ka.lych.xml.LXmlUtils;
 
@@ -18,7 +18,7 @@ public class LObservableBounds extends LObservable<ILBounds, LObservableBounds> 
     }
 
     @Override
-    public void parse(String value) throws LParseException {
+    public void parse(String value) throws LException {
         set(LXmlUtils.xmlStrToBounds(value));
     }
 

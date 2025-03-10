@@ -18,7 +18,7 @@ import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Lazy;
-import com.ka.lych.exception.LDataException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
 import com.ka.lych.observable.LObject;
@@ -87,7 +87,7 @@ public interface ILRepository<BC extends ILRepository> {
     }
 
     @SuppressWarnings("unchecked")
-    public default void checkTables() throws LDataException {
+    public default void checkTables() throws LException {
         LLog.debug("Check db tables...");
         if (!isReadOnly()) {
             LLog.debug("Check %s items", DATA_SHEME.size());
@@ -111,15 +111,15 @@ public interface ILRepository<BC extends ILRepository> {
         LLog.debug("Tables checked.");
     }
 
-    public default String getTableName(Class parentClass) throws LDataException {
+    public default String getTableName(Class parentClass) throws LException {
         return getTableName(parentClass, null);
     }
 
-    public default String getTableName(Class parentClass, Class childClass) throws LDataException {
+    public default String getTableName(Class parentClass, Class childClass) throws LException {
         var result = DATA_SHEME.get(new LRepoParentChild(this, parentClass, childClass));
         if (LString.isEmpty(result)) {
             DATA_SHEME.entrySet().forEach(item -> LLog.test("getTableName item: '%s' / hash: %s ", item.getKey().parentClass().getName(), item.getKey().parentClass().hashCode()));
-            throw new LDataException("Can't find tableName for class '%s' %s (%s)", parentClass.getName(), (childClass != null ? "('" + childClass.getName() + "')" : ""), DATA_SHEME.size());
+            throw new LException("Can't find tableName for class '%s' %s (%s)", parentClass.getName(), (childClass != null ? "('" + childClass.getName() + "')" : ""), DATA_SHEME.size());
         }
         return result;
     }
@@ -147,63 +147,63 @@ public interface ILRepository<BC extends ILRepository> {
         }
     }
 
-    public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected);
+    public LFuture<LObject<LDataServiceState>, LException> setConnected(boolean connected);
 
     public boolean existsTable(String tableName);
 
     public boolean existsColumn(String tableName, LField column);
 
-    public <R extends Record> LFuture<Boolean, LDataException> existsData(R rcd);
+    public <R extends Record> LFuture<Boolean, LException> existsData(R rcd);
 
-    public void createTable(Class<? extends Record> dataClass) throws LDataException;
+    public void createTable(Class<? extends Record> dataClass) throws LException;
 
-    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter);
+    public LFuture<Integer, LException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter);
 
-    public <R extends Record> LFuture<LList<R>, LDataException> fetch(LQuery<R> query);
+    public <R extends Record> LFuture<LList<R>, LException> fetch(LQuery<R> query);
 
-    public <R extends Record> LFuture<R, LDataException> fetchRoot(Class<R> dataClass, Optional<String> rootName);
+    public <R extends Record> LFuture<R, LException> fetchRoot(Class<R> dataClass, Optional<String> rootName);
 
-    public <O extends Object> LFuture<O, LDataException> fetchValue(Record record, LObservable observable);
+    public <O extends Object> LFuture<O, LException> fetchValue(Record record, LObservable observable);
 
     /**
      *
      * @param parentClass
      * @param childClass
-     * @throws LDataException
+     * @throws LException
      */
-    public void createRelation(Class parentClass, Class childClass) throws LDataException;
+    public void createRelation(Class parentClass, Class childClass) throws LException;
 
-    public void removeTable(Class dataClass) throws LDataException;
+    public void removeTable(Class dataClass) throws LException;
 
-    public void addColumn(Class dataClass, LField column) throws LDataException;
+    public void addColumn(Class dataClass, LField column) throws LException;
 
-    public void removeColumn(Class dataClass, LField column) throws LDataException;
+    public void removeColumn(Class dataClass, LField column) throws LException;
 
-    public default <R extends Record> LFuture<R, LDataException> persist(R rcd) {
+    public default <R extends Record> LFuture<R, LException> persist(R rcd) {
         return persist(rcd, Optional.empty(), Optional.empty(), Optional.of(Boolean.FALSE));
     }
     
-    public default <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> initialId) {
+    public default <R extends Record> LFuture<R, LException> persist(R rcd, Optional<Map<String, Object>> initialId) {
         return persist(rcd, initialId, Optional.empty(), Optional.of(Boolean.FALSE));
     }
 
-    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> initialId,  Optional<? extends Record> parent, Optional<Boolean> overrideExisting);
+    public <R extends Record> LFuture<R, LException> persist(R rcd, Optional<Map<String, Object>> initialId,  Optional<? extends Record> parent, Optional<Boolean> overrideExisting);
 
-    public default <R extends Record> LFuture<R, LDataException> remove(R rcd) {
+    public default <R extends Record> LFuture<R, LException> remove(R rcd) {
         return remove(rcd, Optional.empty());
     }
     
-    public <R extends Record> LFuture<R, LDataException> remove(R rcd, Optional<? extends Record> parent);
+    public <R extends Record> LFuture<R, LException> remove(R rcd, Optional<? extends Record> parent);
 
-    public void removeRelation(Record record, Record parent) throws LDataException;
+    public void removeRelation(Record record, Record parent) throws LException;
 
-    public void startTransaction() throws LDataException;
+    public void startTransaction() throws LException;
 
-    public void commitTransaction() throws LDataException;
+    public void commitTransaction() throws LException;
 
-    public void rollbackTransaction() throws LDataException;
+    public void rollbackTransaction() throws LException;
 
-    //public void updateRootItem(LoDatas<?> datas, LoData data) throws LDataException;
+    //public void updateRootItem(LoDatas<?> datas, LoData data) throws LException;
     public void setOnError(ILHandler<LErrorEvent> onError);
 
     public default void registerDataFieldName(Class dataClass, String observableName, String dataFieldName) {

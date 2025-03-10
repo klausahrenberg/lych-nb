@@ -1,6 +1,6 @@
 package com.ka.lych.observable;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.xml.LXmlUtils;
 import com.ka.lych.util.LLog;
 
@@ -24,7 +24,7 @@ public class LPixel extends LDouble {
         super();
         try {
             parse(initialValue);
-        } catch (LParseException pex) {
+        } catch (LException pex) {
             LLog.error(pex.getMessage(), pex);
         }    
     }
@@ -35,10 +35,10 @@ public class LPixel extends LDouble {
      * to be dpi-scaled.
      * Use "10px" to use absolute pixel units. 
      * @param value 
-     * @throws com.ka.lych.util.LParseException 
+     * @throws com.ka.lych.util.LException 
      */
     @Override
-    public void parse(String value) throws LParseException {         
+    public void parse(String value) throws LException {         
         value = value.trim().toLowerCase();
         if (!LString.isEmpty(value)) {
             String type = value.substring(value.length() - 2);
@@ -64,7 +64,7 @@ public class LPixel extends LDouble {
     }
 
     @Override
-    public void parseLocalized(String value) throws LParseException {
+    public void parseLocalized(String value) throws LException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

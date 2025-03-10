@@ -1,6 +1,6 @@
 package com.ka.lych.observable;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.chrono.ChronoLocalDate;
@@ -41,7 +41,7 @@ public class LDate extends LObservable<LocalDate, LDate> {
     }
 
     @Override
-    public void parse(String value) throws LParseException {
+    public void parse(String value) throws LException {
         set(parseDate(value));
     }
 
@@ -50,7 +50,7 @@ public class LDate extends LObservable<LocalDate, LDate> {
         return toParseableString(get());
     }  
     
-    public static LocalDate parseDate(String value) throws LParseException {
+    public static LocalDate parseDate(String value) throws LException {
         return LocalDate.parse(value, DEFAULT_DATE_FORMAT);
     }
     
@@ -63,7 +63,7 @@ public class LDate extends LObservable<LocalDate, LDate> {
         return new LDate(this.get());
     }
     
-    public static LDate of(String value) throws LParseException {
+    public static LDate of(String value) throws LException {
         var result = new LDate();
         result.parse(value);
         return result;

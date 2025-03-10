@@ -1,7 +1,7 @@
 package com.ka.lych.graphics;
 
 import com.ka.lych.annotation.Json;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import java.util.EnumSet;
 import com.ka.lych.geometry.LAlignment;
 import com.ka.lych.observable.*;
@@ -48,7 +48,7 @@ public class LTextShape extends LShape
         this();
     }
 
-    public LTextShape(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public LTextShape(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         this();
         parseXml(n, xmlParseInfo);
     }
@@ -222,7 +222,7 @@ public class LTextShape extends LShape
     }
 
     @Override
-    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         super.parseXml(n, xmlParseInfo);
     }
 

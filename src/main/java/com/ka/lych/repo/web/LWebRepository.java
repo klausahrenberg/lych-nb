@@ -17,7 +17,7 @@ import com.ka.lych.util.LFuture;
 import java.net.URL;
 import java.util.Optional;
 import com.ka.lych.annotation.Json;
-import com.ka.lych.exception.LDataException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.exception.LException;
 import com.ka.lych.list.LList;
 import com.ka.lych.observable.LBoolean;
@@ -82,17 +82,17 @@ public class LWebRepository implements
     }
 
     @Override
-    public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected) {
+    public LFuture<LObject<LDataServiceState>, LException> setConnected(boolean connected) {
         if (connected) {
             _state.set(LDataServiceState.REQUESTING);
         }
-        return LFuture.<LObject<LDataServiceState>, LDataException>execute(task -> {
+        return LFuture.<LObject<LDataServiceState>, LException>execute(task -> {
             if (connected) {
                 try {
                     LJsonParser.update(this).url(new URL(_webServer + _stateCommand), "state").parse();
                 } catch (Exception ex) {
                     _state.set(LDataServiceState.NOT_AVAILABLE);
-                    throw new LDataException(ex);
+                    throw new LException(ex);
                 }
             } else {
                 _state.set(LDataServiceState.NOT_AVAILABLE);
@@ -112,18 +112,18 @@ public class LWebRepository implements
     }
 
     @Override
-    public <R extends Record> LFuture<Boolean, LDataException> existsData(R rcd) {
+    public <R extends Record> LFuture<Boolean, LException> existsData(R rcd) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void createTable(Class<? extends Record> dataClass) throws LDataException {
+    public void createTable(Class<? extends Record> dataClass) throws LException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter) {
-        return LFuture.<Integer, LDataException>execute(task -> {
+    public LFuture<Integer, LException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter) {
+        return LFuture.<Integer, LException>execute(task -> {
             try {
                 var request = LJson.of(new LOdwRequest(dataClass.getSimpleName(), null)).toString();
                 LLog.test("request %s", request);
@@ -133,67 +133,67 @@ public class LWebRepository implements
                 LLog.test("count %s", LArrays.toString(map.values()));
                 return (int) map.get("count");
             } catch (Exception ex) {
-                throw new LDataException(ex);
+                throw new LException(ex);
             }
         });
     }
 
     @Override
-    public <R extends Record> LFuture<LList<R>, LDataException> fetch(LQuery<R> query) {
-        return LFuture.<LList<R>, LDataException>execute(task -> {
+    public <R extends Record> LFuture<LList<R>, LException> fetch(LQuery<R> query) {
+        return LFuture.<LList<R>, LException>execute(task -> {
             try {
                 var request = LJson.of(query, 0, null, false).toString();
                 LLog.test("request %s", request);
 
                 return (LList<R>) LJsonParser.of(query.recordClass()).listFactory(_listFactory).url(new URL(_webServer + _fetchCommand), request).parseList();
             } catch (Exception ex) {
-                throw new LDataException(ex);
+                throw new LException(ex);
             }
         });
     }
 
     @Override
-    public <R extends Record> LFuture<R, LDataException> fetchRoot(Class<R> dataClass, Optional<String> rootName) {
-        return LFuture.<R, LDataException>execute(task -> {
+    public <R extends Record> LFuture<R, LException> fetchRoot(Class<R> dataClass, Optional<String> rootName) {
+        return LFuture.<R, LException>execute(task -> {
             try {
                 var request = LJson.of(new LRequestRoot(dataClass, rootName)).toString();
                 LLog.test("fetchRoot: '%s'", request);
                 return (R) LJsonParser.of(dataClass).listFactory(_listFactory).url(new URL(_webServer + _fetchRootCommand), request).parse();
             } catch (Exception ex) {
-                throw new LDataException(ex);
+                throw new LException(ex);
             }
         });
     }
 
     @Override
-    public <O> LFuture<O, LDataException> fetchValue(Record record, LObservable observable) {
+    public <O> LFuture<O, LException> fetchValue(Record record, LObservable observable) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void createRelation(Class parentClass, Class childClass) throws LDataException {
+    public void createRelation(Class parentClass, Class childClass) throws LException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void removeTable(Class dataClass) throws LDataException {
+    public void removeTable(Class dataClass) throws LException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void addColumn(Class dataClass, LReflections.LField column) throws LDataException {
+    public void addColumn(Class dataClass, LReflections.LField column) throws LException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void removeColumn(Class dataClass, LReflections.LField column) throws LDataException {
+    public void removeColumn(Class dataClass, LReflections.LField column) throws LException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<Map<String, Object>> initialId, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
-        return LFuture.<T, LDataException>execute(task -> {
+    public <T extends Record> LFuture<T, LException> persist(T rcd, Optional<Map<String, Object>> initialId, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
+        return LFuture.<T, LException>execute(task -> {
             try {                                                
                 var request = new LOdwRequestMap<T>(rcd, initialId, parent, overrideExisting);
                 var map = LHttp.post(_webServer + _persistCommand, request).awaitOrElseThrow();
@@ -204,14 +204,14 @@ public class LWebRepository implements
                 LReflections.update(rcd, map);
                 return rcd;
             } catch (LException ex) {
-                throw new LDataException(ex);
+                throw new LException(ex);
             }
         });
     }
 
     @Override
-    public <T extends Record> LFuture<T, LDataException> remove(T record, Optional<? extends Record> parent) {
-        return LFuture.<T, LDataException>execute(task -> {
+    public <T extends Record> LFuture<T, LException> remove(T record, Optional<? extends Record> parent) {
+        return LFuture.<T, LException>execute(task -> {
             var recordJson = LJson.empty()
                           .beginObject()
                        .propertyObject("record", record, true)
@@ -222,28 +222,28 @@ public class LWebRepository implements
                 return record;
             } catch (LException lhe) {
                 _state.set(LDataServiceState.NOT_AVAILABLE);
-                throw new LDataException(lhe);
+                throw new LException(lhe);
             }    
         });
     }
 
     @Override
-    public void removeRelation(Record record, Record parent) throws LDataException {
+    public void removeRelation(Record record, Record parent) throws LException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void startTransaction() throws LDataException {
+    public void startTransaction() throws LException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void commitTransaction() throws LDataException {
+    public void commitTransaction() throws LException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void rollbackTransaction() throws LDataException {
+    public void rollbackTransaction() throws LException {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 

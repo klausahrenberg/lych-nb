@@ -1,6 +1,6 @@
 package com.ka.lych.graphics;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LString;
 import com.ka.lych.util.ILConstants;
@@ -178,7 +178,7 @@ public class LColor
     }
 
     @Override
-    public void parse(String value) throws LParseException {
+    public void parse(String value) throws LException {
         _rgb = LColor.of(value).rgb();
     }
 
@@ -199,7 +199,7 @@ public class LColor
         return new LColor(r, g, b, a);
     }
 
-    public static LColor of(String sValue) throws LParseException {
+    public static LColor of(String sValue) throws LException {
         sValue = sValue.trim().replace(" ", "").toLowerCase();
         if ((sValue.startsWith("rgb(")) && (sValue.endsWith(")"))) {
             sValue = sValue.substring(4, sValue.length() - 1);
@@ -225,7 +225,7 @@ public class LColor
                 if (result != null) {
                     return result;
                 } else {
-                    throw new LParseException("Unknown color value: %s", sValue);
+                    throw new LException("Unknown color value: %s", sValue);
                 }
             }
 
@@ -235,7 +235,7 @@ public class LColor
     protected static void createPredefinedColors() {
         if (_PREDEFINED_COLORS == null) {
             _PREDEFINED_COLORS = new LMap<String, LColor>();
-            var fields = LReflections.getStaticFields(LColor.class, LColor.class, null);
+            var fields = LReflections.getStaticFields(LColor.class, LColor.class, (Class) null);
             fields.forEach(field -> {
                 try {
                     _PREDEFINED_COLORS.put(field.name().toLowerCase(), (LColor) field.get(null));

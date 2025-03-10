@@ -2,7 +2,7 @@ package com.ka.lych.ui;
 
 import com.ka.lych.event.LActionEvent;
 import com.ka.lych.event.LErrorEvent;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.ui.observable.ILHasEnabled;
 import com.ka.lych.ui.observable.ILHasId;
 import com.ka.lych.util.ILHandler;
@@ -16,6 +16,6 @@ public interface ILPasswordField<BC> extends ILHasId<BC>, ILHasVisibility<BC>, I
     
     public void setOnChange(ILHandler<LActionEvent> onChange);  
     
-    public void setOnError(ILHandler<LErrorEvent<LParseException>> onError);
+    public void setOnError(ILHandler<LErrorEvent<LException>> onError);
     
 }

@@ -1,7 +1,6 @@
 package com.ka.lych.util;
 
 import com.ka.lych.exception.LException;
-import com.ka.lych.exception.LParseException;
 import com.ka.lych.list.LMap;
 import com.ka.lych.observable.LString;
 import java.io.IOException;
@@ -49,27 +48,18 @@ public abstract class LHttp {
                     http.setRequestProperty("Authorization", authHeaderValue);
                 }
                 var r = request.toString();
-                LLog.test("http request: %s ", r);
                 byte[] out = r.getBytes(StandardCharsets.UTF_8);
                 OutputStream stream = http.getOutputStream();
-                LLog.test("http request - b");
                 stream.write(out);
-                LLog.test("http request - c");
                 if (http.getResponseCode() == LHttpStatus.OK.value()) {
-                    LLog.test("http request - d");
                     return (LMap) LJsonParser.of(LMap.class).inputStream(http.getInputStream()).parse();
                 } else {
-                    LLog.test("http request - e");
-                    var e = LJsonParser.of(LException.class).inputStream(http.getErrorStream()).parse();
-                    LLog.test("http request - f: %s", e);
-                    throw e;// new LHttpException("Server returned failure response code: %s / Reason: %s / %s", http.getResponseCode(), LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase(), http.getInputStream());
+                    throw LException.of(LJsonParser.of(LMap.class).inputStream(http.getErrorStream()).parse());
                 }
             } catch (URISyntaxException use) {
                 throw new LException(use);
             } catch (IOException ioe) {
                 throw new LException(ioe);
-            } catch (LParseException lpe) {
-                throw new LException(lpe);
             }
         });
     }

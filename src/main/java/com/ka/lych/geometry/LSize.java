@@ -1,7 +1,7 @@
 package com.ka.lych.geometry;
 
 import com.ka.lych.annotation.Json;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.observable.ILChangeListener;
 import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.ILValidator;
@@ -99,7 +99,7 @@ public class LSize<T extends LSize>
     }
 
     @Override
-    public void parse(String value) throws LParseException {
+    public void parse(String value) throws LException {
         double[] coord = LXmlUtils.xmlStrToDoubleArray(new StringBuilder(value), 2);
         this.width(coord[0]).height(coord[1]);
     }

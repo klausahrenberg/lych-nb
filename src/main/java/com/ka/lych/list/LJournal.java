@@ -1,11 +1,11 @@
 package com.ka.lych.list;
 
 import com.ka.lych.annotation.Id;
-import com.ka.lych.exception.LDoubleHashKeyException;
 import com.ka.lych.exception.LException;
-import com.ka.lych.exception.LItemNotExistsException;
+import com.ka.lych.exception.LException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.exception.LUnchecked;
-import com.ka.lych.exception.LValueException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.observable.ILChangeListener;
 import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.ILValidator;
@@ -36,7 +36,7 @@ public class LJournal<V>
     private final ILValidator<Object, ILObservable> _observableAcceptor = change -> {
         var newKey = _key((V) change.source().owner(), false, null, null);
         return (containsKey(newKey)
-                ? new LValueException("Key '%s' already exists.", newKey)
+                ? new LException("Key '%s' already exists.", newKey)
                 : null);
     };
     private final ILChangeListener<Object, ILObservable> _observableListener = change -> {
@@ -175,13 +175,13 @@ public class LJournal<V>
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    protected void _add(V item) throws LDoubleHashKeyException {
+    protected void _add(V item) throws LException {
         if (_fields == null) {
             _fields = LReflections.getFieldsOfInstance(item, null, _hashIndex);
         }
         var key = _key(item, true, null, null);
         if (!_addKey(key, item)) {
-            throw new LDoubleHashKeyException("Key '%s' already exists.", key);
+            throw new LException("Key '%s' already exists.", key);
         }
         LLog.test("added (%s items): %s", this.size(), item);
     }
@@ -199,11 +199,11 @@ public class LJournal<V>
         }
     }
 
-    protected V _remove(V item) throws LItemNotExistsException {
+    protected V _remove(V item) throws LException {
         if (_fields != null) {
             var key = _key(item);
             if (!_removeKey(key)) {
-                throw new LItemNotExistsException("Journal contains no key '%s'", key);
+                throw new LException("Journal contains no key '%s'", key);
             } else {
                 _removeListeners(item);
             }

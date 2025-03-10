@@ -4,7 +4,7 @@ import java.util.Iterator;
 import com.ka.lych.list.LList;
 import java.util.function.Function;
 import com.ka.lych.annotation.Json;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.observable.LString;
 import com.ka.lych.xml.LXmlUtils;
 
@@ -13,7 +13,7 @@ import com.ka.lych.xml.LXmlUtils;
  * @author klausahrenberg
  */
 public class LTerm
-        implements ILParseable<LParseException> {
+        implements ILParseable<LException> {
 
     public final static String KEYWORD_VARIABLE = "=";
     protected final static char KEYWORD_BRACKET_OPEN = '(';
@@ -82,15 +82,15 @@ public class LTerm
         return subs;
     }
 
-    public LTerm() throws LParseException {
+    public LTerm() throws LException {
         this("", true);
     }
 
-    public LTerm(String term) throws LParseException {
+    public LTerm(String term) throws LException {
         this(term, true);
     }
 
-    protected LTerm(String term, boolean parseRecursive) throws LParseException {        
+    protected LTerm(String term, boolean parseRecursive) throws LException {        
         _parseRecursive = parseRecursive;
         _operation = LOperation.NONE;
         parse(term);
@@ -162,7 +162,7 @@ public class LTerm
      * @param subFormula
      * @throws LXmlException
      */
-    private String prepareFormulaCheckAndOr(String subFormula) throws LParseException {
+    private String prepareFormulaCheckAndOr(String subFormula) throws LException {
         subFormula = subFormula.trim() + " ";
         int bracketLevel = 0;
         boolean insideString = false;
@@ -211,7 +211,7 @@ public class LTerm
     }
 
     @Override
-    public void parse(String term) throws LParseException {        
+    public void parse(String term) throws LException {        
         _operation = LOperation.NONE;
         _valueConstant = null;
         if (!LString.isEmpty(term)) {
@@ -333,7 +333,7 @@ public class LTerm
                     try {
                         _valueConstant = LXmlUtils.xmlStrToBoolean(term);
                         _operation = LOperation.VALUE_CONST;
-                    } catch (LParseException nfe) {
+                    } catch (LException nfe) {
                     }
                 }
                 //Test for integer
@@ -349,7 +349,7 @@ public class LTerm
                     try {
                         _valueConstant = LXmlUtils.xmlStrToDouble(term);
                         _operation = LOperation.VALUE_CONST;
-                    } catch (LParseException nfe) {
+                    } catch (LException nfe) {
                     }
                 }
                 //Finally, it could only be a variable without boolean comparison, e.g. 'database.connected'. This

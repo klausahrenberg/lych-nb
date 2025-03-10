@@ -1,7 +1,7 @@
 package com.ka.lych.graphics;
 
 import com.ka.lych.annotation.Json;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import java.util.Arrays;
 import java.util.EnumSet;
 import com.ka.lych.geometry.ILBounds;
@@ -98,7 +98,7 @@ public class LShape<BC extends LShape>
         neededShapeAttributes = new String[]{"d"};
     }
 
-    public LShape(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public LShape(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         this.pointTypes = new byte[INITIAL_SIZE];
         this.doubleCoords = new double[INITIAL_SIZE * 2];
         this.windingRule = WIND_NON_ZERO;
@@ -587,7 +587,7 @@ public class LShape<BC extends LShape>
         return value;
     }
 
-    protected void parseXmlCommonAttributes(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    protected void parseXmlCommonAttributes(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         LList<String> excludeList = new LList<>();
         for (String neededAttribute : neededShapeAttributes) {
             excludeList.add(neededAttribute);
@@ -596,7 +596,7 @@ public class LShape<BC extends LShape>
     }
 
     @Override
-    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         this.reset();
         this.parseXmlCommonAttributes(n, xmlParseInfo);
         //path d

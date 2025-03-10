@@ -14,7 +14,7 @@ import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Lazy;
 import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.observable.LObject;
 import com.ka.lych.repo.LQuery;
 
@@ -48,7 +48,7 @@ public class LRecordTest extends LBase {
             repository.persist(p).await();
 
             LLog.test("Finished");
-        } catch (LParseException ex) {
+        } catch (LException ex) {
             LLog.error(ex, true);
         }
 

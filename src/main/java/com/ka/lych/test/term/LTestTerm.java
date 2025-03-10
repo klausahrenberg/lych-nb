@@ -1,6 +1,6 @@
 package com.ka.lych.test.term;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.util.LJson;
 import com.ka.lych.util.LLog;
 import com.ka.lych.util.LTerm;
@@ -18,7 +18,7 @@ public class LTestTerm {
             LLog.test("term is: %s", LJson.of(term).toString());
             var result = term.getValue(null);
             LLog.test("result is: %s", result);
-        } catch (LParseException lpe) {
+        } catch (LException lpe) {
             LLog.error("Can't create term", lpe);
         }
 

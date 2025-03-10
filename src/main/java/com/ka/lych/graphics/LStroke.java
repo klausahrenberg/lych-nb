@@ -1,7 +1,7 @@
 package com.ka.lych.graphics;
 
 import com.ka.lych.annotation.Json;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import java.util.Objects;
 import com.ka.lych.observable.LDouble;
 import com.ka.lych.observable.LObject;
@@ -67,7 +67,7 @@ public class LStroke
         setDashPhase(dashPhase);
     }
 
-    public LStroke(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public LStroke(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         this(true);
         parseXml(n, xmlParseInfo);
     }
@@ -163,7 +163,7 @@ public class LStroke
     }   
 
     @Override
-    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {        
+    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LException {        
         LXmlUtils.parseXml(this, n, xmlParseInfo);      
     }
 

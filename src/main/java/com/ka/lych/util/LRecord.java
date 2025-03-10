@@ -1,6 +1,6 @@
 package com.ka.lych.util;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.exception.LUnchecked;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
@@ -152,7 +152,7 @@ public abstract class LRecord {
     }
 
     @SuppressWarnings("unchecked")
-    public static LObservable toObservable(LField field, Object value) throws LParseException {
+    public static LObservable toObservable(LField field, Object value) throws LException {
         LObservable result = null;
         boolean shouldParsed = (value instanceof String);
         if ((value != null) && (value instanceof LObservable)) {
@@ -175,7 +175,7 @@ public abstract class LRecord {
                 if ((Map.class.isAssignableFrom(field._requiredClass.requiredClass())) && (!(value instanceof LMap))) {
                 //if (!(value instanceof LMap)) {
                     if ((field._requiredClass.parameterClasses().isEmpty()) || (field._requiredClass.parameterClasses().get().size() < 2)) {
-                        throw new LParseException("Map needs 2 class parameters. List is empty or less than 2");
+                        throw new LException("Map needs 2 class parameters. List is empty or less than 2");
                     }
                     var valueMap = new LMap<String, Object>();
                     var itemClass = field._requiredClass.parameterClasses().get().get(1);
@@ -186,7 +186,7 @@ public abstract class LRecord {
                             if (Map.class.isAssignableFrom(entry.getValue().getClass())) {
                                 valueMap.put(entry.getKey(), LRecord.of(itemClass, (Map<String, Object>) entry.getValue()));
                             } else {
-                                throw new LParseException("Map should be filled by objects created by other maps, but it is: %s", entry.getValue());
+                                throw new LException("Map should be filled by objects created by other maps, but it is: %s", entry.getValue());
                             }
                         }
                     }
@@ -213,29 +213,29 @@ public abstract class LRecord {
         }
     }
     
-    public static <T extends Record> T of(Map<String, Object> values) throws LParseException {
+    public static <T extends Record> T of(Map<String, Object> values) throws LException {
         return LReflections.of(null, values, false);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Record> T of(Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {
+    public static <T extends Record> T of(Map<String, Object> values, boolean acceptIncompleteId) throws LException {
         return LReflections.of(null, values, acceptIncompleteId);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Record> T of(Class<T> recordClass, Map<String, Object> values) throws LParseException {
+    public static <T extends Record> T of(Class<T> recordClass, Map<String, Object> values) throws LException {
         return LReflections.of(LRequiredClass.of(recordClass), values, false);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T extends Record> T of(Class<T> recordClass, Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {        
+    public static <T extends Record> T of(Class<T> recordClass, Map<String, Object> values, boolean acceptIncompleteId) throws LException {        
         return LReflections.of(LRequiredClass.of(recordClass), values, acceptIncompleteId);
     }
     
     public static <T extends Record> T create(Class<T> recordClass, Map<String, Object> values) {
         try {
             return LRecord.of(recordClass, values);
-        } catch (LParseException lpe) {
+        } catch (LException lpe) {
             throw new LUnchecked(lpe);
         }
     }
@@ -248,12 +248,12 @@ public abstract class LRecord {
             for (var field : fields) {
                 map.put(field.name(), toObservable(field, null));
             }
-        } catch (LParseException lpe) {
+        } catch (LException lpe) {
             throw new IllegalStateException();
         }
         try {
             return LReflections.of(LRequiredClass.of(recordClass), map, true);
-        } catch (LParseException lpe) {
+        } catch (LException lpe) {
             throw new IllegalArgumentException("Can't be possible.", lpe);
         }    
     }

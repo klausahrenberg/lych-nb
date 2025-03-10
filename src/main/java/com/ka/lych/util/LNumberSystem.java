@@ -1,6 +1,6 @@
 package com.ka.lych.util;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 
 
 /**
@@ -75,7 +75,7 @@ public class LNumberSystem {
         return (int) Math.pow(digits.length, valueStringLength);
     }
 
-    public static int digitsToInt(String value, char[] digits) throws LParseException {
+    public static int digitsToInt(String value, char[] digits) throws LException {
         if ((digits == null) || (digits.length < 2)) {
             throw new IllegalArgumentException("digits are not defined " + digits);
         }
@@ -91,11 +91,11 @@ public class LNumberSystem {
                 if (b > -1) {
                     result = result + b * (int) (Math.pow(digits.length, value.length() - i - 1));
                 } else {
-                    throw new LParseException("Invalid number: '%s'", value);
+                    throw new LException("Invalid number: '%s'", value);
                 }
             }
         } else {
-            throw new LParseException("Value out of range: '%s' / max: %s", value, max);
+            throw new LException("Value out of range: '%s' / max: %s", value, max);
         }
         return result;
     }

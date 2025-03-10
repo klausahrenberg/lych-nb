@@ -16,7 +16,7 @@ import java.util.ResourceBundle;
 import javax.xml.parsers.*;
 import com.ka.lych.event.LChangedEvent;
 import com.ka.lych.event.LEventHandler;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.geometry.ILPoint;
 import com.ka.lych.geometry.LScaleMode;
 import com.ka.lych.graphics.anim.ILAnimation;
@@ -391,13 +391,13 @@ public class LCanvas extends LShape<LCanvas>
         return true;
     }
 
-    public boolean loadFromFile(Object parent, LMethod[] parentMethods, String filename) throws IOException, LParseException {
+    public boolean loadFromFile(Object parent, LMethod[] parentMethods, String filename) throws IOException, LException {
         clearCanvas();
         LXmlUtils.parseXmlFromFile(this, new File(filename));
         return true;
     }
 
-    public boolean readFromInputStream(Object parent, LMethod[] parentMethods, InputStream stream) throws IOException, LParseException {
+    public boolean readFromInputStream(Object parent, LMethod[] parentMethods, InputStream stream) throws IOException, LException {
         clearCanvas();
         try {
             DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -418,7 +418,7 @@ public class LCanvas extends LShape<LCanvas>
     }
 
     @Override
-    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         this.clearCanvas();
         if (LString.equalsIgnoreCase(n.getNodeName(), "svg")) {
             LSvgUtils.parseXml(this, n, xmlParseInfo);

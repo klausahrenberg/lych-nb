@@ -25,8 +25,8 @@ import java.util.Locale;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Index;
-import com.ka.lych.exception.LDataException;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.repo.LServerRepository;
 import java.util.Map;
 import java.util.Objects;
@@ -219,7 +219,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     }
 
-    protected LObject<LDataServiceState> connect() throws LDataException {
+    protected LObject<LDataServiceState> connect() throws LException {
         try {
             String url;
             Properties props = new Properties();
@@ -308,7 +308,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 _state.set(LDataServiceState.NOT_AVAILABLE);
                 notifyOnError(e);
             }
-            throw new LDataException(e);
+            throw new LException(e);
         }
         return state();
     }
@@ -352,8 +352,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected) {
-        return LFuture.<LObject<LDataServiceState>, LDataException>execute(task -> {
+    public LFuture<LObject<LDataServiceState>, LException> setConnected(boolean connected) {
+        return LFuture.<LObject<LDataServiceState>, LException>execute(task -> {
             if (connected) {
                 //Verbindungsaufbau
                 if (state().get() == LDataServiceState.NOT_AVAILABLE) {
@@ -361,7 +361,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                         _state.set(LDataServiceState.REQUESTING);
                         connect();
                     } else {
-                        throw new LDataException("Can't connect because of missing or incomplete connection details");
+                        throw new LException("Can't connect because of missing or incomplete connection details");
                     }
                 }
             } else {
@@ -408,41 +408,41 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 LSqlResultSet rs = this.executeQuery("select count(" + columnName + ") from " + tableName);
                 //rs.close();
                 result = true;
-            } catch (LDataException sqle) {
+            } catch (LException sqle) {
                 return false;
             }
         }
         return result;
     }
 
-    protected LSqlResultSet executeQuery(String sql) throws LDataException {
+    protected LSqlResultSet executeQuery(String sql) throws LException {
         return executeQuery(sql, 0);
     }
 
-    synchronized protected LSqlResultSet executeQuery(String sql, int maxRows) throws LDataException {
+    synchronized protected LSqlResultSet executeQuery(String sql, int maxRows) throws LException {
         try {
             LLog.debug("SQL query: %s", sql);
             LSqlResultSet resultSet = new LSqlResultSet(_connection, sql, maxRows);
             return resultSet;
         } catch (SQLException sqle) {
-            throw new LDataException(sqle);
+            throw new LException(sqle);
         }
     }
 
-    protected void executeUpdate(String sql) throws LDataException {
+    protected void executeUpdate(String sql) throws LException {
         if (!isReadOnly()) {
             try {
                 LLog.debug("SQL update: %s", sql);
                 _queryStatement.executeUpdate(sql);
             } catch (SQLException sqle) {
-                throw new LDataException(sqle, "%s / sql statement: %s", sqle.getMessage(), sql);
+                throw new LException(sqle, "%s / sql statement: %s", sqle.getMessage(), sql);
             }
         } else {
-            throw new LDataException("Can't execute update, database is readOnly");
+            throw new LException("Can't execute update, database is readOnly");
         }
     }
 
-    protected int executeInsert(String sql, boolean returnGeneratedKey) throws LDataException {
+    protected int executeInsert(String sql, boolean returnGeneratedKey) throws LException {
         if (!isReadOnly()) {
             try {
                 LLog.debug("SQL insert: %s", sql);
@@ -456,10 +456,10 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     return 0;
                 }
             } catch (SQLException sqle) {
-                throw new LDataException(sqle);
+                throw new LException(sqle);
             }
         } else {
-            throw new LDataException("Can't execute update, database is readOnly");
+            throw new LException("Can't execute update, database is readOnly");
         }
     }
 
@@ -512,7 +512,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     @Override
-    public void createTable(Class<? extends Record> dataClass) throws LDataException {
+    public void createTable(Class<? extends Record> dataClass) throws LException {
         if ((!isReadOnly()) && (available())) {
             var columnItems = columnsWithoutLinks(dataClass);
             StringBuilder sql = new StringBuilder();
@@ -580,7 +580,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     @Override
-    public void createRelation(Class parentClass, Class childClass) throws LDataException {
+    public void createRelation(Class parentClass, Class childClass) throws LException {
         if ((parentClass == null) || (childClass == null)) {
             throw new IllegalArgumentException("Arguments can't be null.");
         }
@@ -621,7 +621,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     @Override
-    public void removeTable(Class dataClass) throws LDataException {
+    public void removeTable(Class dataClass) throws LException {
         if (available()) {
             String sql = "drop table " + this.getTableName(dataClass, null);
             executeUpdate(sql);
@@ -629,7 +629,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     @Override
-    public void addColumn(Class dataClass, LField column) throws LDataException {
+    public void addColumn(Class dataClass, LField column) throws LException {
         if (available()) {
             throw new UnsupportedOperationException("Not supported yet.");
             /*String sql = "alter table " + table.getTableName() + " ";
@@ -640,7 +640,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     @Override
-    public void removeColumn(Class dataClass, LField column) throws LDataException {
+    public void removeColumn(Class dataClass, LField column) throws LException {
         if (available()) {
             throw new UnsupportedOperationException("Not supported yet.");
             /*String sql = "alter table " + table.getTableName() + " ";
@@ -678,8 +678,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     @Override
-    public <R extends Record> LFuture<Boolean, LDataException> existsData(R rcd) {
-        return LFuture.<Boolean, LDataException>execute(task -> {
+    public <R extends Record> LFuture<Boolean, LException> existsData(R rcd) {
+        return LFuture.<Boolean, LException>execute(task -> {
             var columnItems = columnsWithoutLinks(rcd.getClass());
             String sqlFilter = buildSqlFilter(rcd, Optional.empty(), columnItems, "");
             return this.existsData(getTableName(rcd.getClass(), null), sqlFilter);
@@ -693,8 +693,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <R extends Record> LFuture<R, LDataException> persist(R rcd, Optional<Map<String, Object>> currentId, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
-        return LFuture.<R, LDataException>execute(task -> {
+    public <R extends Record> LFuture<R, LException> persist(R rcd, Optional<Map<String, Object>> currentId, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
+        return LFuture.<R, LException>execute(task -> {
             try {
                 LObjects.requireNonNull(rcd);
                 var fields = LRecord.getFields(rcd.getClass());
@@ -711,7 +711,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                             LList<LSqlRelationsItem> relations = null;
                             if (exists) {
                                 if ((overrideExisting.isEmpty()) || (overrideExisting.get() == false)) {
-                                    throw new LDataException("ITEM_ALREADY_EXISTS", rcd);
+                                    throw new LException("ITEM_ALREADY_EXISTS", rcd);
                                 }
                                 //TreeDatas  
                                 if ((parent.isPresent()) && _hasPrimaryKeyChanged(rcd, currentId)) {
@@ -766,29 +766,29 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                                 relationsInsert(parent.get(), rcd, columnItems, relations);
                             }
                             commitTransaction();
-                        } catch (LDataException lde) {
+                        } catch (LException lde) {
                             rollbackTransaction();
                             throw lde;
                         }
                     } else {
-                        throw new LDataException("Service is not available. Wrong service state: %s", state().get());
+                        throw new LException("Service is not available. Wrong service state: %s", state().get());
                     }
                 } else {
-                    throw new LDataException("Key of record is not complete: %s / record: %s", primaryKeyComplete, rcd);
+                    throw new LException("Key of record is not complete: %s / record: %s", primaryKeyComplete, rcd);
                 }
             } catch (Exception ex) {
-                if (ex instanceof LDataException) {
+                if (ex instanceof LException) {
                     throw ex;
                 } else {
-                    throw new LDataException(ex);
+                    throw new LException(ex);
                 }
             }
             return rcd;
         });
     }
 
-    public <R extends Record> LFuture<R, LDataException> persistValue(R rcd, LObservable obs) {
-        return LFuture.<R, LDataException>execute(task -> {
+    public <R extends Record> LFuture<R, LException> persistValue(R rcd, LObservable obs) {
+        return LFuture.<R, LException>execute(task -> {
             try {
                 var fields = LRecord.getFields(rcd.getClass());
                 LKeyCompleteness primaryKeyComplete = fields.getKeyCompleteness(rcd);
@@ -837,19 +837,19 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                             ps.close();
                         } catch (Exception sqle) {
                             //LLog.error(this, sqle.getMessage());
-                            throw new LDataException(sqle);
+                            throw new LException(sqle);
                         }
                         commitTransaction();
-                    } catch (LDataException lde) {
+                    } catch (LException lde) {
                         rollbackTransaction();
                         throw lde;
                     }
                 }
             } catch (Exception ex) {
-                if (ex instanceof LDataException) {
+                if (ex instanceof LException) {
                     throw ex;
                 } else {
-                    throw new LDataException(ex);
+                    throw new LException(ex);
                 }
             }
             return rcd;
@@ -872,7 +872,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     }
 
-    private StringBuilder getRelationSelectStatement(String tableName, LList<LColumnItem> parentColumns, LList<LColumnItem> childColumns, Record child, String filterPrefix) throws LDataException {
+    private StringBuilder getRelationSelectStatement(String tableName, LList<LColumnItem> parentColumns, LList<LColumnItem> childColumns, Record child, String filterPrefix) throws LException {
         StringBuilder sb = new StringBuilder("select ");
         parentColumns.forEachIf(coli -> coli.isFieldPrimaryKey(),
                 coli -> sb.append(ILConstants.PARENT).append(ILConstants.UNDL).append(coli.getDataFieldName()).append(", "));
@@ -886,7 +886,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         return sb;
     }
 
-    private LList<LSqlRelationsItem> relationsDelete(Record parent, Record child, LList<LColumnItem> childColumns) throws LDataException {
+    private LList<LSqlRelationsItem> relationsDelete(Record parent, Record child, LList<LColumnItem> childColumns) throws LException {
         var result = new LList<LSqlRelationsItem>();
         for (var entry : DATA_SHEME.entrySet()) {
             var sd = entry.getKey();
@@ -909,8 +909,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                         @SuppressWarnings("unchecked")
                         Record data = LRecord.of(isChild ? sd.parentClass() : sd.childClass(), null);
                         result.add(new LSqlRelationsItem(tableName, isChild, (isChild ? paColumns : chColumns), data));
-                    } catch (LParseException lpe) {
-                        throw new LDataException(lpe);
+                    } catch (LException lpe) {
+                        throw new LException(lpe);
                     }
                 }
             }
@@ -927,7 +927,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         return result;
     }
 
-    private String getRelationDeleteStatement(String tableName, LList<LColumnItem> parentColumns, LList<LColumnItem> childColumns, Record parent, Record child) throws LDataException {
+    private String getRelationDeleteStatement(String tableName, LList<LColumnItem> parentColumns, LList<LColumnItem> childColumns, Record parent, Record child) throws LException {
         StringBuilder sb = new StringBuilder("delete from ");
         sb.append(tableName);
         sb.append("  where ");
@@ -956,7 +956,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         return sb.toString();
     }
 
-    private void relationsInsert(Record parent, Record child, LList<LColumnItem> childColumns, LList<LSqlRelationsItem> relations) throws LDataException {
+    private void relationsInsert(Record parent, Record child, LList<LColumnItem> childColumns, LList<LSqlRelationsItem> relations) throws LException {
         //Update relation for current child<>parent relation
         var parentColumns = (parent.getClass() == child.getClass() ? childColumns : columnsWithoutLinks(parent.getClass()));
         String sqlFilter = buildSqlFilter(parent, Optional.empty(), parentColumns, ILConstants.PARENT + ILConstants.UNDL)
@@ -980,8 +980,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<T, LDataException> remove(T rcd, Optional<? extends Record> parent) {
-        return LFuture.<T, LDataException>execute(task -> {
+    public <T extends Record> LFuture<T, LException> remove(T rcd, Optional<? extends Record> parent) {
+        return LFuture.<T, LException>execute(task -> {
             LList<LSqlRelationsItem> relations = null;
             if (available()) {
                 var columnItems = columnsWithoutLinks(rcd.getClass());
@@ -993,7 +993,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 String sql = "delete from " + getTableName(rcd.getClass()) + " where " + buildSqlFilter(rcd, Optional.empty(), columnItems, "");
                 try {
                     executeUpdate(sql);
-                } catch (LDataException lde) {
+                } catch (LException lde) {
                     if (relations != null) {
                         //Rollback relation delete
                         relationsInsert(parent.get(), rcd, columnItems, relations);
@@ -1002,50 +1002,50 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 }
                 commitTransaction();
             } else {
-                throw new LDataException("Service is not available. Wrong service state: %s", state().get());
+                throw new LException("Service is not available. Wrong service state: %s", state().get());
             }
             return rcd;
         });
     }
 
     @Override
-    public void removeRelation(Record data, Record parent) throws LDataException {
+    public void removeRelation(Record data, Record parent) throws LException {
         if (available()) {
             var columnItems = columnsWithoutLinks(data.getClass());
             executeUpdate(getRelationDeleteStatement(getTableName(parent.getClass(), data.getClass()), columnsWithoutLinks(parent.getClass()), columnItems, parent, data));
         } else {
-            throw new LDataException("Service is not available. Wrong service state: %s", state().get());
+            throw new LException("Service is not available. Wrong service state: %s", state().get());
         }
     }
 
     @Override
-    public void startTransaction() throws LDataException {
+    public void startTransaction() throws LException {
         try {
             _connection.setAutoCommit(false);
             //Start transaction
             _connection.setSavepoint();
         } catch (SQLException sqle) {
-            throw new LDataException(sqle);
+            throw new LException(sqle);
         }
     }
 
     @Override
-    public void commitTransaction() throws LDataException {
+    public void commitTransaction() throws LException {
         try {
             _connection.commit();
             _connection.setAutoCommit(true);
         } catch (SQLException sqle) {
-            throw new LDataException(sqle);
+            throw new LException(sqle);
         }
     }
 
     @Override
-    public void rollbackTransaction() throws LDataException {
+    public void rollbackTransaction() throws LException {
         try {
             _connection.rollback();
             _connection.setAutoCommit(true);
         } catch (SQLException sqle) {
-            throw new LDataException(sqle);
+            throw new LException(sqle);
         }
     }
 
@@ -1099,13 +1099,13 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
      * @param observable
      */
     @SuppressWarnings("unchecked")
-    private void buildSqlComparison(Class<? extends Record> rcdClass, StringBuilder subs, String prefix, String opString, Object colObject, Object valObject) throws LDataException {
+    private void buildSqlComparison(Class<? extends Record> rcdClass, StringBuilder subs, String prefix, String opString, Object colObject, Object valObject) throws LException {
         LColumnItem column = null;
         if (colObject instanceof String) {
             var columns = columnsWithoutLinks(rcdClass);
             column = columns.getIf(ci -> ci.getDataFieldName().equals((String) colObject));
             if (column == null) {
-                throw new LDataException("Cant find column '%s' in record class: %s", colObject, rcdClass);
+                throw new LException("Cant find column '%s' in record class: %s", colObject, rcdClass);
             }
         } else {
             LObjects.requireInstanceOf(LColumnItem.class, colObject);
@@ -1130,8 +1130,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     observable.set(strValue);
                 }
                 subs.append("(").append(prefix).append(column.getDataFieldName()).append(opString).append(toSql(observable)).append(") and ");
-            } catch (LParseException lpe) {
-                throw new LDataException(lpe, "Can't create comparison");
+            } catch (LException lpe) {
+                throw new LException(lpe, "Can't create comparison");
             }
         }
     }
@@ -1143,7 +1143,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
      * @param prefix
      * @return
      */
-    protected String _buildSqlFilter(Class<? extends Record> rcdClass, LTerm filter, String prefix) throws LDataException {
+    protected String _buildSqlFilter(Class<? extends Record> rcdClass, LTerm filter, String prefix) throws LException {
         String result;
         StringBuilder sb = new StringBuilder();
         switch (filter.getOperation()) {
@@ -1176,8 +1176,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     @Override
-    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter) {
-        return LFuture.<Integer, LDataException>execute(task -> {
+    public LFuture<Integer, LException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter) {
+        return LFuture.<Integer, LException>execute(task -> {
             try {
                 String sql = _buildSqlStatementForRequery(dataClass, parent, filter, true);
                 LSqlResultSet sqlResultSet = executeQuery(sql);
@@ -1190,12 +1190,12 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 LLog.debug("count: %s", count);
                 return count;
             } catch (SQLException sqle) {
-                throw new LDataException(sqle);
+                throw new LException(sqle);
             }
         });
     }
 
-    public int countData(String tableName, String sqlFilter) throws LDataException {
+    public int countData(String tableName, String sqlFilter) throws LException {
         try {
             String sql = "select count(*) as " + KEYWORD_COL_COUNT + " from " + tableName + " where " + sqlFilter;
             LSqlResultSet sqlResultSet = executeQuery(sql);
@@ -1208,15 +1208,15 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             LLog.debug("count: %s", count);
             return count;
         } catch (SQLException sqle) {
-            throw new LDataException(sqle);
+            throw new LException(sqle);
         }
     }
 
-    protected boolean existsData(String tableName, String sqlFilter) throws LDataException {
+    protected boolean existsData(String tableName, String sqlFilter) throws LException {
         return (countData(tableName, sqlFilter) > 0);
     }
 
-    private String _buildSqlStatementForRequery(Class<? extends Record> rcdClass, Record parent, LTerm filter, boolean count) throws LDataException {
+    private String _buildSqlStatementForRequery(Class<? extends Record> rcdClass, Record parent, LTerm filter, boolean count) throws LException {
         StringBuilder sql = new StringBuilder("select ");
         var columns = columnsWithoutLinks(rcdClass);
         if (!count) {
@@ -1283,7 +1283,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     }
 
     @SuppressWarnings("unchecked")
-    private <T extends Record> T _createRecord(Class<T> rcdClass, LSqlResultSet resultSet, int index, LList<LColumnItem> columns, String prefix, boolean onlyKey) throws LDataException, SQLException {
+    private <T extends Record> T _createRecord(Class<T> rcdClass, LSqlResultSet resultSet, int index, LList<LColumnItem> columns, String prefix, boolean onlyKey) throws LException, SQLException {
         var map = new LMap<String, Object>();
         LField lastLinkedColumn = null;
         for (var column : columns) {
@@ -1310,8 +1310,8 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         }
         try {
             return (map.size() > 0 ? LRecord.of(rcdClass, map) : null);
-        } catch (LParseException lpe) {
-            throw new LDataException(lpe);
+        } catch (LException lpe) {
+            throw new LException(lpe);
         }
     }
 
@@ -1324,7 +1324,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
         dbTableNames.put(dataClass, dbTableName);
     }
 
-    public Record fetchRecord(Class<? extends Record> rcdClass, LMap<String, Object> keyMap) throws LDataException, LParseException {
+    public Record fetchRecord(Class<? extends Record> rcdClass, LMap<String, Object> keyMap) throws LException, LException {
         if (available()) {
             var columns = columnsWithoutLinks(rcdClass);
             Record rcd = null;
@@ -1335,7 +1335,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 try {
 
                     cons.add(LTerm.equal(ci, LRecord.toObservable(ci.getField(), entry.getValue())));
-                } catch (LParseException lpe) {
+                } catch (LException lpe) {
                     LLog.error(lpe, true);
                 }
             });
@@ -1355,13 +1355,13 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
             }
             return rcd;
         } else {
-            throw new LDataException("Service is not available. Wrong service state: %s", state().get());
+            throw new LException("Service is not available. Wrong service state: %s", state().get());
         }
     }
 
     @Override
-    public <O extends Object> LFuture<O, LDataException> fetchValue(Record record, LObservable observable) {
-        return LFuture.<O, LDataException>execute(task -> {
+    public <O extends Object> LFuture<O, LException> fetchValue(Record record, LObservable observable) {
+        return LFuture.<O, LException>execute(task -> {
             LFuture.delayDebug(1500);
             if (available()) {
                 LObjects.requireNonNull(record);
@@ -1390,7 +1390,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                         } else {
                             return null;
                         }
-                    } catch (LDataException | SQLException e) {
+                    } catch (LException | SQLException e) {
                         LLog.error(getClass().getSimpleName() + ".fetchValue", e);
                         return null;
                     }
@@ -1398,17 +1398,17 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                     return null;
                 }
             } else {
-                throw new LDataException("Service is not available. Wrong service state: %s", state().get());
+                throw new LException("Service is not available. Wrong service state: %s", state().get());
             }
         });
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<LList<T>, LDataException> fetch(LQuery<T> query) {
+    public <T extends Record> LFuture<LList<T>, LException> fetch(LQuery<T> query) {
         Objects.requireNonNull(query, "Query can't be null.");
         Objects.requireNonNull(query.recordClass(), "recordClass inside of a query can't be null.");
-        return LFuture.<LList<T>, LDataException>execute(task -> {
+        return LFuture.<LList<T>, LException>execute(task -> {
             if (available()) {
                 var result = new LList<T>();
                 StringBuilder sql = new StringBuilder();
@@ -1450,7 +1450,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
                 }
                 return result;
             } else {
-                throw new LDataException("Service is not available. Wrong service state: %s", state().get());
+                throw new LException("Service is not available. Wrong service state: %s", state().get());
             }
         });
     }

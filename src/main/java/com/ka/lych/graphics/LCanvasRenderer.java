@@ -81,12 +81,12 @@ public abstract class LCanvasRenderer<C, D>
         canvas(canvas);
     }
 
-    @Override
+    /*@Override
     @SuppressWarnings("deprecation")
     protected void finalize() throws Throwable {
         this.cancelRendering();
         super.finalize();
-    }
+    }*/
 
     public final LEventHandler<LChangedEvent> onChanged() {
         if (onChanged == null) {

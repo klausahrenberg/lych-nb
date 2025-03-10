@@ -1,6 +1,6 @@
 package com.ka.lych.graphics;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.geometry.ILBounds;
 import com.ka.lych.geometry.LGeomUtils;
 import com.ka.lych.observable.LString;
@@ -23,7 +23,7 @@ public class LRectangle extends LShape {
         neededShapeAttributes = new String[]{"rx", "ry"};
     }
 
-    public LRectangle(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public LRectangle(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         this(0, 0, 0, 0, 0, 0);
         parseXml(n, xmlParseInfo);
         neededShapeAttributes = new String[]{"rx", "ry"};
@@ -79,7 +79,7 @@ public class LRectangle extends LShape {
     }
 
     @Override
-    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {        
+    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LException {        
         this.parseXmlCommonAttributes(n, xmlParseInfo);
         if (n.hasAttributes()) {
             setRadiuses(LXmlUtils.xmlAttributeToDouble(n, "rx", 0.0), 

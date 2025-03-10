@@ -1,6 +1,6 @@
 package com.ka.lych.repo.sql;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.exception.LUnchecked;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LMap;
@@ -160,7 +160,7 @@ public abstract class LSqlConverter {
                 } else if (requiredClass.requiredClass().isEnum()) {
                     try {
                         result = LXmlUtils.xmlStrToEnum((String) source, requiredClass.requiredClass());
-                    } catch (LParseException ex) {
+                    } catch (LException ex) {
                         throw new LUnchecked(ex);
                     }
                 } else if (Path.class.isAssignableFrom(requiredClass.requiredClass())) {

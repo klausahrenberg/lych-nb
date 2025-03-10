@@ -4,7 +4,7 @@ import java.io.*;
 import java.util.Iterator;
 import javax.xml.parsers.*;
 import com.ka.lych.event.LErrorEvent;
-import com.ka.lych.exception.LDataException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.observable.LObservable;
 import com.ka.lych.repo.LDataServiceState;
 import com.ka.lych.util.ILHandler;
@@ -216,7 +216,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
 
     @Override        
     @SuppressWarnings("unchecked")
-    public LFuture<LObject<LDataServiceState>, LDataException> setConnected(boolean connected) {
+    public LFuture<LObject<LDataServiceState>, LException> setConnected(boolean connected) {
         return LFuture.execute(t -> state());
     }
 
@@ -231,42 +231,42 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
     }    
 
     @Override
-    public <R extends Record> LFuture<Boolean, LDataException> existsData(R rcd) {
+    public <R extends Record> LFuture<Boolean, LException> existsData(R rcd) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public LFuture<Integer, LDataException> countData(LList<?> datas, LTerm filter) {
+    public LFuture<Integer, LException> countData(LList<?> datas, LTerm filter) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
     @Override
-    public void createTable(Class<? extends Record> dataClass) throws LDataException {
+    public void createTable(Class<? extends Record> dataClass) throws LException {
         throw new UnsupportedOperationException("existsTable: Not supported yet.");
     }
 
     @Override
-    public void createRelation(Class parentClass, Class childClass) throws LDataException {
+    public void createRelation(Class parentClass, Class childClass) throws LException {
         throw new UnsupportedOperationException("createRelation: Not supported yet."); 
     }
 
     @Override
-    public void removeTable(Class dataClass) throws LDataException {
+    public void removeTable(Class dataClass) throws LException {
         throw new UnsupportedOperationException("Not supported yet."); 
     }
 
     @Override
-    public void addColumn(Class dataClass, LField column) throws LDataException {
+    public void addColumn(Class dataClass, LField column) throws LException {
         modified = true;
     }
 
     @Override
-    public void removeColumn(Class dataClass, LField column) throws LDataException {
+    public void removeColumn(Class dataClass, LField column) throws LException {
         modified = true;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<T, LDataException> persist(T rcd, Optional<Map<String, Object>> oldIds, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {        
+    public <T extends Record> LFuture<T, LException> persist(T rcd, Optional<Map<String, Object>> oldIds, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {        
         return LFuture.execute(t -> {
             modified = true;
             return rcd;
@@ -275,7 +275,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T extends Record> LFuture<T, LDataException> remove(T rcd, Optional<? extends Record> parent) {
+    public <T extends Record> LFuture<T, LException> remove(T rcd, Optional<? extends Record> parent) {
         return LFuture.execute(t -> {
             modified = true;
             return rcd;
@@ -283,7 +283,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
     }
 
     @Override
-    public void removeRelation(Record record, Record parent) throws LDataException {
+    public void removeRelation(Record record, Record parent) throws LException {
         modified = true;
     }
 
@@ -298,27 +298,27 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
     }
 
     @Override
-    public <T extends Record> LFuture<LList<T>, LDataException> fetch(LQuery<T> query) {
+    public <T extends Record> LFuture<LList<T>, LException> fetch(LQuery<T> query) {
         throw new UnsupportedOperationException("fetch: Not supported yet."); 
     }
 
     @Override
-    public <O> LFuture<O, LDataException> fetchValue(Record record, LObservable observable) {
+    public <O> LFuture<O, LException> fetchValue(Record record, LObservable observable) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
     @Override
-    public void startTransaction() throws LDataException {
+    public void startTransaction() throws LException {
         throw new UnsupportedOperationException("startTransaction: Not supported yet.");
     }
 
     @Override
-    public void commitTransaction() throws LDataException {
+    public void commitTransaction() throws LException {
         throw new UnsupportedOperationException("commitTransaction: Not supported yet.");
     }
 
     @Override
-    public void rollbackTransaction() throws LDataException {
+    public void rollbackTransaction() throws LException {
         throw new UnsupportedOperationException("rollbackTransaction: Not supported yet.");
     }
 
@@ -328,7 +328,7 @@ public class LXmlRepository extends LServerRepository<LXmlRepository> {
     }
 
     @Override
-    public LFuture<Integer, LDataException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter) {
+    public LFuture<Integer, LException> countData(Class<? extends Record> dataClass, Record parent, LTerm filter) {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

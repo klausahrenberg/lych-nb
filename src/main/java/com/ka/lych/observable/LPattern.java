@@ -1,6 +1,6 @@
 package com.ka.lych.observable;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.list.LList;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -72,7 +72,7 @@ public class LPattern extends LString
         if (!LString.isEmpty(pattern)) {
             try {
                 setPattern(pattern);
-            } catch (LParseException pe) {
+            } catch (LException pe) {
                 throw new IllegalArgumentException(pe.getMessage(), pe);
             }
         }
@@ -89,12 +89,12 @@ public class LPattern extends LString
     }
 
     @Override
-    public void parseLocalized(String value) throws LParseException {
+    public void parseLocalized(String value) throws LException {
         this.parse(value);
     }
 
     @Override
-    public void parse(String value) throws LParseException {
+    public void parse(String value) throws LException {
         this.numberValue = null;
         if (!LString.isEmpty(value)) {
             for (LPatternElement element : elements) {
@@ -103,7 +103,7 @@ public class LPattern extends LString
             buildAndSetStringValue();
         } else {
             set(null);
-            throw new LParseException("No value given.");
+            throw new LException("No value given.");
         }
     }
 
@@ -175,7 +175,7 @@ public class LPattern extends LString
         return (result.size() > 0 ? result : null);
     }
 
-    public void setPattern(String value) throws LParseException {        
+    public void setPattern(String value) throws LException {        
         elements.clear();
         counterStart = 0;
         counterIncrement = 1;
@@ -190,7 +190,7 @@ public class LPattern extends LString
                         if ((token.charAt(0) == '\"') && (token.charAt(token.length() - 1) == '\"')) {
                             elements.add(new LStringElement(token.substring(1, token.length() - 1)));
                         } else {
-                            throw new LParseException("Illegal part of value: %s", value);
+                            throw new LException("Illegal part of value: %s", value);
                         }
                         break;
                     case KEYWORD_DECIMAL:
@@ -224,7 +224,7 @@ public class LPattern extends LString
                         if (LNumberSystem.isValidDigit(token.charAt(0), CONTROL_DIGITS)) {
                             elements.add(new LControlDigitElement(token));
                         } else {
-                            throw new LParseException("Illegal token: %s", token);
+                            throw new LException("Illegal token: %s", token);
                         }
                 }
             }
@@ -247,7 +247,7 @@ public class LPattern extends LString
         }        
     }
 
-    private void configureCounter(String value) throws LParseException {
+    private void configureCounter(String value) throws LException {
         if ((value.charAt(0) == '(') && (value.charAt(value.length() - 1) == ')')) {
             String[] cDetails = value.substring(1, value.length() - 1).split(";");
             try {
@@ -264,14 +264,14 @@ public class LPattern extends LString
                                 break;
                         }
                     } else {
-                        throw new LParseException("Incomplete counter parameter: %s", cDetail);
+                        throw new LException("Incomplete counter parameter: %s", cDetail);
                     }
                 }
             } catch (NumberFormatException nfe) {
-                throw new LParseException(nfe);
+                throw new LException(nfe);
             }
         } else {
-            throw new LParseException("Illegal part of value: %s", value);
+            throw new LException("Illegal part of value: %s", value);
         }
     }
 
@@ -309,11 +309,11 @@ public class LPattern extends LString
 
     private abstract class LPatternElement {
 
-        public abstract void parsePattern(String value) throws LParseException;
+        public abstract void parsePattern(String value) throws LException;
 
         public abstract String toParseableString();
 
-        public abstract String parseValue(String value) throws LParseException;
+        public abstract String parseValue(String value) throws LException;
 
         @Override
         public String toString() {
@@ -326,12 +326,12 @@ public class LPattern extends LString
 
         private String value;
 
-        public LStringElement(String p) throws LParseException {
+        public LStringElement(String p) throws LException {
             this.parsePattern(p);
         }
 
         @Override
-        public void parsePattern(String value) throws LParseException {
+        public void parsePattern(String value) throws LException {
             this.value = value;
         }
 
@@ -341,7 +341,7 @@ public class LPattern extends LString
         }
 
         @Override
-        public String parseValue(String value) throws LParseException {
+        public String parseValue(String value) throws LException {
             String trimmedValue = this.value.trim().toLowerCase();
             while ((value.length() > 0) && (value.charAt(0) == ' ')) {
                 value = value.substring(1);
@@ -350,7 +350,7 @@ public class LPattern extends LString
                 value = value.substring(trimmedValue.length());
                 return value;
             } else {                
-                throw new LParseException("invalid parsing value: '%s'", value);
+                throw new LException("invalid parsing value: '%s'", value);
             }            
         }
     }
@@ -359,12 +359,12 @@ public class LPattern extends LString
 
         private String value;
 
-        public LControlDigitElement(String p) throws LParseException {
+        public LControlDigitElement(String p) throws LException {
             this.parsePattern(p);
         }
 
         @Override
-        public void parsePattern(String value) throws LParseException {
+        public void parsePattern(String value) throws LException {
             this.value = value;
         }
 
@@ -374,14 +374,14 @@ public class LPattern extends LString
         }
 
         @Override
-        public String parseValue(String value) throws LParseException {
+        public String parseValue(String value) throws LException {
             if ((value.length() > 0) && (LNumberSystem.isValidDigit(value.charAt(0), CONTROL_DIGITS))) {
                 while ((value.length() > 0) && (LNumberSystem.isValidDigit(value.charAt(0), CONTROL_DIGITS))) {
                     value = value.substring(1);
                 }
                 return value;
             } else {
-                throw new LParseException("invalid parsing value: '%s'", value);
+                throw new LException("invalid parsing value: '%s'", value);
             }
         }
 
@@ -392,7 +392,7 @@ public class LPattern extends LString
         protected LocalDateTime value;
         protected DateTimeFormatter parseFormat, outputFormat;
 
-        public LDatetimeElement(String p) throws LParseException {
+        public LDatetimeElement(String p) throws LException {
             parseFormat = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
             value = LocalDateTime.now();
             this.parsePattern(p);
@@ -407,12 +407,12 @@ public class LPattern extends LString
 
     private class LYearElement extends LDatetimeElement {
 
-        public LYearElement(String p) throws LParseException {
+        public LYearElement(String p) throws LException {
             super(p);
         }
 
         @Override
-        public void parsePattern(String value) throws LParseException {
+        public void parsePattern(String value) throws LException {
             int digits = 0;
             while ((value.length() > 0) && (value.charAt(0) == KEYWORD_YEAR)) {
                 digits++;
@@ -422,12 +422,12 @@ public class LPattern extends LString
                 outputFormat = DateTimeFormatter.ofPattern(digits == 2 ? "uu" : "uuuu");
             } else {
                 outputFormat = null;
-                throw new LParseException("Year component must be 2 or 4 digits. Illegal length: %s", digits);
+                throw new LException("Year component must be 2 or 4 digits. Illegal length: %s", digits);
             }
         }
 
         @Override
-        public String parseValue(String value) throws LParseException {
+        public String parseValue(String value) throws LException {
             while ((value.length() > 0) && (LNumberSystem.isValidDigit(value.charAt(0), CONTROL_DIGITS))) {
                 value = value.substring(1);
             }
@@ -445,12 +445,12 @@ public class LPattern extends LString
 
     private class LMonthElement extends LDatetimeElement {
 
-        public LMonthElement(String p) throws LParseException {
+        public LMonthElement(String p) throws LException {
             super(p);
         }
 
         @Override
-        public void parsePattern(String value) throws LParseException {
+        public void parsePattern(String value) throws LException {
             int digits = 0;
             while ((value.length() > 0) && (value.charAt(0) == KEYWORD_MONTH)) {
                 digits++;
@@ -460,12 +460,12 @@ public class LPattern extends LString
                 outputFormat = DateTimeFormatter.ofPattern(digits == 3 ? "MMM" : "MM");
             } else {
                 outputFormat = null;
-                throw new LParseException("Month component must be 1 to 3 digits. Illegal length: %s", digits);
+                throw new LException("Month component must be 1 to 3 digits. Illegal length: %s", digits);
             }
         }
 
         @Override
-        public String parseValue(String value) throws LParseException {
+        public String parseValue(String value) throws LException {
             while ((value.length() > 0) && (LNumberSystem.isValidDigit(value.charAt(0), CONTROL_DIGITS))) {
                 value = value.substring(1);
             }
@@ -494,12 +494,12 @@ public class LPattern extends LString
         private char keyword;
         private String prefix, suffix;
 
-        public LDayElement(String p) throws LParseException {
+        public LDayElement(String p) throws LException {
             super(p);
         }
 
         @Override
-        public void parsePattern(String value) throws LParseException {
+        public void parsePattern(String value) throws LException {
             int digits = 0;
             while ((value.length() > 0) && ((value.charAt(0) == KEYWORD_DAY) || (value.charAt(0) == KEYWORD_HOUR) || (value.charAt(0) == KEYWORD_MINUTE) || (value.charAt(0) == KEYWORD_SECOND))) {
                 keyword = value.charAt(0);
@@ -531,12 +531,12 @@ public class LPattern extends LString
                 }
             } else {
                 outputFormat = null;
-                throw new LParseException("Month component must be 1 to 2 digits. Illegal length: %s", digits);
+                throw new LException("Month component must be 1 to 2 digits. Illegal length: %s", digits);
             }
         }
 
         @Override
-        public String parseValue(String value) throws LParseException {
+        public String parseValue(String value) throws LException {
             while ((value.length() > 0) && (LNumberSystem.isValidDigit(value.charAt(0), CONTROL_DIGITS))) {
                 value = value.substring(1);
             }
@@ -559,7 +559,7 @@ public class LPattern extends LString
         protected int valueStringLength, divisor;
         protected boolean lastElement;
 
-        public LNumberElement(String p, char keyword, char[] digits) throws LParseException {
+        public LNumberElement(String p, char keyword, char[] digits) throws LException {
             this.keyword = keyword;
             this.digits = digits;
             this.divisor = 1;
@@ -576,7 +576,7 @@ public class LPattern extends LString
         }
 
         @Override
-        public void parsePattern(String value) throws LParseException {
+        public void parsePattern(String value) throws LException {
             valueStringLength = 0;
             while ((value.length() > 0) && (value.charAt(0) == keyword)) {
                 valueStringLength++;
@@ -597,7 +597,7 @@ public class LPattern extends LString
         }
 
         @Override
-        public String parseValue(String value) throws LParseException {
+        public String parseValue(String value) throws LException {
             while ((value.length() > 0) && (value.charAt(0) == ' ')) {
                 value = value.substring(1);
             }
@@ -611,10 +611,10 @@ public class LPattern extends LString
                     addIntValue(LNumberSystem.digitsToInt(iS, digits) * divisor);
                     return value;
                 } catch (NumberFormatException nfe) {
-                    throw new LParseException("Wrong number format: '%s'", iS);
+                    throw new LException("Wrong number format: '%s'", iS);
                 }
             } else {
-                throw new LParseException("No number value: '%s'", value);
+                throw new LException("No number value: '%s'", value);
             }
 
         }

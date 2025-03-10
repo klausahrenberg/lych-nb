@@ -1,7 +1,7 @@
 package com.ka.lych.observable;
 
-import com.ka.lych.exception.LParseException;
-import com.ka.lych.exception.LValueException;
+import com.ka.lych.exception.LException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.xml.LXmlUtils;
 import java.util.Objects;
 
@@ -28,16 +28,16 @@ public class LBoolean extends LObservable<Boolean, LBoolean> {
     }
 
     @Override
-    public void parse(String value) throws LParseException {
+    public void parse(String value) throws LException {
         try {
             setValue(LXmlUtils.xmlStrToBoolean(value));
-        } catch (LValueException lve) {
-            throw new LParseException(lve);
+        } catch (LException lve) {
+            throw new LException(lve);
         }
     }
 
     @Override
-    public void parseLocalized(String value) throws LParseException {
+    public void parseLocalized(String value) throws LException {
         throw new UnsupportedOperationException("parseLocalized not supported by " + this.getClass().getName()); 
     }
 
@@ -56,7 +56,7 @@ public class LBoolean extends LObservable<Boolean, LBoolean> {
         return result;
     }
     
-    public static LBoolean of(String value) throws LParseException {
+    public static LBoolean of(String value) throws LException {
         var result = new LBoolean();
         result.parse(value);
         return result;

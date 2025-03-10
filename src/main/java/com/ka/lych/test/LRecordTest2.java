@@ -13,7 +13,7 @@ import java.util.Optional;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.list.LList;
 import com.ka.lych.list.LRecords;
 import com.ka.lych.observable.LDate;
@@ -80,7 +80,7 @@ public class LRecordTest2 extends LBase {
             
             
             LLog.test("Finished");
-        } catch (LParseException ex) {
+        } catch (LException ex) {
             LLog.error(ex, true);
         }
 

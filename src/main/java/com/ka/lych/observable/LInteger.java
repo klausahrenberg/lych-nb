@@ -1,7 +1,7 @@
 package com.ka.lych.observable;
 
-import com.ka.lych.exception.LParseException;
-import com.ka.lych.exception.LValueException;
+import com.ka.lych.exception.LException;
+import com.ka.lych.exception.LException;
 import java.text.DecimalFormat;
 import com.ka.lych.geometry.LGeomUtils;
 import com.ka.lych.xml.LXmlUtils;
@@ -18,7 +18,7 @@ public class LInteger extends LObservable<Integer, LInteger> {
 
     private ILValidator<Integer, LInteger> numberAcceptor = (Lchange) -> {
         return (!LGeomUtils.isWithinLimits(get(), lowerLimit, upperLimit) ?
-                new LValueException("Given value is out of limits: value=%s; lowerLimit=%s; upperLimit=%s", get(), lowerLimit, upperLimit) :
+                new LException("Given value is out of limits: value=%s; lowerLimit=%s; upperLimit=%s", get(), lowerLimit, upperLimit) :
                 null);
     };
     
@@ -119,16 +119,16 @@ public class LInteger extends LObservable<Integer, LInteger> {
     }
     
     @Override
-    public void parse(String value) throws LParseException {
+    public void parse(String value) throws LException {
         try {
             setValue(LXmlUtils.xmlStrToInteger(value));
-        } catch (LValueException lve) {
-            throw new LParseException(lve);
+        } catch (LException lve) {
+            throw new LException(lve);
         }
     }
 
     @Override
-    public void parseLocalized(String value) throws LParseException {
+    public void parseLocalized(String value) throws LException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -157,7 +157,7 @@ public class LInteger extends LObservable<Integer, LInteger> {
         return new LInteger(value);
     }
     
-    public static LInteger of(String value) throws LParseException {
+    public static LInteger of(String value) throws LException {
         var result = new LInteger();
         result.parse(value);
         return result;

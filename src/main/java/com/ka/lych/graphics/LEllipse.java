@@ -1,6 +1,6 @@
 package com.ka.lych.graphics;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.xml.LXmlUtils;
 import com.ka.lych.xml.LXmlUtils.LXmlParseInfo;
 import org.w3c.dom.Document;
@@ -18,7 +18,7 @@ public class LEllipse extends LShape {
         neededShapeAttributes = new String[]{"cx", "cy", "rx", "ry"};
     }
 
-    public LEllipse(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public LEllipse(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         this();
         parseXml(n, null);
         neededShapeAttributes = new String[]{"cx", "cy", "rx", "ry"};
@@ -59,7 +59,7 @@ public class LEllipse extends LShape {
     }
 
     @Override
-    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         this.parseXmlCommonAttributes(n, xmlParseInfo);
         //<ellipse cx="200" cy="80" rx="100" ry="50"        
         if (LXmlUtils.countExistingAttributes(n, neededShapeAttributes) == 4) {

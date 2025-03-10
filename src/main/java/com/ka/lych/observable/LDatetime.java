@@ -1,6 +1,6 @@
 package com.ka.lych.observable;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import com.ka.lych.util.LDateUtils;
@@ -19,7 +19,7 @@ public class LDatetime extends LObservable<LocalDateTime, LDatetime> {
     }
 
     @Override
-    public void parse(String value) throws LParseException {
+    public void parse(String value) throws LException {
         set(LocalDateTime.parse(value, DateTimeFormatter.ISO_OFFSET_DATE_TIME));//.ISO_LOCAL_DATE_TIME));
     }
 
@@ -37,7 +37,7 @@ public class LDatetime extends LObservable<LocalDateTime, LDatetime> {
         return datetime != null ? DateTimeFormatter.ISO_LOCAL_DATE_TIME.format(datetime) : null;
     }  
     
-    public static LDatetime of(String value) throws LParseException {
+    public static LDatetime of(String value) throws LException {
         var result = new LDatetime();
         result.parse(value);
         return result;

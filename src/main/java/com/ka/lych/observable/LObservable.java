@@ -3,8 +3,7 @@ package com.ka.lych.observable;
 import java.util.EnumSet;
 import java.util.Objects;
 import com.ka.lych.event.LObservableChangeEvent;
-import com.ka.lych.exception.LParseException;
-import com.ka.lych.exception.LValueException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.util.ILLocalizable;
 import com.ka.lych.xml.LXmlUtils;
 import com.ka.lych.list.LList;
@@ -39,7 +38,7 @@ public abstract class LObservable<T, BC extends ILObservable>
     Function<Object, T> _boundedConverter;
     boolean _changed;
     boolean _notifyAllowed;
-    LValueException _lastException;
+    LException _lastException;
     Function<LObservable, Boolean> _lateLoader;    
     LLoadingState _loadingState;
 
@@ -154,12 +153,12 @@ public abstract class LObservable<T, BC extends ILObservable>
     }
     
     @SuppressWarnings("unchecked")
-    final public void setValue(T value) throws LValueException {        
+    final public void setValue(T value) throws LException {        
         setValue(value, null);
     }
     
     @SuppressWarnings("unchecked")
-    final public void setValue(T value, Object trigger) throws LValueException {        
+    final public void setValue(T value, Object trigger) throws LException {        
         if (!isSingleBound()) {
             _lastException = null;    
             value = _preconfigureValue(value);
@@ -190,7 +189,7 @@ public abstract class LObservable<T, BC extends ILObservable>
             }
         } else {
             if (_boundedConverter != null) {
-                throw new LValueException("Can't set a bounded observable, if converter is needed.");
+                throw new LException("Can't set a bounded observable, if converter is needed.");
             }
             getSingleBoundedObservable().set(value);
         }
@@ -205,7 +204,7 @@ public abstract class LObservable<T, BC extends ILObservable>
         try {
             setValue(value);
             return true;
-        } catch (LValueException lve) {
+        } catch (LException lve) {
             LLog.error(lve.getMessage(), lve);
             return false;
         }
@@ -216,7 +215,7 @@ public abstract class LObservable<T, BC extends ILObservable>
         return ((isAbsent()) || (cl.isAssignableFrom(get().getClass())));
     }
 
-    public LValueException getLastException() {
+    public LException getLastException() {
         return (!isSingleBound() ? _lastException : getSingleBoundedObservable().getLastException());
     }
 
@@ -279,15 +278,15 @@ public abstract class LObservable<T, BC extends ILObservable>
 
     @SuppressWarnings("unchecked")
     @Override
-    public void parse(String value) throws LParseException {
+    public void parse(String value) throws LException {
         var v = get();
         if (v == null) {
             throw new IllegalStateException("Can't parse ObjectValue, if value is not setted yet.");
         } else if (v.getClass().isEnum()) {
             try {
                 setValue((T) LXmlUtils.xmlStrToEnum(value, v.getClass()));
-            } catch (LValueException lve) {
-                throw new LParseException(lve);
+            } catch (LException lve) {
+                throw new LException(lve);
             }
         } else if (EnumSet.class.isAssignableFrom(v.getClass())) {
             throw new UnsupportedOperationException("EnumSets are not supported yet.");
@@ -296,7 +295,7 @@ public abstract class LObservable<T, BC extends ILObservable>
         }
     }
 
-    public void parseLocalized(String value) throws LParseException {
+    public void parseLocalized(String value) throws LException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 

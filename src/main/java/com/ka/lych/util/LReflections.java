@@ -34,7 +34,7 @@ import com.ka.lych.annotation.Index;
 import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Late;
 import com.ka.lych.annotation.Lazy;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.list.LMap;
 import com.ka.lych.xml.LXmlUtils;
 import java.lang.reflect.Modifier;
@@ -63,7 +63,7 @@ public abstract class LReflections {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> void update(T toUpdate, Map<String, Object> values) throws LParseException {
+    public static <T> void update(T toUpdate, Map<String, Object> values) throws LException {
         var isRecord = isRecord(toUpdate.getClass());
         var fields = LReflections.getFieldsOfInstance(toUpdate, null);
         _validateMapValues(toUpdate.getClass(), fields, values);
@@ -82,26 +82,26 @@ public abstract class LReflections {
                         } else if (!isRecord) {
                             field.set(toUpdate, LRecord.toObservable(field, mi.getValue()));
                         } else {
-                            throw new LParseException("Can't set field '%s', because class is a record. Inside of records, only observables can be updated.", field.name());
+                            throw new LException("Can't set field '%s', because class is a record. Inside of records, only observables can be updated.", field.name());
                         }
                     } else if (!isRecord) {
                         field.set(toUpdate, mi.getValue());
                     } else {
-                        throw new LParseException("Can't set field '%s', because class is a record. Inside of records, only observables can be updated.", field.name());
+                        throw new LException("Can't set field '%s', because class is a record. Inside of records, only observables can be updated.", field.name());
                     }
                 } catch (IllegalAccessException iae) {
-                    throw new LParseException(iae);
+                    throw new LException(iae);
                 }
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T of(LRequiredClass requClass, Map<String, Object> values) throws LParseException {
+    public static <T> T of(LRequiredClass requClass, Map<String, Object> values) throws LException {
         return LReflections.of(requClass, values, false);
     }
 
-    static void _validateMapValues(Class classToBeInstanciated, LFields fields, Map<String, Object> values) throws LParseException {
+    static void _validateMapValues(Class classToBeInstanciated, LFields fields, Map<String, Object> values) throws LException {
         var mf = new StringBuilder();
         for (LField field : fields) {
             var v = values.get(field.name());
@@ -131,7 +131,7 @@ public abstract class LReflections {
                         } else if (reqClass.isEnum()) {
                             v = LXmlUtils.xmlStrToEnum((String) v, reqClass);
                         } else {
-                            throw new LParseException("Can not parse value for field '%s'. Unknown field class: %s", field.name(), reqClass.getName());
+                            throw new LException("Can not parse value for field '%s'. Unknown field class: %s", field.name(), reqClass.getName());
                         }
                     } else {
                         v = null;
@@ -146,12 +146,12 @@ public abstract class LReflections {
             }
         }
         if (mf.length() > 0) {
-            throw new LParseException("For record %s id fields are missing for instanciation: %s", classToBeInstanciated.getName(), mf.toString());
+            throw new LException("For record %s id fields are missing for instanciation: %s", classToBeInstanciated.getName(), mf.toString());
         }
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T of(LRequiredClass requClass, Map<String, Object> values, boolean acceptIncompleteId) throws LParseException {
+    public static <T> T of(LRequiredClass requClass, Map<String, Object> values, boolean acceptIncompleteId) throws LException {
         boolean isOptional = ((requClass != null) && (Optional.class.isAssignableFrom(requClass.requiredClass())));
         Class classToBeInstanciated = null;
         if (requClass != null) {
@@ -161,18 +161,18 @@ public abstract class LReflections {
         if ((classToBeInstanciated == null) || (classToBeInstanciated == Record.class)) {
             var clazz = values.get(ILConstants.KEYWORD_CLASS);
             if (clazz == null) {
-                throw new LParseException("Unknown type of record. Please specify class name with key '" + ILConstants.KEYWORD_CLASS + "' in map.");
+                throw new LException("Unknown type of record. Please specify class name with key '" + ILConstants.KEYWORD_CLASS + "' in map.");
             }
             classToBeInstanciated = LReflections.classForName((String) clazz);        
         }
         if ((!isRecord(classToBeInstanciated)) && (classToBeInstanciated.isMemberClass()) && (!Modifier.isStatic(classToBeInstanciated.getModifiers()))) {
-            throw new LParseException("Can't instanciate non-static inner classes. Please make following inner class static: %s", classToBeInstanciated.getName());
+            throw new LException("Can't instanciate non-static inner classes. Please make following inner class static: %s", classToBeInstanciated.getName());
         }
         if ((isOptional) && (classToBeInstanciated == null)) {
             if ((values == null) || (values.isEmpty())) {
                 return null;
             } else {
-                throw new LParseException("Can't find required class for Optional and map of values is not empty");
+                throw new LException("Can't find required class for Optional and map of values is not empty");
             }
         }
 
@@ -191,20 +191,33 @@ public abstract class LReflections {
             }
         }
         if (mf.length() > 0) {
-            throw new LParseException("For record %s id, fields are missing for instanciation: %s", classToBeInstanciated.getName(), mf.toString());
+            throw new LException("For record %s id, fields are missing for instanciation: %s", classToBeInstanciated.getName(), mf.toString());
         } else {
             _validateMapValues(classToBeInstanciated, fields, values);
         }
         //To be improved: Actually, the first constructor of a class will be taken. Maybe, this fits not for all cases 
         try {
-            Constructor cons = classToBeInstanciated.getDeclaredConstructors()[0];
+            var paramCount = values.size();
+            paramCount = (values.containsKey(ILConstants.KEYWORD_CLASS) ? paramCount - 1 : paramCount);
+            var consCount = classToBeInstanciated.getDeclaredConstructors().length;
+            LLog.test("consCount %s / paramCount %s", consCount, paramCount);
+            var c = 1;
+            var cons = classToBeInstanciated.getDeclaredConstructors()[0];
             cons.setAccessible(true);
+            LLog.test("cons.getParameters().length %s", cons.getParameters().length);
+            
+            while ((c < consCount) && (cons.getParameters().length != paramCount)) {
+                cons = classToBeInstanciated.getDeclaredConstructors()[c];
+                cons.setAccessible(true);
+                c++;
+            }
+            
             var consParams = cons.getParameters();
             var consValues = new Object[consParams.length];
             for (int i = 0; i < consParams.length; i++) {
                 LLog.test("cons param '%s' / class %s", consParams[i].getName(), consParams[i].getType());
                 if (!values.containsKey(consParams[i].getName())) {
-                    throw new LParseException("REQUIRED_VALUE_FOR_KEY_MISSING", requClass, consParams[i].getName());
+                    throw new LException("REQUIRED_VALUE_FOR_KEY_MISSING", requClass, consParams[i].getName());
                 }
                 consValues[i] = values.get(consParams[i].getName());
                 LLog.test("cons param '%s', class %s / value '%s'", consParams[i].getName(), consParams[i].getType(), consValues[i]);
@@ -345,11 +358,11 @@ public abstract class LReflections {
      *
      * @param field
      * @return required class, e.g. for LString > String
-     * @throws LParseException method fails, if observable is not primitive type
+     * @throws LException method fails, if observable is not primitive type
      * and has no type parameter, or type parameter of observable is just
      * another type parameter and not a class.
      */
-    public static LRequiredClass getRequiredClassFromField(LField field) throws LParseException {
+    public static LRequiredClass getRequiredClassFromField(LField field) throws LException {
         Class requiredClass = null;
         Optional<LList<Class>> paramClasses = Optional.empty();
         if (field != null) {
@@ -390,10 +403,10 @@ public abstract class LReflections {
                         } else if (pti.getActualTypeArguments()[0] instanceof Class) {
                             requiredClass = (Class) (pti.getActualTypeArguments()[0]);
                         } else if (pti.getActualTypeArguments()[0] instanceof TypeVariable) {
-                            throw new LParseException("Required class not found. Field has no class as type argument, just type variable: %s; Field: %s: %s", pti.getActualTypeArguments()[0], field.name(), field);
+                            throw new LException("Required class not found. Field has no class as type argument, just type variable: %s; Field: %s: %s", pti.getActualTypeArguments()[0], field.name(), field);
                         }
                     } else {
-                        throw new LParseException("Required class not found. Field has no type arguments: %s", field);
+                        throw new LException("Required class not found. Field has no type arguments: %s", field);
                     }
                 } else {
                     //no observable
@@ -414,7 +427,7 @@ public abstract class LReflections {
                 requiredClass = field.type();
             }
             if (requiredClass == null) {
-                throw new LParseException("Can't get required class from field '%s': %s", field.name(), field);
+                throw new LException("Can't get required class from field '%s': %s", field.name(), field);
             }
         }
         return new LRequiredClass(requiredClass, paramClasses);
@@ -559,7 +572,7 @@ public abstract class LReflections {
         return (m != null ? new LMethod(m.getName(), m) : null);
     }
 
-    public static LRequiredClass getRequiredClassFromMethod(Node n, LMethod method) throws LParseException {
+    public static LRequiredClass getRequiredClassFromMethod(Node n, LMethod method) throws LException {
         Class<?> requiredClass = null;
         if (method != null) {
             if (method.getParameterCount() == 1) {
@@ -571,14 +584,14 @@ public abstract class LReflections {
         return new LRequiredClass(requiredClass, Optional.empty());
     }
 
-    public static Class classForName(String className) throws LParseException {
+    public static Class classForName(String className) throws LException {
         try {
             return Class.forName(DEFAULT_CLASS_PACKAGE != null ? DEFAULT_CLASS_PACKAGE + "." + className : className);
         } catch (ClassNotFoundException cnfe) {
             try {
                 return Class.forName(className);
             } catch (ClassNotFoundException cnfe2) {
-                throw new LParseException(cnfe);
+                throw new LException(cnfe);
             }
         }
     }

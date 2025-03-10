@@ -18,7 +18,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Objects;
 import com.ka.lych.annotation.Json;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.util.LReflections.LRequiredClass;
 import java.util.Base64;
 import java.util.Optional;
@@ -99,7 +99,7 @@ public class LJsonParser<T> {
         return this;
     }
 
-    public LJsonParser<T> bufferedReader(BufferedReader br) throws LParseException {
+    public LJsonParser<T> bufferedReader(BufferedReader br) throws LException {
         try {
             StringBuilder sb = new StringBuilder();
             String line = br.readLine();
@@ -113,27 +113,27 @@ public class LJsonParser<T> {
             br.close();
             return this;
         } catch (IOException ex) {
-            throw new LParseException(ex);
+            throw new LException(ex);
         }
     }
 
-    public LJsonParser<T> inputStream(InputStream is) throws LParseException {
+    public LJsonParser<T> inputStream(InputStream is) throws LException {
         return bufferedReader(new BufferedReader(new InputStreamReader(is)));
     }
 
-    public LJsonParser<T> file(File inputFile) throws LParseException {
+    public LJsonParser<T> file(File inputFile) throws LException {
         try {
             return bufferedReader(new BufferedReader(new FileReader(inputFile)));
         } catch (IOException ex) {
-            throw new LParseException(ex);
+            throw new LException(ex);
         }
     }
 
-    public LJsonParser<T> url(URL url, String payload) throws LParseException, IOException {
+    public LJsonParser<T> url(URL url, String payload) throws LException, IOException {
         return url(url, payload, null, null, null);
     }
 
-    public LJsonParser<T> url(URL url, String payload, String requestMethod, String user, String password) throws LParseException, IOException {
+    public LJsonParser<T> url(URL url, String payload, String requestMethod, String user, String password) throws LException, IOException {
         //try {
         InputStream is = null;
         if (LString.isEmpty(payload)) {
@@ -156,7 +156,7 @@ public class LJsonParser<T> {
             if (http.getResponseCode() == LHttpStatus.OK.value()) {
                 is = http.getInputStream();
             } else {
-                throw new LParseException("Server returned failure response code: %s / Reason: %s", http.getResponseCode(), LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase());
+                throw new LException("Server returned failure response code: %s / Reason: %s", http.getResponseCode(), LHttpStatus.valueOf(http.getResponseCode()).getReasonPhrase());
             }
         }
         BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
@@ -167,21 +167,21 @@ public class LJsonParser<T> {
         }
         _payload = sb.toString();
         return this;
-        //} catch (LParseException lpe) {
+        //} catch (LException lpe) {
         //    throw lpe;
         //} catch (Exception ex) {
-        //    throw new LParseException(ex);
+        //    throw new LException(ex);
         //}
     }
 
     @SuppressWarnings("unchecked")
-    public T parse() throws LParseException {
+    public T parse() throws LException {
         _parseAll();
         return (T) _result;
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, T> parseMap() throws LParseException {
+    public Map<String, T> parseMap() throws LException {
         //remove first bracket
         _payload = _payload.trim().substring(1);
         //var parser = new LJsonParser<T>(requiredClass, payload);    
@@ -193,19 +193,19 @@ public class LJsonParser<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public Collection<T> parseList() throws LParseException {
+    public Collection<T> parseList() throws LException {
         _parseAll();
         return (Collection<T>) _result;
     }
 
-    void _parseAll() throws LParseException {
+    void _parseAll() throws LException {
         for (int i = 0; i < _payload.length(); i++) {
             _parseChar(_payload.charAt(i));
             _characterCounter++;
         }
     }
 
-    void _parseChar(char c) throws LParseException {
+    void _parseChar(char c) throws LException {
         if ((c == ' ' || c == '\t' || c == '\n' || c == '\r')
                 && !(_state == LState.IN_STRING || _state == LState.UNICODE
                 || _state == LState.START_ESCAPE
@@ -342,7 +342,7 @@ public class LJsonParser<T> {
         }
     }
 
-    void _endString() throws LParseException {
+    void _endString() throws LException {
         LMapItem popped = _stack.pop();
 
         if (popped.type() == LType.KEY) {
@@ -363,7 +363,7 @@ public class LJsonParser<T> {
         _buffer.setLength(0);
     }
 
-    void _endArray() throws LParseException {
+    void _endArray() throws LException {
         LMapItem popped = _stack.pop();
         if (popped.type() != LType.ARRAY) {
             _throwException("Unexpected end of array encountered.");
@@ -379,7 +379,7 @@ public class LJsonParser<T> {
         }
     }
 
-    void _startValue(char c) throws LParseException {
+    void _startValue(char c) throws LException {
         if (c == LJson.BBEGIN) {
             _startArray();
         } else if (c == LJson.SBEGIN) {
@@ -403,7 +403,7 @@ public class LJsonParser<T> {
     }
 
     @SuppressWarnings("unchecked")
-    void _endObject() throws LParseException {
+    void _endObject() throws LException {
         LMapItem popped = _stack.pop();
         if (popped.type() != LType.OBJECT) {
             _throwException("Unexpected end of object encountered.");
@@ -428,7 +428,7 @@ public class LJsonParser<T> {
                 }
             }
         } else {
-            throw new LParseException("Stack has no object map inside, can't create object");
+            throw new LException("Stack has no object map inside, can't create object");
         }
         _state = LState.AFTER_VALUE;
         if (_stack.isEmpty()) {
@@ -441,7 +441,7 @@ public class LJsonParser<T> {
         _state = LState.IN_STRING;
     }
 
-    void _processEscapeCharacters(char c) throws LParseException {
+    void _processEscapeCharacters(char c) throws LException {
         switch (c) {
             case '"' ->
                 _buffer.append('"');
@@ -466,7 +466,7 @@ public class LJsonParser<T> {
         }
     }
 
-    void _processUnicodeCharacter(char c) throws LParseException {
+    void _processUnicodeCharacter(char c) throws LException {
         if (!_isHexCharacter(c)) {
             _throwException("Expected hex character for escaped Unicode character. Unicode parsed: " + _unicodeBuffer.toString() + " and got:" + _charToString(c));
         }
@@ -487,7 +487,7 @@ public class LJsonParser<T> {
     int _getHexArrayAsDecimal(String hexString) {
         try {
             return LNumberSystem.digitsToInt(hexString, LNumberSystem.DIGITS_HEXA_DECIMAL);
-        } catch (LParseException ex) {
+        } catch (LException ex) {
             return 0;
         }
     }
@@ -504,7 +504,7 @@ public class LJsonParser<T> {
         _state = LState.UNICODE;
     }
 
-    void _endNumber() throws LParseException {
+    void _endNumber() throws LException {
         if (_buffer.toString().contains(".")) {
             _processKeyValue(_currentKey, Double.valueOf(_buffer.toString()));
         } else {
@@ -518,7 +518,7 @@ public class LJsonParser<T> {
         _state = LState.AFTER_VALUE;
     }
 
-    void _endTrue() throws LParseException {
+    void _endTrue() throws LException {
         if ("true".equals(_buffer.toString().toLowerCase())) {
             _processKeyValue(_currentKey, Boolean.TRUE);
         }
@@ -526,7 +526,7 @@ public class LJsonParser<T> {
         _state = LState.AFTER_VALUE;
     }
 
-    void _endFalse() throws LParseException {
+    void _endFalse() throws LException {
         if ("false".equals(_buffer.toString().toLowerCase())) {
             _processKeyValue(_currentKey, Boolean.FALSE);
         }
@@ -534,7 +534,7 @@ public class LJsonParser<T> {
         _state = LState.AFTER_VALUE;
     }
 
-    void _endNull() throws LParseException {
+    void _endNull() throws LException {
         if ("null".equals(_buffer.toString().toLowerCase())) {
             _processKeyValue(_currentKey, null);
         }
@@ -551,33 +551,32 @@ public class LJsonParser<T> {
         return (_listFactory != null ? _listFactory.apply(null) : LList.empty());
     }
 
-    void _startArray() throws LParseException {
+    void _startArray() throws LException {
         //myListener->startArray();
         _state = LState.IN_ARRAY;
         LRequiredClass requiredClass = null;
-        if (_stack.isEmpty()) {
+        if ((_stack.isEmpty()) || (Map.class.isAssignableFrom(_resultClass))) {
             requiredClass = new LRequiredClass(_resultClass, null);
         } else if (_stack.peek().type() == LType.OBJECT) {
             var fields = LReflections.getFields(_stack.peek().requiredClass.requiredClass(), null, Json.class);
-            LLog.test("fields: %s / %s", fields, _stack.peek().type());
             var field = fields.get(_currentKey);
             if ((field == null) && (_ignoreUnknownFields)) {
                 requiredClass = IGNORE_FIELD_CLASS;
             } else {
                 if (field == null) {
-                    throw new LParseException("Can't get field for key'%s' %s / %s", _currentKey, _stack.peek().requiredClass().requiredClass(), _resultClass);
+                    throw new LException("Can't get field for key'%s' %s / %s", _currentKey, _stack.peek().requiredClass().requiredClass(), _resultClass);                  
                 }
-                requiredClass = field.requiredClass();
+                requiredClass = field.requiredClass();    
             }
         } else {
-            throw new LParseException("Illegal state at start of object");
+            throw new LException("Illegal state at start of object");
         }
         _stack.push(new LMapItem(LType.ARRAY, requiredClass, _currentKey, null, _factoredList()));
         _currentKey = null;
     }
 
     @SuppressWarnings("unchecked")
-    void _startObject() throws LParseException {
+    void _startObject() throws LException {
         _state = LState.IN_OBJECT;
         LRequiredClass requiredClass = null;
         if (_stack.isEmpty()) {
@@ -599,13 +598,13 @@ public class LJsonParser<T> {
                     requiredClass = IGNORE_FIELD_CLASS;
                 } else {
                     if (field == null) {
-                        throw new LParseException("Can't get field for key'%s' %s / %s", _currentKey, _stack.peek().requiredClass().requiredClass(), _resultClass);
+                        throw new LException("Can't get field for key'%s' %s / %s", _currentKey, _stack.peek().requiredClass().requiredClass(), _resultClass);
                     }
                     requiredClass = field.requiredClass();
                 }
             }
         } else {
-            throw new LParseException("Illegal state at start of object");
+            throw new LException("Illegal state at start of object");
         }
         _stack.push(new LMapItem(LType.OBJECT, requiredClass, _currentKey, new LMap<>(), null));
         _currentKey = null;
@@ -643,7 +642,7 @@ public class LJsonParser<T> {
     }
 
     @SuppressWarnings("unchecked")
-    void _processKeyValue(String key, Object value) throws LParseException {
+    void _processKeyValue(String key, Object value) throws LException {
         var peeked = _stack.peek();
         if (peeked.map() != null) {
             if (value != null) {
@@ -665,12 +664,12 @@ public class LJsonParser<T> {
         return ((c == '\t') || (c == '\n') ? " '<>'" : " '" + c + "'");
     }
 
-    void _throwException(String message) throws LParseException {
+    void _throwException(String message) throws LException {
         _throwException(message, null);
     }
 
-    void _throwException(String message, Throwable cause) throws LParseException {
-        throw new LParseException(cause, message + " (json position " + _characterCounter + ", text area: '" + _payload.substring(Math.max(0, _characterCounter - 20), Math.min(_payload.length(), _characterCounter + 5))/*.replace("\n", " ")*/.replace("\t", "") + "')");
+    void _throwException(String message, Throwable cause) throws LException {
+        throw new LException(cause, message + " (json position " + _characterCounter + ", text area: '" + _payload.substring(Math.max(0, _characterCounter - 20), Math.min(_payload.length(), _characterCounter + 5))/*.replace("\n", " ")*/.replace("\t", "") + "')");
     }
 
     public static LRequiredClass IGNORE_FIELD_CLASS = LRequiredClass.of(IgnoreClass.class);

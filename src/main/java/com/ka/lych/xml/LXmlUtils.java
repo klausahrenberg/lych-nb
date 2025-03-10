@@ -18,7 +18,7 @@ import javax.xml.parsers.*;
 import javax.xml.transform.*;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.geometry.ILBounds;
 import com.ka.lych.geometry.ILSize;
 import com.ka.lych.geometry.LBounds;
@@ -68,12 +68,12 @@ public class LXmlUtils {
         try {
             var d = xmlStrToDouble(value);
             return (d != null ? d : defaultValue);
-        } catch (LParseException nfe) {
+        } catch (LException nfe) {
             return defaultValue;
         }
     }
 
-    public static Double xmlStrToDouble(String value) throws LParseException {
+    public static Double xmlStrToDouble(String value) throws LException {
         if (!LString.isEmpty(value)) {            
             if ((value.length() > 1) && (value.charAt(0) == ILConstants.KEYWORD_HEX)) {
                 return Double.valueOf(LNumberSystem.digitsToInt(value.toLowerCase().substring(1), LNumberSystem.DIGITS_HEXA_DECIMAL));
@@ -85,12 +85,12 @@ public class LXmlUtils {
                     if (result != null) {
                         return result.doubleValue();
                     } else {
-                        throw new LParseException(nfe);
+                        throw new LException(nfe);
                     }
                 }
             }
         } else {
-            throw new LParseException("Empty value.");
+            throw new LException("Empty value.");
         }
     }
 
@@ -110,7 +110,7 @@ public class LXmlUtils {
         return LNumberSystem.intToDigits(value, LNumberSystem.DIGITS_HEXA_DECIMAL, codelength, true);
     }
 
-    public static Integer xmlStrToInteger(String value) throws LParseException {
+    public static Integer xmlStrToInteger(String value) throws LException {
         return (int) Math.round(LXmlUtils.xmlStrToDouble(value));
     }
 
@@ -121,7 +121,7 @@ public class LXmlUtils {
     public static Boolean xmlStrToBoolean(String value, Boolean defaultValue) {
         try {
             return xmlStrToBoolean(value);
-        } catch (LParseException nfe) {
+        } catch (LException nfe) {
             return defaultValue;
         }
     }
@@ -141,7 +141,7 @@ public class LXmlUtils {
         return xmlStrToInteger(s, defaultValue);
     }
 
-    public static Boolean xmlStrToBoolean(String value) throws LParseException {
+    public static Boolean xmlStrToBoolean(String value) throws LException {
         value = value.trim().toLowerCase();
         switch (value) {
             case "true":
@@ -154,7 +154,7 @@ public class LXmlUtils {
             case "":
                 return null;
             default:
-                throw new LParseException("No boolean value: %s", value);
+                throw new LException("No boolean value: %s", value);
         }
     }
 
@@ -241,11 +241,11 @@ public class LXmlUtils {
         return count;
     }
 
-    public static double[] xmlStrToDoubleArray(StringBuilder value, int minArrayLength)  throws LParseException {
+    public static double[] xmlStrToDoubleArray(StringBuilder value, int minArrayLength)  throws LException {
         return xmlStrToDoubleArray(value, minArrayLength, 0, 0);
     }
 
-    public static double[] xmlStrToDoubleArray(StringBuilder value, int minArrayLength, double dx, double dy) throws LParseException {
+    public static double[] xmlStrToDoubleArray(StringBuilder value, int minArrayLength, double dx, double dy) throws LException {
         //Possible starts of number are: ' ', '-', '.'
         double[] result = new double[minArrayLength];
         boolean dotFound = false;
@@ -274,12 +274,12 @@ public class LXmlUtils {
                     result[found] = result[found] + (found % 2 == 0 ? dx : dy);
                     found++;
                 } catch (NumberFormatException nfe) {
-                    throw new LParseException(nfe, "vs failed %s / %s", vs, nfe.getMessage());
+                    throw new LException(nfe, "vs failed %s / %s", vs, nfe.getMessage());
                 }
                 //found++;
                 //found++;
             } else {
-                throw new LParseException("Number of double values to less. Needed %s, counted only %s. string: '%s'", minArrayLength, found, value);
+                throw new LException("Number of double values to less. Needed %s, counted only %s. string: '%s'", minArrayLength, found, value);
             }
             //skip spaces
             while ((index < value.length()) && ((value.charAt(index) == ' ') || (value.charAt(index) == ','))) {
@@ -289,7 +289,7 @@ public class LXmlUtils {
             dotFound = false;
         } while ((found < minArrayLength) && (!LString.isEmpty(vs)));
         if (found < minArrayLength) {
-            throw new LParseException("Number of double values to less. Needed %s, counted only %s. string: '%s'", minArrayLength, found, value);
+            throw new LException("Number of double values to less. Needed %s, counted only %s. string: '%s'", minArrayLength, found, value);
         }
         value.delete(0, index);
         return result;
@@ -449,7 +449,7 @@ public class LXmlUtils {
         }
     }
 
-    public static Class getClass(String className, List<String> importPackages, ClassLoader alternativeClassLoader) throws LParseException {
+    public static Class getClass(String className, List<String> importPackages, ClassLoader alternativeClassLoader) throws LException {
         try {
             try {
                 return Class.forName(className);
@@ -477,7 +477,7 @@ public class LXmlUtils {
             }
             throw new ClassNotFoundException("class not found in imports: class '" + className + "'");
         } catch (ClassNotFoundException cnf) {
-            throw new LParseException(cnf);
+            throw new LException(cnf);
         }
     }
 
@@ -486,19 +486,19 @@ public class LXmlUtils {
     }
 
     @SuppressWarnings("unchecked")
-    public static void setFieldValue(Object o, String fieldName, LField field, LRequiredClass requiredClass, Object value) throws LParseException {
+    public static void setFieldValue(Object o, String fieldName, LField field, LRequiredClass requiredClass, Object value) throws LException {
         if (!isObservableField(field.type())) {
             try {
                 field.set(o, value);
             } catch (IllegalAccessException iae) {
-                throw new LParseException(iae, "Can't set field value");
+                throw new LException(iae, "Can't set field value");
             }
         } else {
             LObservable obs = null;
             try {
                 obs = (LObservable) field.get(o);
             } catch (IllegalAccessException iae) {
-                throw new LParseException(iae, "Can't find field");
+                throw new LException(iae, "Can't find field");
             }
             if (obs == null) {
                 //throw new UnsupportedOperationException("Not supported yet");
@@ -510,7 +510,7 @@ public class LXmlUtils {
                     LMethod m = LReflections.getMethod(o.getClass(), methodName);
                     obs = (LObservable) m.invoke(o);
                 } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException nsme) {
-                    throw new LParseException(nsme, "Can't call method '%s()'", methodName);
+                    throw new LException(nsme, "Can't call method '%s()'", methodName);
                 }
             }
             if (obs != null) {
@@ -519,35 +519,35 @@ public class LXmlUtils {
                 } else {
                     //LPair<Class, Class> result = LXmlUtils.getRequiredClassFromField(field);                    
                     if ((value != null) && (!requiredClass.requiredClass().isAssignableFrom(value.getClass()))) {
-                        throw new LParseException("Can't set value to property. Value has not required class. Required class: %s. Given value: %s", requiredClass.requiredClass(), value);
+                        throw new LException("Can't set value to property. Value has not required class. Required class: %s. Given value: %s", requiredClass.requiredClass(), value);
                     }
                     obs.set(value);
                 }
             } else {
-                throw new LParseException("Property is null, can't set the value");
+                throw new LException("Property is null, can't set the value");
             }
 
         }
     }
 
-    public static void setMethodValue(Object o, LMethod method, Object value) throws LParseException {
+    public static void setMethodValue(Object o, LMethod method, Object value) throws LException {
         try {
             method.invoke(o, value);
         } catch (IllegalAccessException | IllegalArgumentException iae) {
-            throw new LParseException(iae, "Can't call method '%s' in class '%s' for value '%s'", method.getName(), o.getClass().getSimpleName(), value);
+            throw new LException(iae, "Can't call method '%s' in class '%s' for value '%s'", method.getName(), o.getClass().getSimpleName(), value);
         }
     }
 
-    public static void setMethodValueOfParent(Object parent, Object o, LMethod method, Object value) throws LParseException {
+    public static void setMethodValueOfParent(Object parent, Object o, LMethod method, Object value) throws LException {
         try {
             method.invoke(parent, new Object[]{o, value});
             //method.invoke(o, value);
         } catch (IllegalAccessException | IllegalArgumentException iae) {
-            throw new LParseException(iae, "Can't call method '%s' in class '%s' with object '%s' for value '%s'",  method.getName(), parent.getClass().getSimpleName(), o.getClass().getSimpleName(), value);
+            throw new LException(iae, "Can't call method '%s' in class '%s' with object '%s' for value '%s'",  method.getName(), parent.getClass().getSimpleName(), o.getClass().getSimpleName(), value);
         }
     }
 
-    public static void parseXmlFromFile(Object o, File f) throws IOException, LParseException {
+    public static void parseXmlFromFile(Object o, File f) throws IOException, LException {
         try {
             DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
@@ -563,16 +563,16 @@ public class LXmlUtils {
             //Parse object
             parseXml(o, o, xml.getDocumentElement(), xmlParseInfo, null, Json.class, false);
         } catch (SAXParseException err) {
-            throw new LParseException("Parsing error, line %s, uri %s: %s", err.getLineNumber(), err.getSystemId(), err.getMessage());
+            throw new LException("Parsing error, line %s, uri %s: %s", err.getLineNumber(), err.getSystemId(), err.getMessage());
         } catch (SAXException e) {
             Exception x = e.getException();
-            throw new LParseException(((x == null) ? e : x).getMessage());
+            throw new LException(((x == null) ? e : x).getMessage());
         } catch (ParserConfigurationException pce) {
 
         }
     }
 
-    public static void parseXmlFromStream(Object o, InputStream inputStream) throws IOException, LParseException {
+    public static void parseXmlFromStream(Object o, InputStream inputStream) throws IOException, LException {
         try {
 
             DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
@@ -590,17 +590,17 @@ public class LXmlUtils {
             parseXml(o, o, xml.getDocumentElement(), xmlParseInfo, null, Json.class, false);
         } catch (SAXParseException err) {
 
-            throw new LParseException("Parsing error, line %s, uri %s: %s", err.getLineNumber(), err.getSystemId(), err.getMessage());
+            throw new LException("Parsing error, line %s, uri %s: %s", err.getLineNumber(), err.getSystemId(), err.getMessage());
         } catch (SAXException e) {
 
             Exception x = e.getException();
-            throw new LParseException(((x == null) ? e : x).getMessage());
+            throw new LException(((x == null) ? e : x).getMessage());
         } catch (ParserConfigurationException pce) {
 
         }
     }
 
-    public static void parseXmlFromString(Object o, String xmlString) throws IOException, LParseException {
+    public static void parseXmlFromString(Object o, String xmlString) throws IOException, LException {
         try {
             DocumentBuilderFactory docBuilderFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder docBuilder = docBuilderFactory.newDocumentBuilder();
@@ -617,25 +617,25 @@ public class LXmlUtils {
             parseXml(o, o, xml.getDocumentElement(), xmlParseInfo, null, Json.class, false);
         } catch (SAXParseException err) {
 
-            throw new LParseException("Parsing error, line %s, uri %s: %s", err.getLineNumber(), err.getSystemId(), err.getMessage());
+            throw new LException("Parsing error, line %s, uri %s: %s", err.getLineNumber(), err.getSystemId(), err.getMessage());
         } catch (SAXException e) {
 
             Exception x = e.getException();
-            throw new LParseException(((x == null) ? e : x).getMessage());
+            throw new LException(((x == null) ? e : x).getMessage());
         } catch (ParserConfigurationException pce) {
 
         }
     }
 
-    public static void parseXml(Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public static void parseXml(Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo) throws LException {
         parseXml(objectToParse, objectToParse, xmlNode, xmlParseInfo, null, Json.class, true);
     }
 
-    public static void parseXml(Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo, List<String> excludeList) throws LParseException {
+    public static void parseXml(Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo, List<String> excludeList) throws LException {
         parseXml(objectToParse, objectToParse, xmlNode, xmlParseInfo, excludeList, Json.class, true);
     }
 
-    public static void parseXml(Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation) throws LParseException {
+    public static void parseXml(Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation) throws LException {
         parseXml(objectToParse, objectToParse, xmlNode, xmlParseInfo, excludeList, annotation, true);
     }
 
@@ -669,10 +669,10 @@ public class LXmlUtils {
      * level, on recursive call this will always be false
      * @param excludeList - node or attribute names included in this list will
      * be ignored during parsing
-     * @throws com.ka.lych.util.LParseException
+     * @throws com.ka.lych.util.LException
      */
     @SuppressWarnings("unchecked")
-    protected static void parseXml(Object parentOfObjectToParse, Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation, boolean ignoreXmlSupportAtTopLevel) throws LParseException {       
+    protected static void parseXml(Object parentOfObjectToParse, Object objectToParse, Node xmlNode, LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation, boolean ignoreXmlSupportAtTopLevel) throws LException {       
         if (objectToParse == null) {
             throw new IllegalArgumentException("Object can't be null");
         }
@@ -704,7 +704,7 @@ public class LXmlUtils {
                                     Object mParam = getObject(objectToParse, attr, parentMethod, xmlParseInfo, excludeList, annotation);
                                     setMethodValueOfParent(parentOfObjectToParse, objectToParse, parentMethod, mParam);
                                 } else {
-                                    throw new LParseException("no set or add method '%s' found in parent class '%s'", objectName.substring(dotIndex + 1), c1);
+                                    throw new LException("no set or add method '%s' found in parent class '%s'", objectName.substring(dotIndex + 1), c1);
                                 }
                             } else {
                                 //Search static method with 2arguments in c1
@@ -714,7 +714,7 @@ public class LXmlUtils {
                                     Object mParam = getObject(objectToParse, attr, staticMethod, xmlParseInfo, excludeList, annotation);
                                     setMethodValueOfParent(null, objectToParse, staticMethod, mParam);
                                 } else {
-                                    throw new LParseException("no static set or add method '%s' found in parent class '%s'", objectName.substring(dotIndex + 1), c1);
+                                    throw new LException("no static set or add method '%s' found in parent class '%s'", objectName.substring(dotIndex + 1), c1);
                                 }
                             }
                         } else if ((field = LReflections.getField(objectName, fields)) != null) {
@@ -726,7 +726,7 @@ public class LXmlUtils {
                             Object mParam = getObject(objectToParse, attr, method, xmlParseInfo, excludeList, annotation);
                             setMethodValue(objectToParse, method, mParam);
                         } else {
-                            throw new LParseException("field or method '%s' not found in class %s", objectName, parentOfObjectToParse);
+                            throw new LException("field or method '%s' not found in class %s", objectName, parentOfObjectToParse);
                         }
                     } else if (ILConstants.KEYWORD_ID.equals(objectName.toLowerCase())) {
                         //2 assign this to field in controller
@@ -741,7 +741,7 @@ public class LXmlUtils {
                         if (objectToParse instanceof ILControl) {
                             ((ILControl) objectToParse).id().set(attr.getTextContent().trim());
                         } else {
-                            throw new LParseException("Can not assign id '%s' for object. Object is not instance of %s", attr.getTextContent(), ILControl.class.getName());
+                            throw new LException("Can not assign id '%s' for object. Object is not instance of %s", attr.getTextContent(), ILControl.class.getName());
                         }
                     }
                 }
@@ -778,7 +778,7 @@ public class LXmlUtils {
                                         }
                                     }
                                 } else {
-                                    throw new LParseException("no set or add method '%s' found in parent class '%s'", objectName.substring(dotIndex + 1), c1);
+                                    throw new LException("no set or add method '%s' found in parent class '%s'", objectName.substring(dotIndex + 1), c1);
                                 }
                             } else {
                                 //Search static method with 2arguments in c1
@@ -794,7 +794,7 @@ public class LXmlUtils {
                                         }
                                     }
                                 } else {
-                                    throw new LParseException("no static set or add method '%s' found in parent class '%s'", objectName.substring(dotIndex + 1), c1);
+                                    throw new LException("no static set or add method '%s' found in parent class '%s'", objectName.substring(dotIndex + 1), c1);
                                 }
                             }
 
@@ -825,7 +825,7 @@ public class LXmlUtils {
                                 success = true;
                             }
                             if (!success) {
-                                throw new LParseException("Field '%s' not found in class %s", objectName, objectToParse.getClass());
+                                throw new LException("Field '%s' not found in class %s", objectName, objectToParse.getClass());
                             }
                         } else if ((method = getSetOrAddMethod(objectName, methods)) != null) {
                             //2. look for set or add method
@@ -852,7 +852,7 @@ public class LXmlUtils {
                                 Object mParam = getObject(objectToParse, nc, addMethod, xmlParseInfo, excludeList, annotation);
                                 setMethodValue(objectToParse, addMethod, mParam);
                             } else {
-                                throw new LParseException("field or method '%s' not found in class %s", objectName, objectToParse.getClass());
+                                throw new LException("field or method '%s' not found in class %s", objectName, objectToParse.getClass());
                             }
                         }
                     }
@@ -861,7 +861,7 @@ public class LXmlUtils {
         }
     }
 
-    protected static List getPotentialListWithDirectItems(Object o, Node nc, LRequiredClass requiredClass, LXmlParseInfo xmlParseInfo, List<String> excludeList, List<LMethod> methods, LFields fields) throws LParseException {
+    protected static List getPotentialListWithDirectItems(Object o, Node nc, LRequiredClass requiredClass, LXmlParseInfo xmlParseInfo, List<String> excludeList, List<LMethod> methods, LFields fields) throws LException {
         if (List.class.isAssignableFrom(requiredClass.requiredClass())) {
             for (int b = 0; b < nc.getChildNodes().getLength(); b++) {
                 if (isNotExcluded(nc.getChildNodes().item(b).getNodeName(), excludeList)) {
@@ -874,13 +874,13 @@ public class LXmlUtils {
                             LMethod m = LReflections.getMethod(o.getClass(), methodName);
                             prop = (LObservable) m.invoke(o);
                         } catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException nsme) {
-                            //throw new LParseException("Can't call method 'observable" + nc.getNodeName() + "()'", nsme);
+                            //throw new LException("Can't call method 'observable" + nc.getNodeName() + "()'", nsme);
                         }
 
                         if (prop != null) {
                             List result = (List) prop.get();
                             if (result == null) {
-                                throw new LParseException("Call of '%s()' doesn't return a list, only null. A list is needed.", methodName);
+                                throw new LException("Call of '%s()' doesn't return a list, only null. A list is needed.", methodName);
                             }
                             return result;
                         } else {
@@ -888,11 +888,11 @@ public class LXmlUtils {
                             try {
                                 List result = (List) listGetter.invoke(o);
                                 if (result == null) {
-                                    throw new LParseException("Call of 'get%s()' doen't return a list, only null. A list is needed.", nc.getNodeName());
+                                    throw new LException("Call of 'get%s()' doen't return a list, only null. A list is needed.", nc.getNodeName());
                                 }
                                 return result;
                             } catch (NullPointerException | IllegalAccessException | IllegalArgumentException iae) {
-                                throw new LParseException("Can't call list getter method for '%s': %s", nc.getNodeName(), ncc.getNodeName());
+                                throw new LException("Can't call list getter method for '%s': %s", nc.getNodeName(), ncc.getNodeName());
                             }
                         }
                     }
@@ -903,15 +903,15 @@ public class LXmlUtils {
         return null;
     }
 
-    protected static Object getObject(Object parent, Node n, LField field, LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation) throws LParseException {
+    protected static Object getObject(Object parent, Node n, LField field, LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation) throws LException {
         return getObject(parent, n, LReflections.getRequiredClassFromField(field), xmlParseInfo, excludeList, annotation);
     }
 
-    protected static Object getObject(Object parent, Node n, LMethod method, LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation) throws LParseException {
+    protected static Object getObject(Object parent, Node n, LMethod method, LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation) throws LException {
         return getObject(parent, n, LReflections.getRequiredClassFromMethod(n, method), xmlParseInfo, excludeList, annotation);
     }
 
-    protected static Object getObject(Object parent, final Node n, LRequiredClass requiredClass, final LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation) throws LParseException {
+    protected static Object getObject(Object parent, final Node n, LRequiredClass requiredClass, final LXmlParseInfo xmlParseInfo, List<String> excludeList, Class annotation) throws LException {
         Object mParam = null;
         if (xmlParseInfo == null) {
             throw new IllegalArgumentException("xmlParseInfo can't be null");
@@ -928,7 +928,7 @@ public class LXmlUtils {
                     }
                 };
             } else {
-                throw new LParseException(LXmlUtils.class, "event handler not found for event '" + n.getNodeName() + "'. Required method: '"
+                throw new LException(LXmlUtils.class, "event handler not found for event '" + n.getNodeName() + "'. Required method: '"
                         + n.getTextContent().substring(1) + "' in controller class '"
                         + xmlParseInfo.controller().getClass().getName() + "'");
             }
@@ -947,7 +947,7 @@ public class LXmlUtils {
                     ClassLoader cl = Thread.currentThread().getContextClassLoader();
                     URL rURL = cl.getResource(textContent);
                     if (rURL == null) {
-                        throw new LParseException("Resource '%s' is missing", textContent);
+                        throw new LException("Resource '%s' is missing", textContent);
                     }
                     mParam = (rURL.toString());
                 } else {
@@ -966,7 +966,7 @@ public class LXmlUtils {
                     mParam = LReflections.newInstance(requiredClass.requiredClass());                    
                     parseXml(parent, mParam, n, xmlParseInfo, excludeList, annotation, false);
                 } catch (Exception ex) {
-                    throw new LParseException(ex, "Can't instanciate ILXmlSupport %s. Required class: %s", n.getNodeName(), requiredClass.requiredClass());
+                    throw new LException(ex, "Can't instanciate ILXmlSupport %s. Required class: %s", n.getNodeName(), requiredClass.requiredClass());
                 }
             } else if (requiredClass.requiredClass().isEnum()) {                
                 //Enum type
@@ -983,8 +983,8 @@ public class LXmlUtils {
                     Class c = getClass(n.getNodeName(), xmlParseInfo.importPackages(), null);
                     mParam = LReflections.newInstance(c);
                     parseXml(parent, mParam, n, xmlParseInfo, excludeList, annotation, false);
-                } catch (LParseException | IllegalStateException ex) {
-                    throw new LParseException(ex, "Object not found for node %s. Required class: %s. Error: %s", n.getNodeName(), requiredClass.requiredClass(), ex.getMessage());
+                } catch (LException | IllegalStateException ex) {
+                    throw new LException(ex, "Object not found for node %s. Required class: %s. Error: %s", n.getNodeName(), requiredClass.requiredClass(), ex.getMessage());
                 }
             }
         }        
@@ -1111,9 +1111,9 @@ public class LXmlUtils {
         }
     }
 
-    public static <T> T xmlStrToEnum(String value, Class<T> enumClass) throws LParseException {
+    public static <T> T xmlStrToEnum(String value, Class<T> enumClass) throws LException {
         if (!enumClass.isEnum()) {
-            throw new LParseException("class %s is not an enumeration.", enumClass.getName());
+            throw new LException("class %s is not an enumeration.", enumClass.getName());
         }
         if (!LString.isEmpty(value)) {
             //Enum type            
@@ -1123,13 +1123,13 @@ public class LXmlUtils {
                     return (T) enumConst;
                 }
             }
-            throw new LParseException("value '%s' is not part of enumeration type %s.", value, enumClass.getName()); 
+            throw new LException("value '%s' is not part of enumeration type %s.", value, enumClass.getName()); 
         }
         return null;
     }
 
     @SuppressWarnings("unchecked")
-    public static EnumSet xmlStrToEnumSet(String value, Class enumClass) throws LParseException {
+    public static EnumSet xmlStrToEnumSet(String value, Class enumClass) throws LException {
         if (!LString.isEmpty(value)) {
             String[] enumStrings = value.split(Pattern.quote(ILConstants.KEYWORD_STATE_SEPARATOR));
             var enums = new LList<Object>();
@@ -1143,7 +1143,7 @@ public class LXmlUtils {
                 }
             }
             if (enums.size() != enumStrings.length) {
-                throw new LParseException("Unknown enums. Given enums: %s", value);
+                throw new LException("Unknown enums. Given enums: %s", value);
             }
             EnumSet es = EnumSet.noneOf(enumClass);
             es.addAll(enums);

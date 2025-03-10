@@ -2,8 +2,8 @@ package com.ka.lych.observable;
 
 import java.text.DecimalFormat;
 import com.ka.lych.event.LObservableChangeEvent;
-import com.ka.lych.exception.LParseException;
-import com.ka.lych.exception.LValueException;
+import com.ka.lych.exception.LException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.geometry.LGeomUtils;
 import com.ka.lych.xml.LXmlUtils;
 
@@ -20,7 +20,7 @@ public class LDouble extends LObservable<Double, LDouble> {
     
     private ILValidator<Double, LDouble> numberAcceptor = (LObservableChangeEvent<Double, LDouble> change) -> {
         return (!LGeomUtils.isWithinLimits(get(), lowerLimit, upperLimit, precision * 0.001) ?
-                new LValueException("Given value is out of limits: value=%s; lowerLimit=%s; upperLimit=%s", get(), lowerLimit, upperLimit) :
+                new LException("Given value is out of limits: value=%s; lowerLimit=%s; upperLimit=%s", get(), lowerLimit, upperLimit) :
                 null);
     };
 
@@ -134,12 +134,12 @@ public class LDouble extends LObservable<Double, LDouble> {
     }
 
     @Override
-    public void parse(String value) throws LParseException {
+    public void parse(String value) throws LException {
         set(LXmlUtils.xmlStrToDouble(value));
     }
 
     @Override
-    public void parseLocalized(String value) throws LParseException {
+    public void parseLocalized(String value) throws LException {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
 
@@ -164,7 +164,7 @@ public class LDouble extends LObservable<Double, LDouble> {
         return (value != null ? Double.toString(value) : null);
     }
     
-    public static LDouble of(String value) throws LParseException {
+    public static LDouble of(String value) throws LException {
         var result = new LDouble();
         result.parse(value);
         return result;

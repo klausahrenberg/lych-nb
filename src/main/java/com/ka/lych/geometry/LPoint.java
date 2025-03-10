@@ -1,7 +1,7 @@
 package com.ka.lych.geometry;
 
 import com.ka.lych.annotation.Json;
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.observable.ILChangeListener;
 import com.ka.lych.observable.ILObservable;
 import com.ka.lych.observable.ILValidator;
@@ -58,7 +58,7 @@ public class LPoint
     }
 
     @Override
-    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public void parseXml(Node n, LXmlParseInfo xmlParseInfo) throws LException {
         if (n.hasAttributes()) {
             LXmlUtils.parseXml(this, n, xmlParseInfo);
         } else {

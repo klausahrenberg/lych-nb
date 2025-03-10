@@ -1,6 +1,6 @@
 package com.ka.lych.xml;
 
-import com.ka.lych.exception.LParseException;
+import com.ka.lych.exception.LException;
 import com.ka.lych.geometry.LBounds;
 import com.ka.lych.graphics.ILCanvasCommand;
 import com.ka.lych.graphics.LCanvas;
@@ -44,11 +44,11 @@ public abstract class LSvgUtils {
     
     protected static LList<String> FILLS_AND_STROKES = new LList<>(new String[]{SVG_FILL, SVG_STROKE, SVG_STROKE_LINECAP, SVG_STROKE_LINEJOIN, SVG_STROKE_WIDTH});    
 
-    public static void parseXml(LCanvas canvas, Node xmlNode, LXmlParseInfo xmlParseInfo) throws LParseException {
+    public static void parseXml(LCanvas canvas, Node xmlNode, LXmlParseInfo xmlParseInfo) throws LException {
         _parseNode(canvas, xmlNode, xmlParseInfo);
     }
 
-    static void _parseNode(LCanvas canvas, Node node, LXmlParseInfo xmlParseInfo) throws LParseException {
+    static void _parseNode(LCanvas canvas, Node node, LXmlParseInfo xmlParseInfo) throws LException {
         if (LXmlUtils.isNotExcluded(node.getNodeName(), FILLS_AND_STROKES)) {
             //LLog.test(LSvgUtils.class, "parse svg node '%s'", node.getNodeName());
             ILCanvasCommand cmd = null;
@@ -88,14 +88,14 @@ public abstract class LSvgUtils {
         }
     }
     
-    static void _parseTransforms(LCanvas canvas, Node node, LXmlParseInfo xmlParseInfo) throws LParseException {
+    static void _parseTransforms(LCanvas canvas, Node node, LXmlParseInfo xmlParseInfo) throws LException {
         var sb = node.getTextContent().toLowerCase().trim();
         while (sb.length() > 0) {
             sb = _parseTransform(canvas, sb);
         }
     }
 
-    static String _parseTransform(LCanvas canvas, String sb) throws LParseException {
+    static String _parseTransform(LCanvas canvas, String sb) throws LException {
         if (sb.startsWith(SVG_TRANSLATE)) {
             sb = sb.substring(SVG_TRANSLATE.length());
             var a = sb.indexOf("(");
@@ -106,15 +106,15 @@ public abstract class LSvgUtils {
                 double[] coord = LXmlUtils.xmlStrToDoubleArray(new StringBuilder(s), 2);
                 canvas.add(LMatrix.getTranslateInstance(coord[0], coord[1]));
             } else {
-                throw new LParseException("Can't find brackets for transformation: '%s'", sb);
+                throw new LException("Can't find brackets for transformation: '%s'", sb);
             }
             return sb.substring(b + 1).trim();
         } else { 
-            throw new LParseException("Unknown command for transformation: '%s'", sb);
+            throw new LException("Unknown command for transformation: '%s'", sb);
         }
     }
     
-    static void _parseFillAndStroke(LCanvas canvas, Node node, LXmlParseInfo xmlParseInfo) throws LParseException {
+    static void _parseFillAndStroke(LCanvas canvas, Node node, LXmlParseInfo xmlParseInfo) throws LException {
         if (node.hasAttributes()) {
             var sw = node.getAttributes().getNamedItem(SVG_FILL);
             if (sw != null) {
@@ -133,7 +133,7 @@ public abstract class LSvgUtils {
         }
     }
     
-    static Optional<LStroke> _parseStrokeAttributes(LCanvas canvas, Node node, LXmlParseInfo xmlParseInfo) throws LParseException {
+    static Optional<LStroke> _parseStrokeAttributes(LCanvas canvas, Node node, LXmlParseInfo xmlParseInfo) throws LException {
         var stroke = new LStroke();
         var found = false;
         if (node.hasAttributes()) {
