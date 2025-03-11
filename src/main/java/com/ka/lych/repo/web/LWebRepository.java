@@ -194,18 +194,14 @@ public class LWebRepository implements
     @SuppressWarnings("unchecked")
     public <T extends Record> LFuture<T, LException> persist(T rcd, Optional<Map<String, Object>> initialId, Optional<? extends Record> parent, Optional<Boolean> overrideExisting) {
         return LFuture.<T, LException>execute(task -> {
-            try {                                                
-                var request = new LOdwRequestMap<T>(rcd, initialId, parent, overrideExisting);
-                var map = LHttp.post(_webServer + _persistCommand, request).awaitOrElseThrow();
-                
-                //LLog.test("persist: %s", request.toString());
-                //var map = LJsonParser.of(LMap.class).url(new URL(_webServer + _persistCommand), LJson.of(request).toString()).parse();       
-                //tbi: no error handling so far
-                LReflections.update(rcd, map);
-                return rcd;
-            } catch (LException ex) {
-                throw new LException(ex);
-            }
+            var request = new LOdwRequestMap<T>(rcd, initialId, parent, overrideExisting);
+            var map = LHttp.post(_webServer + _persistCommand, request).awaitOrElseThrow();
+
+            //LLog.test("persist: %s", request.toString());
+            //var map = LJsonParser.of(LMap.class).url(new URL(_webServer + _persistCommand), LJson.of(request).toString()).parse();       
+            //tbi: no error handling so far
+            LReflections.update(rcd, map);
+            return rcd;
         });
     }
 
@@ -213,17 +209,17 @@ public class LWebRepository implements
     public <T extends Record> LFuture<T, LException> remove(T record, Optional<? extends Record> parent) {
         return LFuture.<T, LException>execute(task -> {
             var recordJson = LJson.empty()
-                          .beginObject()
-                       .propertyObject("record", record, true)
-                       .propertyObject("parent", parent, true)
-                .endObject();
+                    .beginObject()
+                    .propertyObject("record", record, true)
+                    .propertyObject("parent", parent, true)
+                    .endObject();
             try {
                 LHttp.post(_webServer + _removeCommand, recordJson).awaitOrElseThrow();
                 return record;
             } catch (LException lhe) {
                 _state.set(LDataServiceState.NOT_AVAILABLE);
                 throw new LException(lhe);
-            }    
+            }
         });
     }
 
@@ -262,18 +258,18 @@ public class LWebRepository implements
 
     public record LOdwRequestMap<R extends Record>(
             //@Json Map<String, Object> record,
-            @Json R record, 
+            @Json R record,
             @Json Optional<Map<String, Object>> initialId,
             //@Json Optional<LMap<String, Object>> parent,
             @Json Optional<? extends Record> parent,
             @Json Optional<Boolean> overrideExisting) {
 
     }
-    
+
     public record LOdwRequestValue<R extends Record>(@Json LMap<String, Object> record, @Json String field) {
 
     }
-    
+
     public record LOdwRequestValueResult<R extends Record>(@Json LMap<String, Object> record, @Json String field, @Json Object value) {
 
     }
