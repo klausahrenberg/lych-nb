@@ -101,10 +101,18 @@ public abstract class LRecord {
     
     public static Optional<Map<String, Object>> currentIds(Record record) {
         if (keyCompleteness(record) == LKeyCompleteness.KEY_COMPLETE) {
-            return Optional.of(LJson.mapOf(record, true));
+            return Optional.of(LJson.toMap(record, true));
         } else {
             return Optional.empty();
         }
+    }
+    
+    public static Map<String, Object> toMap(Record record) {
+        return LJson.toMap(record, false);
+    }
+    
+    public static Map<String, Object> toMap(Record record, boolean onlyId) {
+        return LJson.toMap(record, onlyId);
     }
     
     public static boolean currentIdsChanged(Record record, Optional<Map<String, Object>> currentIds) {
@@ -240,6 +248,27 @@ public abstract class LRecord {
         }
     }
 
+    public static <R extends Record> R clone (R record) {
+        var cloned = example(record.getClass());
+        LRecord.update(cloned, record);
+        return (R) cloned;
+    }
+    
+    public static <R extends Record> void update (R toUpdate, R source) {
+        var map = new LMap<String, Object>();
+        LObjects.requireNonNull(toUpdate);
+        LObjects.requireNonNull(source);
+        var fields = getFields(source.getClass());
+        for (var field : fields) {
+            map.put(field.name(), observable(source, field));
+        }
+        try {
+            LReflections.update(toUpdate, map);    
+        } catch (LException lex) {
+            throw new IllegalArgumentException("Can't be possible.", lex);
+        }
+    }
+    
     @SuppressWarnings("unchecked")
     public static <T extends Record> T example(Class<T> recordClass) {
         var map = new LMap<String, Object>();

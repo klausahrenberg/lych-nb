@@ -1,5 +1,6 @@
 package com.ka.lych.util;
 
+import com.ka.lych.exception.LException;
 import com.ka.lych.list.LList;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
@@ -16,8 +17,9 @@ public abstract class LFuture<R, T extends Throwable>
 
     private final LTask service;
     private final CountDownLatch latch;
-    private T error;
-    private R value;
+    private T _error;
+    private R _value;
+    private boolean _verified;
 
     private enum LFutureHandlerType {
         VALUE, ERROR, CANCEL, COMPLETE
@@ -34,25 +36,31 @@ public abstract class LFuture<R, T extends Throwable>
     public LFuture(LTask service) {
         this.service = service;
         this.latch = new CountDownLatch(1);
-        this.error = null;
-        this.value = null;
+        _error = null;
+        _verified = true;
+        _value = null;
     }
 
     @SuppressWarnings("unchecked")
-    void _finish(T exception, R value, boolean cancelled) {
-        this.error = exception;
-        this.value = (exception == null ? value : null);
+    void _finish(T error, R value, boolean cancelled) {
+        _error = error;
+        if (_error == null) {
+            _value = (value != null ? value : _value);
+        } else {
+            _value = null;
+        }
+
         latch.countDown();
         if (!cancelled) {
             if (hasError()) {
                 if (_handlers.getIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR) != null) {
-                    _handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR, eh -> eh.handler().accept(this.error));
+                    _handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.ERROR, eh -> eh.handler().accept(_error));
                 } else {
                     //if no handler for errors is there, print stack trace
-                    this.error.printStackTrace();
+                    _error.printStackTrace();
                 }
             } else {
-                _handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.VALUE, eh -> eh.handler().accept(this.value));
+                _handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.VALUE, eh -> eh.handler().accept(_value));
             }
         } else {
             _handlers.forEachIf(fh -> fh.handlerType() == LFutureHandlerType.CANCEL, eh -> eh.handler().accept(null));
@@ -62,16 +70,15 @@ public abstract class LFuture<R, T extends Throwable>
     }
 
     public boolean verifyResult(R value) {
+        _verified = true;
         if (_verifiers != null) {
             var itv = _verifiers.iterator();
-            while (itv.hasNext()) {
+            while ((_verified) && (itv.hasNext())) {
                 var v = itv.next();
-                if (!v.apply(value)) {
-                    return false;
-                }
+                _verified = v.apply(value);
             }
         }
-        return true;
+        return _verified;
     }
 
     public LFuture<R, T> await() {
@@ -94,7 +101,7 @@ public abstract class LFuture<R, T extends Throwable>
         if (latch.getCount() > 0) {
             _handlers.add(new LFutureHandler(LFutureHandlerType.ERROR, exceptionHandler));
         } else if (hasError()) {
-            exceptionHandler.accept(this.error);
+            exceptionHandler.accept(_error);
         }
         return this;
     }
@@ -142,7 +149,7 @@ public abstract class LFuture<R, T extends Throwable>
         if (latch.getCount() > 0) {
             _handlers.add(new LFutureHandler(LFutureHandlerType.VALUE, valueHandler));
         } else if (!hasError()) {
-            valueHandler.accept(this.value);
+            valueHandler.accept(_value);
         }
         return this;
     }
@@ -154,33 +161,33 @@ public abstract class LFuture<R, T extends Throwable>
             }
             _verifiers.add(valueVerifier);
         } else if (!hasError()) {
-            valueVerifier.apply(value);
+            valueVerifier.apply(_value);
         }
         return this;
     }
 
     public boolean hasError() {
-        return (error != null);
+        return (_error != null);
     }
 
     public T error() {
-        return error;
+        return _error;
     }
 
     public R value() {
-        return value;
+        return _value;
     }
 
     public R awaitOrElseThrow() throws T {
         try {
             latch.await();
             if (hasError()) {
-                throw error;
+                throw _error;
             }
         } catch (InterruptedException ex) {
             LLog.error(ex.getMessage(), ex);
         }
-        return this.value;
+        return _value;
     }
 
     protected static LList<LTask> runningTasks;
@@ -192,7 +199,7 @@ public abstract class LFuture<R, T extends Throwable>
     }
 
     public static <R, T extends Throwable> LFuture<R, T> execute(ILRunnable<R, T> runnable) {
-        return LFuture.<R, T>execute(runnable, 0, 0, false);
+        return LFuture.<R, T>executeTask(new LTask<R, T>(runnable));
     }
 
     public static <R, T extends Throwable> LFuture<R, T> execute(ILRunnable<R, T> runnable, long delay, long duration, boolean looping) {
