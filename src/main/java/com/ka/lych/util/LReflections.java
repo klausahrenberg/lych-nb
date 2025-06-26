@@ -214,13 +214,11 @@ public abstract class LReflections {
             
             var consParams = cons.getParameters();
             var consValues = new Object[consParams.length];
-            for (int i = 0; i < consParams.length; i++) {
-                LLog.test("cons param '%s' / class %s", consParams[i].getName(), consParams[i].getType());
+            for (int i = 0; i < consParams.length; i++) {                
                 if (!values.containsKey(consParams[i].getName())) {
                     throw new LException("REQUIRED_VALUE_FOR_KEY_MISSING", requClass, consParams[i].getName());
                 }
                 consValues[i] = values.get(consParams[i].getName());
-                LLog.test("cons param '%s', class %s / value '%s'", consParams[i].getName(), consParams[i].getType(), consValues[i]);
                 values.remove(consParams[i].getName());
             }
             LLog.test("a");
@@ -231,12 +229,10 @@ public abstract class LReflections {
                 LReflections.update(result, values);
             }
             return (T) (isOptional ? Optional.of(result) : result);
-        } catch (Exception ex) {
-            LLog.test("fehl %s / %s", ex.getClass().getName(), ex.getMessage());
+        } catch (Exception ex) {            
             ex.printStackTrace();
             throw new IllegalStateException(ex);
         } catch (Throwable ex2) {
-            LLog.test("fehl2 %s / %s", ex2.getClass().getName(), ex2.getMessage());
             throw new IllegalStateException(ex2);
         }
     }

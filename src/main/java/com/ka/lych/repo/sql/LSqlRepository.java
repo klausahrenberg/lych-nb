@@ -1021,7 +1021,7 @@ public class LSqlRepository extends LServerRepository<LSqlRepository> {
     @Override
     public void startTransaction() throws LException {
         try {
-            _connection.setAutoCommit(false);
+            _connection.setAutoCommit(false);           
             //Start transaction
             _connection.setSavepoint();
         } catch (SQLException sqle) {
