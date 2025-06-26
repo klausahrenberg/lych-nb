@@ -82,7 +82,7 @@ public abstract class LHttp {
             var lineEnd = "\r\n";
             var filefield = "test";
             try {
-                var clientId = UUID.randomUUID().toString();
+                //var clientId = UUID.randomUUID().toString();
                 var c = new LHttpMultipart(url, "UTF-8", false);
                 c.setup_writer();
                 //c.addFormField("clientId", clientId);
@@ -94,10 +94,12 @@ public abstract class LHttp {
                     LMap map = LJsonParser.of(LMap.class).inputStream(http.getInputStream()).parse();
                     LLog.test("upload ok: %s", map.get(ILConstants.KEYWORD_ID));
                     
-                    var stompClient = new StompClient("ws://localhost:8080/websocket", clientId);
+                    var taskId = map.get(ILConstants.KEYWORD_ID).toString();                    
+                    
+                    var stompClient = new StompClient("ws://localhost:8080/websocket", taskId);
                     stompClient.connect(() -> {
                         LLog.test("subscribe...");
-                        stompClient.subscribe("/topic/ws/" + clientId);
+                        stompClient.subscribe("/topic/ws/" + taskId);
                     });
                     
                     //CountDownLatch latch = new CountDownLatch(1);
