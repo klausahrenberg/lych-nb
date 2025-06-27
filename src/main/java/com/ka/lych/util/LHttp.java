@@ -17,7 +17,6 @@ import java.net.URISyntaxException;
 import java.net.http.WebSocket;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 
 /**
@@ -75,52 +74,28 @@ public abstract class LHttp {
         });
     }
 
-    public static LFuture<LMap, LException> upload(String url, LJson request, File file) {
-        return LFuture.<LMap, LException>execute((LTask<LMap, LException> task) -> {
+    public static LFuture<String, LException> upload(String url, LJson request, File file) {
+        return LFuture.<String, LException>execute((LTask<String, LException> task) -> {
             var twoHyphens = "--";
             var boundary = "*****" + Long.toString(System.currentTimeMillis()) + "*****";
             var lineEnd = "\r\n";
             var filefield = "test";
             try {
-                //var clientId = UUID.randomUUID().toString();
                 var c = new LHttpMultipart(url, "UTF-8", false);
-                c.setup_writer();
-                //c.addFormField("clientId", clientId);
-                c.addFormField("task", null);
+                c.setup_writer();            
+                c.addFormField("request", ((request != null) ? request.toString() : null));
                 c.addFilePart("excelFile", file);
                 var http = c.finish();
                 http.connect();
                 if (http.getResponseCode() == LHttpStatus.OK.value()) {   
                     LMap map = LJsonParser.of(LMap.class).inputStream(http.getInputStream()).parse();
-                    LLog.test("upload ok: %s", map.get(ILConstants.KEYWORD_ID));
-                    
-                    var taskId = map.get(ILConstants.KEYWORD_ID).toString();                    
-                    
-                    var stompClient = new StompClient("ws://localhost:8080/websocket", taskId);
-                    stompClient.connect(() -> {
-                        LLog.test("subscribe...");
-                        stompClient.subscribe("/topic/ws/" + taskId);
-                    });
-                    
-                    //CountDownLatch latch = new CountDownLatch(1);
-                    /*WebSocket ws = HttpClient
-                            .newHttpClient()
-                            .newWebSocketBuilder()
-                            .buildAsync(URI.create("ws://localhost:8080/websocket"), STOMP)
-                            .join();*/
-                    LLog.test("join");
-                    //ws.sendText("Hello!", true);
-                    //LLog.test("send hello");
-                    /*try {
-                        latch.await();
-                    } catch (Exception x) {
-                        x.printStackTrace();
-                    }*/
-                    LLog.test("latch awaited");
-                    return null;
-                    //return (LMap) LJsonParser.of(LMap.class).inputStream(http.getInputStream()).parse();
+                    if (map.containsKey(ILConstants.KEYWORD_ID)) {
+                        LLog.test("upload ok: %s", map.get(ILConstants.KEYWORD_ID));
+                        return map.get(ILConstants.KEYWORD_ID).toString();
+                    } else {
+                        throw new LException("Response didn't included an task id");
+                    }                    
                 } else {
-                    LLog.test("upload failed");
                     throw LException.of(LJsonParser.of(LMap.class).inputStream(http.getErrorStream()).parse());
                 }
             } catch (URISyntaxException use) {
