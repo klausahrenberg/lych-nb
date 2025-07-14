@@ -1,0 +1,29 @@
+[
+  {
+    "id": "radio",
+    "title": "radio",
+    "href": "/things/radio",
+    "@context": "https://iot.mozilla.org/schemas",
+    "@type": [
+      "OnOffSwitch", "OnOffSwitch2"
+    ],
+    "properties": {
+      "on": {
+        "title": "Power",
+        "type": "boolean",
+        "@type": "OnOffProperty",
+        "href": "/things/radio/properties/on"
+      },
+      "station": {
+        "title": "station",
+        "type": "string",
+        "enum": [
+          "Radio PSR",
+          "104.6",
+          "FFH"
+        ],
+        "href": "/things/radio/properties/station"
+      }
+    }
+  }
+]

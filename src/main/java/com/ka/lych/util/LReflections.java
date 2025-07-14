@@ -200,11 +200,11 @@ public abstract class LReflections {
             var paramCount = values.size();
             paramCount = (values.containsKey(ILConstants.KEYWORD_CLASS) ? paramCount - 1 : paramCount);
             var consCount = classToBeInstanciated.getDeclaredConstructors().length;
-            LLog.test("consCount %s / paramCount %s", consCount, paramCount);
+            //LLog.test("consCount %s / paramCount %s", consCount, paramCount);
             var c = 1;
             var cons = classToBeInstanciated.getDeclaredConstructors()[0];
             cons.setAccessible(true);
-            LLog.test("cons.getParameters().length %s", cons.getParameters().length);
+            //LLog.test("cons.getParameters().length %s", cons.getParameters().length);
             
             while ((c < consCount) && (cons.getParameters().length != paramCount)) {
                 cons = classToBeInstanciated.getDeclaredConstructors()[c];
@@ -220,10 +220,8 @@ public abstract class LReflections {
                 }
                 consValues[i] = values.get(consParams[i].getName());
                 values.remove(consParams[i].getName());
-            }
-            LLog.test("a");
+            }            
             var result = cons.newInstance(consValues);
-            LLog.test("b");
             if ((!values.isEmpty()) && (!(result instanceof Record))) {
                 //Some values were not part of constructor. Update class with these
                 LReflections.update(result, values);
