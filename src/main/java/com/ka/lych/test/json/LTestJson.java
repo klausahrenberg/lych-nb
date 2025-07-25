@@ -17,6 +17,8 @@ import com.ka.lych.observable.LObject;
 public class LTestJson {
 
     public LTestJson() {
+        
+        
 
         var resStream = getClass().getClassLoader().getResourceAsStream("LTestJson.json");
         if (resStream == null) {
