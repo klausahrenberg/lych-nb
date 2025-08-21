@@ -18,8 +18,8 @@ public class LMap<K, V> extends ConcurrentHashMap<K, V> {
     public LMap(int initialCapacity) {
         super(initialCapacity);
     }
-    
-    public static class LEntry<K, V> 
+
+    public static class LEntry<K, V>
             implements Entry<K, V> {
 
         private final K key;
@@ -29,7 +29,7 @@ public class LMap<K, V> extends ConcurrentHashMap<K, V> {
             this.key = key;
             this.value = value;
         }
-        
+
         @Override
         public K getKey() {
             return key;
@@ -47,7 +47,7 @@ public class LMap<K, V> extends ConcurrentHashMap<K, V> {
         }
 
     }
-    
+
     @SuppressWarnings("unchecked")
     public static <K, V> Entry<K, V> entry(K key, V value) {
         return new LEntry(key, value);
@@ -55,16 +55,17 @@ public class LMap<K, V> extends ConcurrentHashMap<K, V> {
 
     @SuppressWarnings("unchecked")
     public static <K, V> LMap<K, V> of(Entry<K, V>... entries) {
-        Objects.requireNonNull(entries, "Entries cant be null");
-        var result = new LMap<K, V>();        
-        for (Entry<K, V> entry : entries) {
-            if (entry.getValue() != null) {
-                result.put(entry.getKey(), entry.getValue());
+        var result = new LMap<K, V>();
+        if (entries != null) {
+            for (Entry<K, V> entry : entries) {
+                if ((entry != null) && (entry.getValue() != null)) {
+                    result.put(entry.getKey(), entry.getValue());
+                }
             }
         }
         return result;
     }
-    
+
     public static <K, V> LMap<K, V> of(Map<K, V> map) {
         Objects.requireNonNull(map, "Map cant be null");
         var result = new LMap<K, V>();
@@ -73,5 +74,5 @@ public class LMap<K, V> extends ConcurrentHashMap<K, V> {
         });
         return result;
     }
-    
+
 }
