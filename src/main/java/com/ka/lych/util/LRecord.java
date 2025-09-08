@@ -179,7 +179,7 @@ public abstract class LRecord {
         } else if (LDatetime.class.isAssignableFrom(field.type())) {
             result = (shouldParsed ? LDatetime.of((String) value) : new LDatetime((LocalDateTime) value));
         } else if (LObservable.class.isAssignableFrom(field.type())) {
-            if (value != null) {
+            if ((value != null) && (field._requiredClass != null)) {
                 if ((Map.class.isAssignableFrom(field._requiredClass.requiredClass())) && (!(value instanceof LMap))) {
                 //if (!(value instanceof LMap)) {
                     if ((field._requiredClass.parameterClasses().isEmpty()) || (field._requiredClass.parameterClasses().get().size() < 2)) {

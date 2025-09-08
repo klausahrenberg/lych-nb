@@ -1,6 +1,5 @@
 package com.ka.lych.util;
 
-import com.dinuberinde.stomp.client.StompClient;
 import com.dinuberinde.stomp.client.internal.stomp.StompMessageHelper;
 import com.ka.lych.exception.LException;
 import com.ka.lych.list.LMap;
@@ -24,7 +23,7 @@ import java.util.concurrent.CompletionStage;
  * @author klausahrenberg
  */
 public abstract class LHttp {
-    
+
     public static WebSocketClient STOMP = new WebSocketClient();
 
     public static LFuture<LMap, LException> post(String url, Object request) {
@@ -82,19 +81,19 @@ public abstract class LHttp {
             var filefield = "test";
             try {
                 var c = new LHttpMultipart(url, "UTF-8", false);
-                c.setup_writer();            
+                c.setup_writer();
                 c.addFormField("request", ((request != null) ? request.toString() : null));
                 c.addFilePart("excelFile", file);
                 var http = c.finish();
                 http.connect();
-                if (http.getResponseCode() == LHttpStatus.OK.value()) {   
+                if (http.getResponseCode() == LHttpStatus.OK.value()) {
                     LMap map = LJsonParser.of(LMap.class).inputStream(http.getInputStream()).parse();
                     if (map.containsKey(ILConstants.KEYWORD_ID)) {
                         LLog.test("upload ok: %s", map.get(ILConstants.KEYWORD_ID));
                         return map.get(ILConstants.KEYWORD_ID).toString();
                     } else {
                         throw new LException("Response didn't included an task id");
-                    }                    
+                    }
                 } else {
                     throw LException.of(LJsonParser.of(LMap.class).inputStream(http.getErrorStream()).parse());
                 }
@@ -104,6 +103,23 @@ public abstract class LHttp {
                 throw new LException(ioe);
             }
         });
+    }
+
+    public static String urlPathWithoutParameters(URI url) {
+        return urlPathWithoutParameters(url.getPath());
+    }
+    
+    public static String urlPathWithoutParameters(String url) {
+        try {
+            URI uri = new URI(url);
+            return new URI(uri.getScheme(),
+                    uri.getAuthority(),
+                    uri.getPath(),
+                    null, // Ignore the query part of the input url
+                    uri.getFragment()).toString();
+        } catch (URISyntaxException ex) {
+            return null;
+        }
     }
 
     private static String convertStreamToString(InputStream is) {
@@ -128,11 +144,9 @@ public abstract class LHttp {
     }
 
     private static class WebSocketClient implements WebSocket.Listener {
-        
+
         //https://usoar.es/posts/consuming-websocket-with-java-http-client/
-
         //private final CountDownLatch latch;
-
         public WebSocketClient() {
             //this.latch = latch;
         }
