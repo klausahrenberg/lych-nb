@@ -106,17 +106,12 @@ public abstract class LHttp {
     }
 
     public static String urlPathWithoutParameters(URI url) {
-        return urlPathWithoutParameters(url.getPath());
-    }
-    
-    public static String urlPathWithoutParameters(String url) {
         try {
-            URI uri = new URI(url);
-            return new URI(uri.getScheme(),
-                    uri.getAuthority(),
-                    uri.getPath(),
+            return new URI(url.getScheme(),
+                    url.getAuthority(),
+                    url.getPath(),
                     null, // Ignore the query part of the input url
-                    uri.getFragment()).toString();
+                    url.getFragment()).getPath().toString();
         } catch (URISyntaxException ex) {
             return null;
         }
