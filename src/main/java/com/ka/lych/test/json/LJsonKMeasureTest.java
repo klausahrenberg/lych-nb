@@ -8,6 +8,7 @@ import com.ka.lych.annotation.Json;
 import com.ka.lych.annotation.Id;
 import com.ka.lych.annotation.Generated;
 import com.ka.lych.annotation.Late;
+import com.ka.lych.list.LListChange;
 import com.ka.lych.observable.LDate;
 import com.ka.lych.observable.LInteger;
 import com.ka.lych.repo.LQuery;
@@ -50,7 +51,7 @@ public class LJsonKMeasureTest {
         try {
             var o = LJsonParser.of(LOdwRequest.class).payload(km).parse();
             LLog.test("loaded: %s", o);
-            LLog.test("query is: %s", (LQuery) o.query().get());
+            /*LLog.test("query is: %s", (LQuery) o.query().get());
             LLog.test("back to json: \n %s", LJson.of(o).toString());
             LLog.test("-------------------------------------------");
             var o2 = LJsonParser.of(LQuery.class).payload(km3).parse();
@@ -62,6 +63,10 @@ public class LJsonKMeasureTest {
             var jTest = LJsonParser.of(KJsonTest.class).payload(km4).parse();
             LLog.test("loaded: %s", jTest);
             LLog.test("back to json: \n %s", LJson.of(jTest).toString());
+            */
+            var change = new LListChange(LListChange.LChangeType.ADDED, null, o, null, 100);
+            LLog.test("change to json: \n %s", LJson.of(change).toString());
+            
         } catch (Exception ex) {
             LLog.error("exception: ", ex);
         }

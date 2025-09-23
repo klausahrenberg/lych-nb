@@ -1,12 +1,13 @@
 package com.ka.lych.list;
 
+import com.ka.lych.annotation.Json;
 import java.util.Collection;
 
 /**
  *
  * @author klausahrenberg
  */
-public record LListChange<T>(LChangeType type, Collection<T> list, T item, T oldItem, int index) {
+public record LListChange<T>(@Json LChangeType type, Collection<T> list, @Json T item, @Json T oldItem, @Json int index) {
 
     public enum LChangeType {
         ADDED, REMOVED, CHANGED
