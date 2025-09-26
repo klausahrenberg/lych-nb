@@ -294,8 +294,8 @@ public class LJson {
 
     protected static Map<String, Object> _objectToJson(LJson json, Object value, boolean onlyId, String fieldName, Collection<String> onlyFields) {
         var result = new LMap<String, Object>();
-        if (value instanceof Optional) {
-            value = (((Optional) value).isPresent() ? ((Optional) value).get() : null);
+        if (value instanceof Optional optional) {
+            value = (optional.isPresent() ? optional.get() : null);
         }
         if (value == null) {
             json.propertyNull(fieldName);
@@ -390,12 +390,17 @@ public class LJson {
             json.beginObject();
             if (value instanceof Record) {
                 json.propertyString(ILConstants.KEYWORD_CLASS, LReflections.nameForClass(value.getClass()));
+                if (result.containsKey(ILConstants.KEYWORD_CLASS)) {
+                    LLog.debug("class value already exits: '%s'", result.get(ILConstants.KEYWORD_CLASS));
+                } else {
+                    LLog.debug("nope class key: '%s'", LReflections.nameForClass(value.getClass()));
+                }
                 result.put(ILConstants.KEYWORD_CLASS, LReflections.nameForClass(value.getClass()));
-            } else if (value instanceof Throwable) {
+            } else if (value instanceof Throwable throwable) {
                 json.propertyString(ILConstants.KEYWORD_CLASS, LReflections.nameForClass(value.getClass()));
                 result.put(ILConstants.KEYWORD_CLASS, LReflections.nameForClass(value.getClass()));
-                json.propertyString("message", ((Throwable) value).getMessage());
-                result.put("message", ((Throwable) value).getMessage());
+                json.propertyString("message", throwable.getMessage());
+                result.put("message", throwable.getMessage());
             }
             var fields = LReflections.getFieldsOfInstance(value, null, Json.class);
             var it_fields = fields.iterator();
